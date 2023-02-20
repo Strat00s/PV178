@@ -1,0 +1,13 @@
+﻿1. Do solution přidejte existující projekt StoneMoveApp
+2. Otevřete projekt a vytvořte ve vlastním souboru abstraktní třídu Place obsahující vlastnost 
+   string Name inicializovanou přes konstruktor 
+3. Vytvořte ve vlastním souboru rozhraní IVehicle s metodami (všechny vrací void)
+	LoadStone()
+	UnloadStone()
+	Move(Place place)
+4. Změňte existují třídy Factory a Quarry tak, aby dědily ze třídy Place 
+5. Změňte třídu Truck tak, aby implementovala rozhraní IVehicle
+6. Doimplementujte metodu UnloadStone ve třídě Truck (nákladní vozidlo vyloží svůj náklad do továrny)
+7. Pozor: nákladní auto musí být naložené a musí být v továrně!
+	Note: Inspirujte se v metodě LoadStone
+8. Dopište kód cyklu v metodě main (auto jede ke do lomu, nakládá kameny, jede do továrny, vyloží kameny)
