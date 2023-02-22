@@ -98,15 +98,20 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   _healthComponent: {fileID: 6358101585823849583}
-  _projectilePrefab: {fileID: 0}
+  _projectilePrefab: {fileID: -7565231152124718383, guid: ee9ab91c2f4ce5046ac331b8a4f12d7d, type: 3}
   _boxCollider: {fileID: 4476979654995842882}
-  _objectToPan: {fileID: 0}
+  _objectToPan: {fileID: 1510195680192245095}
   _projectileSpawn: {fileID: 5760402892511542295, guid: ee9ab91c2f4ce5046ac331b8a4f12d7d, type: 3}
   _previewPrefab: {fileID: 4867485716912935487, guid: c31a04426cfe34946a0b31e154e6b8f1, type: 3}
   _name: Burst Tower
   _range: 10
   _price: 150
   _timeBetweenShots: 3
+--- !u!4 &1510195680192245095 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5510945952753364857, guid: 70dd3cb786b458c4f8d809752ac73117, type: 3}
+  m_PrefabInstance: {fileID: 6381489471271830046}
+  m_PrefabAsset: {fileID: 0}
 --- !u!65 &4476979654995842882 stripped
 BoxCollider:
   m_CorrespondingSourceObject: {fileID: -1824248551201303204, guid: 70dd3cb786b458c4f8d809752ac73117, type: 3}

@@ -65,3 +65,30 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0af332f87e10465459f59a55fe72d529, type: 3}
+--- !u!1 &2143208860060123348 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8684815762193327488, guid: 0af332f87e10465459f59a55fe72d529, type: 3}
+  m_PrefabInstance: {fileID: 7293752158420575572}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &-7565231152124718383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2143208860060123348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcf9c2245c7ed904a88e485e371d721a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rb: {fileID: 8852629587161436110}
+  _enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  _onHitParticleSystem: {fileID: 198801791596541968, guid: 9ece51bd9b1ecd845994078aefd1ee45, type: 3}
+--- !u!54 &8852629587161436110 stripped
+Rigidbody:
+  m_CorrespondingSourceObject: {fileID: 2297477123683347098, guid: 0af332f87e10465459f59a55fe72d529, type: 3}
+  m_PrefabInstance: {fileID: 7293752158420575572}
+  m_PrefabAsset: {fileID: 0}

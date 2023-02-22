@@ -20,6 +20,13 @@ public class RandomTower : Tower
                 return this.target;
         }
 
-        return colliders[Random.Range(0, colliders.Length)].gameObject; //return random target from the list
+        GameObject newTarget = colliders[Random.Range(0, colliders.Length)].gameObject; //return random target from the list
+
+        if (target != newTarget && target != null)
+            target.GetComponent<ObjectSelector>().DeselectObject();
+        if (newTarget != null)
+            newTarget.GetComponent<ObjectSelector>().SelectObject();
+
+        return newTarget;
     }
 }

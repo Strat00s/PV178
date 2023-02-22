@@ -25,6 +25,11 @@ public class BurstTower : Tower
             }
         }
 
+        if (target != healthiestTarget && target != null)
+            target.GetComponent<ObjectSelector>().DeselectObject();
+        if (healthiestTarget != null)
+            healthiestTarget.GetComponent<ObjectSelector>().SelectObject();
+
         return healthiestTarget;
     }
 }

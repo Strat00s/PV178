@@ -61,3 +61,30 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0af332f87e10465459f59a55fe72d529, type: 3}
+--- !u!54 &2352382514876728135 stripped
+Rigidbody:
+  m_CorrespondingSourceObject: {fileID: 2297477123683347098, guid: 0af332f87e10465459f59a55fe72d529, type: 3}
+  m_PrefabInstance: {fileID: 4559630922251119069}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5170618088438434909 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8684815762193327488, guid: 0af332f87e10465459f59a55fe72d529, type: 3}
+  m_PrefabInstance: {fileID: 4559630922251119069}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7937516212911456226
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5170618088438434909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55368545123c8b64384153a9b0650e20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rb: {fileID: 2352382514876728135}
+  _enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  _onHitParticleSystem: {fileID: 198801791596541968, guid: 9ece51bd9b1ecd845994078aefd1ee45, type: 3}

@@ -49,15 +49,25 @@ public class Tower : MonoBehaviour
         return null;
     }
 
+    virtual protected void fire()
+    {
+        timer = 0;
+    }
+
     virtual protected void Update()
     {
         target = getTarget();
-        if (target is null)
+        if (target is null || timer < _timeBetweenShots)
+        {
+            timer += Time.deltaTime;
             return;
+        }
+        Debug.Log("ID: " + target.GetInstanceID() + " Range: " + (target.transform.position - this.transform.position).sqrMagnitude + " Health: " + target.GetComponent<HealthComponent>().HealthValue);
 
-        Debug.Log("ID: " + target.GetInstanceID());
-        Debug.Log("Range: " + (target.transform.position - this.transform.position).sqrMagnitude);
-        Debug.Log("Health: " + target.GetComponent<HealthComponent>().HealthValue);
+        //tracking
+        //Debug.Log("X: " + (_objectToPan.transform.eulerAngles.x - target.transform.eulerAngles.x) + " Y: " + (_objectToPan.transform.eulerAngles.y - target.transform.eulerAngles.y) + " Z: " + (_objectToPan.transform.eulerAngles.z - target.transform.eulerAngles.z));
+        _objectToPan.transform.LookAt(target.transform);
+        fire();
     }
 
 

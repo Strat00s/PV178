@@ -126,12 +126,17 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   _healthComponent: {fileID: 4085826606672272908}
-  _projectilePrefab: {fileID: 0}
+  _projectilePrefab: {fileID: -7565231152124718383, guid: ee9ab91c2f4ce5046ac331b8a4f12d7d, type: 3}
   _boxCollider: {fileID: 6822438128088192289}
-  _objectToPan: {fileID: 0}
+  _objectToPan: {fileID: 8393035056185782020}
   _projectileSpawn: {fileID: 5760402892511542295, guid: ee9ab91c2f4ce5046ac331b8a4f12d7d, type: 3}
   _previewPrefab: {fileID: 4867485716912935487, guid: c31a04426cfe34946a0b31e154e6b8f1, type: 3}
   _name: Basic Tower
   _range: 20
   _price: 75
   _timeBetweenShots: 1.5
+--- !u!4 &8393035056185782020 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5510945952753364857, guid: 70dd3cb786b458c4f8d809752ac73117, type: 3}
+  m_PrefabInstance: {fileID: 4035468047830941821}
+  m_PrefabAsset: {fileID: 0}
