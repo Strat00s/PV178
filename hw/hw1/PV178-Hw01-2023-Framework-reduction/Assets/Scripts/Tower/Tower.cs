@@ -19,11 +19,9 @@ public class Tower : MonoBehaviour
     [SerializeField] protected string _name;
     [SerializeField] protected float _range;
     [SerializeField] protected int _price;
-    //[SerializeField] protected Projectile _projectile;
     [SerializeField] protected float _timeBetweenShots;
-    //[SerializeField] protected int _health;
 
-    protected float timer = 0;
+    protected float timer = float.MaxValue;
     protected GameObject target = null;
 
 
@@ -44,30 +42,41 @@ public class Tower : MonoBehaviour
     }
 
 
-    virtual protected GameObject getTarget()
+    virtual protected GameObject GetTarget()
     {
         return null;
     }
 
-    virtual protected void fire()
+    protected void CreateProjectile()
     {
-        timer = 0;
+        //create projectile and move it infront of the barrel
+        var projectile = Instantiate(_projectilePrefab, _objectToPan.transform.position + (Vector3.up * 1), _objectToPan.transform.rotation);
+        projectile.transform.Translate(Vector3.forward * 2);
+        projectile.transform.parent = null;
+    }
+
+    virtual protected void Fire()
+    {
+        CreateProjectile();
     }
 
     virtual protected void Update()
     {
-        target = getTarget();
-        if (target is null || timer < _timeBetweenShots)
-        {
-            timer += Time.deltaTime;
+        //get new target (if there is any)
+        target = GetTarget();
+        if (target is null)
             return;
-        }
-        Debug.Log("ID: " + target.GetInstanceID() + " Range: " + (target.transform.position - this.transform.position).sqrMagnitude + " Health: " + target.GetComponent<HealthComponent>().HealthValue);
 
-        //tracking
-        //Debug.Log("X: " + (_objectToPan.transform.eulerAngles.x - target.transform.eulerAngles.x) + " Y: " + (_objectToPan.transform.eulerAngles.y - target.transform.eulerAngles.y) + " Z: " + (_objectToPan.transform.eulerAngles.z - target.transform.eulerAngles.z));
-        _objectToPan.transform.LookAt(target.transform);
-        fire();
+        _objectToPan.transform.LookAt(target.transform);    //tracking
+
+        //shoot at correct intervals
+        timer += Time.deltaTime;
+        if (timer >= _timeBetweenShots)
+        {
+            timer = 0;
+            Fire();
+        }
+    
     }
 
 

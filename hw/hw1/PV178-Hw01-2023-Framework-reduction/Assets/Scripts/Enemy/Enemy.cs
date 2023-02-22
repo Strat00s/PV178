@@ -17,14 +17,7 @@ public class Enemy : MonoBehaviour
     [SerializeField] protected int _reward;
     [SerializeField] protected int _speed;
 
-    enum deathType
-    {
-        NONE = 0,
-        PROJECTILE,
-        CRASH
-    }
-
-    protected int deathCause;
+    protected bool crashed;
 
 
     public event Action OnDeath;
@@ -32,8 +25,8 @@ public class Enemy : MonoBehaviour
     private void Start()
     {
         _healthComponent.OnDeath += HandleDeath;
-        deathCause = (int)deathType.NONE;
         _movementComponent.MoveAlongPath();
+        crashed = false;
     }
 
     private void OnDestroy()
@@ -49,7 +42,7 @@ public class Enemy : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         collision.gameObject.GetComponent<HealthComponent>().HealthValue -= calculateDamage(collision.gameObject);
-        deathCause = (int)deathType.CRASH;
+        crashed = true;
         this._healthComponent.HealthValue = 0;
     }
 
@@ -65,7 +58,7 @@ public class Enemy : MonoBehaviour
 
     protected void HandleDeath()
     {
-        if (deathCause == (int)deathType.PROJECTILE)
+        if (!crashed)
             GameObject.FindObjectOfType<Player>().Resources += _reward;
         OnDeath?.Invoke();
         Destroy(gameObject);

@@ -3,13 +3,21 @@ using UnityEngine;
 [RequireComponent(typeof(BoxCollider), typeof(HealthComponent))]
 public class BurstTower : Tower
 {
-    override protected GameObject getTarget()
+    //async function to wait without halting the entire game
+    async override protected void Fire()
+    {
+        CreateProjectile();
+        await System. Threading.Tasks.Task.Delay(200);  //waot 0.2 seconds
+        CreateProjectile();
+    }
+
+    override protected GameObject GetTarget()
     {
         int highestHealth = int.MinValue;
         GameObject healthiestTarget = null;
 
         //iterate through colliders in "_range" on layer "Unit"
-        foreach (var colllider in Physics.OverlapSphere(this.transform.position, _range, LayerMask.GetMask("Unit")))
+        foreach (var colllider in Physics.OverlapSphere(this.transform.position, _range, _enemyLayerMask))
         {
             //return current target if still in range (or alive)
             if (this.target == colllider.gameObject)

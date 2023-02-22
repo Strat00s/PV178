@@ -5,5 +5,11 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class BasicProjectile : Projectile
 {
-
+    override protected void OnTriggerEnter(Collider other)
+    {
+        Debug.Log("Hit: " + other.gameObject.name);
+        if (other.gameObject.name == "LazyEnemy(Clone)" || other.gameObject.name == "AggresiveEnemy(Clone)")
+            other.gameObject.GetComponent<HealthComponent>().HealthValue -= _damage;
+        Destroy(gameObject);
+    }
 }

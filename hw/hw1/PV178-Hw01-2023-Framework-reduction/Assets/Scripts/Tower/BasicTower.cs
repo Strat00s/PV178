@@ -3,13 +3,13 @@ using UnityEngine;
 [RequireComponent(typeof(BoxCollider), typeof(HealthComponent))]
 public class BasicTower : Tower
 {
-    override protected GameObject getTarget()
+    override protected GameObject GetTarget()
     {
         float nearestDistance = float.MaxValue;
         GameObject nearestTarget = null;
 
         //iterate through colliders in "_range" on layer "Unit"
-        foreach (var collider in Physics.OverlapSphere(this.transform.position, _range, LayerMask.GetMask("Unit")))
+        foreach (var collider in Physics.OverlapSphere(this.transform.position, _range, _enemyLayerMask))
         {
             //return old target if it is still in range (or alive)
             if (this.target == collider.gameObject)

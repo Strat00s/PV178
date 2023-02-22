@@ -4,10 +4,19 @@ using UnityEngine;
 [RequireComponent(typeof(BoxCollider), typeof(HealthComponent))]
 public class RandomTower : Tower
 {
-
-    override protected GameObject getTarget()
+    override protected void Fire()
     {
-        Collider[] colliders = Physics.OverlapSphere(this.transform.position, _range, LayerMask.GetMask("Unit")); //get list of targets in "_range" on layer "Unit"
+        int[] values = { 0, 0, 1, 1, 1, 1, 1, 1, 2, 2};
+        switch (values[Random.Range(0, values.Length)])
+        {
+            case 0: CreateProjectile(); CreateProjectile(); break;
+            case 1: CreateProjectile(); break;
+            case 2: break;
+        }
+    }
+    override protected GameObject GetTarget()
+    {
+        Collider[] colliders = Physics.OverlapSphere(this.transform.position, _range, _enemyLayerMask); //get list of targets in "_range" on layer "Unit"
 
         //return if no target was found
         if (colliders.Length == 0)
