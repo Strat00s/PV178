@@ -96,7 +96,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 2179662834889341280, guid: 3cad5af2698934f4a8f5c3c3963f7075, type: 3}
   m_PrefabInstance: {fileID: 7078871537536058503}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &5196291520786482656
+--- !u!114 &-8886223594442823228
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -105,13 +105,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 8935849628730326503}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e74f73b906c690049ba0579431736405, type: 3}
+  m_Script: {fileID: 11500000, guid: 569d3608fdb5406429c6d8b4a136716f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _movementComponent: {fileID: 4619334968831406506}
   _healthComponent: {fileID: 4538566871457837460}
-  _onDeathParticlePrefab: {fileID: 0}
-  _onSuccessParticlePrefab: {fileID: 0}
+  _onDeathParticlePrefab: {fileID: 198537984209914932, guid: c01781356bdb52e47950ab35d7629806, type: 3}
+  _onSuccessParticlePrefab: {fileID: 198537984209914932, guid: f936cff0108775d4d85ce4a708e45720, type: 3}
   _attackLayerMask:
     serializedVersion: 2
     m_Bits: 2048

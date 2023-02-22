@@ -15,12 +15,20 @@ public class Tower : MonoBehaviour
     [SerializeField] protected Transform _projectileSpawn;
     [SerializeField] private GameObject _previewPrefab;
 
+
+    [SerializeField] protected string _name;
+    [SerializeField] protected int _range;
+    [SerializeField] protected int _price;
+    //[SerializeField] protected Projectile _projectile;
+    [SerializeField] protected float _timeBetweenShots;
+    //[SerializeField] protected int _health;
+
+
     public HealthComponent Health => _healthComponent;
     public BoxCollider Collider => _boxCollider;
     public GameObject BuildingPreview => _previewPrefab;
 
-    // TODO: Modify so they have appropriate price
-    public int Price => 10;
+    public int Price => _price;
 
     private void Start()
     {
