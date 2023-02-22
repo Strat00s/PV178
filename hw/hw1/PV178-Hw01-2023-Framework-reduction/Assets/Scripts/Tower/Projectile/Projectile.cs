@@ -11,7 +11,6 @@ public abstract class Projectile : MonoBehaviour
     [SerializeField] protected int _damage;
     [SerializeField] protected int _speed;
     [SerializeField] protected float _lifetime;
-    [SerializeField] protected int _size;
 
     protected float timer;
 

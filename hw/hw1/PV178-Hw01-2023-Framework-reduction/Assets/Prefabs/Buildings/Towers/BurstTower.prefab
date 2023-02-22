@@ -101,7 +101,7 @@ MonoBehaviour:
   _projectilePrefab: {fileID: -7565231152124718383, guid: ee9ab91c2f4ce5046ac331b8a4f12d7d, type: 3}
   _boxCollider: {fileID: 4476979654995842882}
   _objectToPan: {fileID: 1510195680192245095}
-  _projectileSpawn: {fileID: 5760402892511542295, guid: ee9ab91c2f4ce5046ac331b8a4f12d7d, type: 3}
+  _projectileSpawn: {fileID: 0}
   _previewPrefab: {fileID: 4867485716912935487, guid: c31a04426cfe34946a0b31e154e6b8f1, type: 3}
   _name: Burst Tower
   _range: 10

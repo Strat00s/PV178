@@ -21,8 +21,8 @@ public class Tower : MonoBehaviour
     [SerializeField] protected int _price;
     [SerializeField] protected float _timeBetweenShots;
 
-    protected float timer = float.MaxValue;
-    protected GameObject target = null;
+    protected float timer;
+    protected GameObject target;
 
 
     public HealthComponent Health => _healthComponent;
@@ -34,6 +34,8 @@ public class Tower : MonoBehaviour
     private void Start()
     {
         _healthComponent.OnDeath += HandleDeath;
+        timer = float.MaxValue;
+        target = null;
     }
 
     private void OnDestroy()
@@ -41,12 +43,13 @@ public class Tower : MonoBehaviour
         _healthComponent.OnDeath -= HandleDeath;
     }
 
-
+    //default target acquirement implementation
     virtual protected GameObject GetTarget()
     {
         return null;
     }
 
+    //create projectile
     protected void CreateProjectile()
     {
         //create projectile and move it infront of the barrel
@@ -55,6 +58,7 @@ public class Tower : MonoBehaviour
         projectile.transform.parent = null;
     }
 
+    //default fire implementation
     virtual protected void Fire()
     {
         CreateProjectile();

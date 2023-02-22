@@ -6,7 +6,9 @@ public class RandomTower : Tower
 {
     override protected void Fire()
     {
-        int[] values = { 0, 0, 1, 1, 1, 1, 1, 1, 2, 2};
+        int[] values = {0, 0, 1, 1, 1, 1, 1, 1, 2, 2};
+
+        //pick with probability
         switch (values[Random.Range(0, values.Length)])
         {
             case 0: CreateProjectile(); CreateProjectile(); break;
