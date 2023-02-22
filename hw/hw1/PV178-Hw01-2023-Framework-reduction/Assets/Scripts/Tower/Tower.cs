@@ -17,11 +17,14 @@ public class Tower : MonoBehaviour
 
 
     [SerializeField] protected string _name;
-    [SerializeField] protected int _range;
+    [SerializeField] protected float _range;
     [SerializeField] protected int _price;
     //[SerializeField] protected Projectile _projectile;
     [SerializeField] protected float _timeBetweenShots;
     //[SerializeField] protected int _health;
+
+    protected float timer = 0;
+    protected GameObject target = null;
 
 
     public HealthComponent Health => _healthComponent;
@@ -39,6 +42,24 @@ public class Tower : MonoBehaviour
     {
         _healthComponent.OnDeath -= HandleDeath;
     }
+
+
+    virtual protected GameObject getTarget()
+    {
+        return null;
+    }
+
+    virtual protected void Update()
+    {
+        target = getTarget();
+        if (target is null)
+            return;
+
+        Debug.Log("ID: " + target.GetInstanceID());
+        Debug.Log("Range: " + (target.transform.position - this.transform.position).sqrMagnitude);
+        Debug.Log("Health: " + target.GetComponent<HealthComponent>().HealthValue);
+    }
+
 
     private void HandleDeath()
     {
