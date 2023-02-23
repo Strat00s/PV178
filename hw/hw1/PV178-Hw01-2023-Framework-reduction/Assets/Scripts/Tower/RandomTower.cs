@@ -11,11 +11,13 @@ public class RandomTower : Tower
         //pick with probability
         switch (values[Random.Range(0, values.Length)])
         {
-            case 0: CreateProjectile(); CreateProjectile(); break;
-            case 1: CreateProjectile(); break;
-            case 2: break;
+            case 0: CreateProjectile(); CreateProjectile(); break;  //shoot twice
+            case 1: CreateProjectile(); break;                      //shoot once
+            case 2: break;                                          //dont shoot
         }
     }
+
+    //custom target acquirement implementation
     override protected GameObject GetTarget()
     {
         Collider[] colliders = Physics.OverlapSphere(this.transform.position, _range, _enemyLayerMask); //get list of targets in "_range" on layer "Unit"

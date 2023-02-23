@@ -21,7 +21,7 @@ public class Tower : MonoBehaviour
     [SerializeField] protected int _price;
     [SerializeField] protected float _timeBetweenShots;
 
-    protected float timer;
+    private float timer;
     protected GameObject target;
 
 
@@ -52,7 +52,7 @@ public class Tower : MonoBehaviour
     //create projectile
     protected void CreateProjectile()
     {
-        //create projectile and move it infront of the barrel
+        //create projectile and move it infront of the barrel (dont know how to get the _projectileSpawn working)
         var projectile = Instantiate(_projectilePrefab, _objectToPan.transform.position + (Vector3.up * 1), _objectToPan.transform.rotation);
         projectile.transform.Translate(Vector3.forward * 2);
         projectile.transform.parent = null;
@@ -66,15 +66,16 @@ public class Tower : MonoBehaviour
 
     virtual protected void Update()
     {
+        timer += Time.deltaTime;
+
         //get new target (if there is any)
         target = GetTarget();
         if (target is null)
             return;
 
-        _objectToPan.transform.LookAt(target.transform);    //tracking
+        _objectToPan.transform.LookAt(target.transform);    //"""tracking""""
 
         //shoot at correct intervals
-        timer += Time.deltaTime;
         if (timer >= _timeBetweenShots)
         {
             timer = 0;

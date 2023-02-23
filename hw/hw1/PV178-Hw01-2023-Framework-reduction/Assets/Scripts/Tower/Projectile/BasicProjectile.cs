@@ -5,10 +5,11 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class BasicProjectile : Projectile
 {
+    //projectile specific ontrigger implementation
     override protected void OnTriggerEnter(Collider other)
     {
-        //hit all enemies
-        if (other.gameObject.name == "LazyEnemy(Clone)" || other.gameObject.name == "AggresiveEnemy(Clone)")
+        //hit enemy
+        if ((_enemyLayerMask.value & 1 << other.gameObject.layer) != 0)
             other.gameObject.GetComponent<HealthComponent>().HealthValue -= _damage;
 
         Destroy(gameObject);    //destroy projectile

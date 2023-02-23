@@ -6,6 +6,14 @@ public class LazyEnemy : Enemy
     protected float timer = 0;
     private bool move = true;
 
+    //custom damage implementation
+    protected override int calculateDamage(GameObject target)
+    {
+        if (target.name == "Castle")
+            return _damage;
+        return _damage * 2;
+    }
+
     private void Update()
     {
         timer += Time.deltaTime;
@@ -24,12 +32,5 @@ public class LazyEnemy : Enemy
             _movementComponent.MoveAlongPath();
             timer = 0;
         }
-    }
-
-    protected override int calculateDamage(GameObject target)
-    {
-        if (target.name == "Castle")
-            return _damage;
-        return _damage * 2;
     }
 }

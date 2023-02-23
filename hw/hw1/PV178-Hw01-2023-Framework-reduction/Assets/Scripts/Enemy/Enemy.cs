@@ -34,21 +34,18 @@ public class Enemy : MonoBehaviour
         _healthComponent.OnDeath -= HandleDeath;
     }
 
+    //default damage implementation
     protected virtual int calculateDamage(GameObject target)
     {
         return _damage;
     }
 
+    //reduce damage on crash and destroy self
     private void OnCollisionEnter(Collision collision)
     {
         collision.gameObject.GetComponent<HealthComponent>().HealthValue -= calculateDamage(collision.gameObject);
         crashed = true;
         this._healthComponent.HealthValue = 0;
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        
     }
 
     public void Init(EnemyPath path)
@@ -58,6 +55,7 @@ public class Enemy : MonoBehaviour
 
     protected void HandleDeath()
     {
+        //add reward only on kill
         if (!crashed)
             GameObject.FindObjectOfType<Player>().Resources += _reward;
         OnDeath?.Invoke();

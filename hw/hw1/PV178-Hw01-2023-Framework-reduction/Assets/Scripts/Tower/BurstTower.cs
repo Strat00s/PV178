@@ -11,6 +11,7 @@ public class BurstTower : Tower
         CreateProjectile();
     }
 
+    //custom target acquirement implementation
     override protected GameObject GetTarget()
     {
         int highestHealth = int.MinValue;

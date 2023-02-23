@@ -5,17 +5,14 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class ExplosiveProjectile : Projectile
 {
+    //projectile specific ontrigger implementation
     override protected void OnTriggerEnter(Collider other)
     {
-        //hit everyone in radius
-        if (other.gameObject.name == "LazyEnemy(Clone)" || other.gameObject.name == "AggresiveEnemy(Clone)")
+        //hit all enemies in 5 radius
+        foreach (var collider in Physics.OverlapSphere(this.transform.position, 5, _enemyLayerMask))
         {
-            //hit all enemies in 5 radius
-            foreach (var collider in Physics.OverlapSphere(this.transform.position, 5, _enemyLayerMask))
-            {
-                if (collider.gameObject.name == "LazyEnemy(Clone)" || collider.gameObject.name == "AggresiveEnemy(Clone)")
-                    collider.gameObject.GetComponent<HealthComponent>().HealthValue -= _damage;
-            }
+            if ((_enemyLayerMask.value & 1 << other.gameObject.layer) != 0)
+                collider.gameObject.GetComponent<HealthComponent>().HealthValue -= _damage;
         }
 
         Destroy(gameObject);    //destroy projectile
