@@ -53,8 +53,7 @@ public class Tower : MonoBehaviour
     protected void CreateProjectile()
     {
         //create projectile and move it infront of the barrel (dont know how to get the _projectileSpawn working)
-        var projectile = Instantiate(_projectilePrefab, _objectToPan.transform.position + (Vector3.up * 1), _objectToPan.transform.rotation);
-        projectile.transform.Translate(Vector3.forward * 2);
+        var projectile = Instantiate(_projectilePrefab, _projectileSpawn.transform.position, _projectileSpawn.transform.rotation);
         projectile.transform.parent = null;
     }
 

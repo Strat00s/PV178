@@ -101,7 +101,7 @@ MonoBehaviour:
   _projectilePrefab: {fileID: 7937516212911456226, guid: a734d633122335e4fbe5ffb997c2d7e4, type: 3}
   _boxCollider: {fileID: 2649015581347085228}
   _objectToPan: {fileID: 1015304551235273097}
-  _projectileSpawn: {fileID: 0}
+  _projectileSpawn: {fileID: 3473032216752895462}
   _previewPrefab: {fileID: 4867485716912935487, guid: c31a04426cfe34946a0b31e154e6b8f1, type: 3}
   _name: Random Tower
   _range: 10
@@ -115,6 +115,11 @@ Transform:
 --- !u!65 &2649015581347085228 stripped
 BoxCollider:
   m_CorrespondingSourceObject: {fileID: -1824248551201303204, guid: 70dd3cb786b458c4f8d809752ac73117, type: 3}
+  m_PrefabInstance: {fileID: 4786699929110900464}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3473032216752895462 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8241435993706715926, guid: 70dd3cb786b458c4f8d809752ac73117, type: 3}
   m_PrefabInstance: {fileID: 4786699929110900464}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &4818534189461123201 stripped
