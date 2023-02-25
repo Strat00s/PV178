@@ -4,20 +4,20 @@ using UnityEngine;
 [RequireComponent(typeof(BoxCollider), typeof(HealthComponent))]
 public class RandomTower : Tower
 {
+    //random tower fire implementation
     override protected void Fire()
     {
-        int[] values = {0, 0, 1, 1, 1, 1, 1, 1, 2, 2};
+        //handle shots timing
+        if (timer < _timeBetweenShots)
+            return;
+        timer = 0;
 
-        //pick with probability
-        switch (values[Random.Range(0, values.Length)])
-        {
-            case 0: CreateProjectile(); CreateProjectile(); break;  //shoot twice
-            case 1: CreateProjectile(); break;                      //shoot once
-            case 2: break;                                          //dont shoot
-        }
+        int[] values = {0, 0, 1, 1, 1, 1, 1, 1, 2, 2};  //20% change of nothing, 60% change of single shot, 20% change of 2 shots
+        for (int i = 0; i < values[Random.Range(0, values.Length)]; i++)
+            CreateProjectile();
     }
 
-    //custom target acquirement implementation
+    //random tower target acquirement implementation
     override protected GameObject GetTarget()
     {
         Collider[] colliders = Physics.OverlapSphere(this.transform.position, _range, _enemyLayerMask); //get list of targets in "_range" on layer "Unit"

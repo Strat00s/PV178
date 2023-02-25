@@ -6,10 +6,11 @@ public class LazyEnemy : Enemy
     protected float timer = 0;
     private bool move = true;
 
-    //custom damage implementation
+    //lazy enemy damage implementation
     protected override int calculateDamage(GameObject target)
     {
-        if (target.name == "Castle")
+        //normal damage when castle, othwersie double
+        if (target.GetComponent<Castle>() != null)
             return _damage;
         return _damage * 2;
     }

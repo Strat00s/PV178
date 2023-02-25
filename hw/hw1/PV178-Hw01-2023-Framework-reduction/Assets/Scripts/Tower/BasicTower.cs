@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(BoxCollider), typeof(HealthComponent))]
 public class BasicTower : Tower
 {
-    //custom target acquirement implementation
+    //basic tower target acquirement implementation
     override protected GameObject GetTarget()
     {
         float nearestDistance = float.MaxValue;

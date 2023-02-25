@@ -3,15 +3,23 @@ using UnityEngine;
 [RequireComponent(typeof(BoxCollider), typeof(HealthComponent))]
 public class BurstTower : Tower
 {
-    //async function to wait without halting the entire game
-    async override protected void Fire()
+    private bool burstShot = false;
+
+    //burst tower fire implementation
+    override protected void Fire()
     {
-        CreateProjectile();
-        await System. Threading.Tasks.Task.Delay(200);  //waot 0.2 seconds
+        ////handle shots timing and flip between shot types (first shot and second burst shot)
+        if (!burstShot && timer < _timeBetweenShots)
+                return;
+        else if (burstShot && timer < 0.2)
+                return;
+        timer = 0;
+        burstShot = !burstShot;
+
         CreateProjectile();
     }
 
-    //custom target acquirement implementation
+    //burst tower target acquirement implementation
     override protected GameObject GetTarget()
     {
         int highestHealth = int.MinValue;
