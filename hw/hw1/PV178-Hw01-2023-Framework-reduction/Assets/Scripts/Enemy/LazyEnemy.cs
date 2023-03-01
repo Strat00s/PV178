@@ -4,7 +4,7 @@
 public class LazyEnemy : Enemy
 {
     protected float timer = 0;
-    private bool move = true;
+    private int behaviour = 0;
 
     //lazy enemy damage implementation
     protected override int calculateDamage(GameObject target)
@@ -15,21 +15,21 @@ public class LazyEnemy : Enemy
         return _damage * 2;
     }
 
-    private void Update()
+    override protected void Update()
     {
         timer += Time.deltaTime;
 
         //stop moving after 5s
-        if (timer >= 5.0 && move)
+        if (timer >= 5.0 && behaviour == 0)
         {
-            move = false;
+            behaviour = 1;
             _movementComponent.CancelMovement();
         }
 
         //start moving after 1s pause and reset timer
-        if (timer >= 6.0)
+        if (timer >= 6.0 && behaviour == 1)
         {
-            move = true;
+            behaviour = 0;
             _movementComponent.MoveAlongPath();
             timer = 0;
         }

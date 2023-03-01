@@ -68,7 +68,7 @@ public class Tower : MonoBehaviour
         CreateProjectile();
     }
 
-    virtual protected void Update()
+    private void Update()
     {
         timer += Time.deltaTime;
 
@@ -81,7 +81,7 @@ public class Tower : MonoBehaviour
 
 
         //fire if possible
-        Fire();    
+        Fire();
     }
 
 
