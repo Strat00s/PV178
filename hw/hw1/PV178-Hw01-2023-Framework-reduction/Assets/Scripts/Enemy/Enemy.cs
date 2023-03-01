@@ -32,7 +32,7 @@ public class Enemy : MonoBehaviour
     }
 
     //default damage implementation
-    protected virtual int calculateDamage(GameObject target)
+    protected virtual int CalculateDamage(GameObject target)
     {
         return _damage;
     }
@@ -40,7 +40,7 @@ public class Enemy : MonoBehaviour
     //reduce damage on crash and destroy self
     private void OnCollisionEnter(Collision collision)
     {
-        collision.gameObject.GetComponent<HealthComponent>().HealthValue -= calculateDamage(collision.gameObject);
+        collision.gameObject.GetComponent<HealthComponent>().HealthValue -= CalculateDamage(collision.gameObject);
         _reward = 0;
         this._healthComponent.HealthValue = 0;
     }

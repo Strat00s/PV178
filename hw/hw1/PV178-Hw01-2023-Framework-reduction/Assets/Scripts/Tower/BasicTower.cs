@@ -26,11 +26,6 @@ public class BasicTower : Tower
             }
         }
 
-        if (target != nearestTarget && target != null)
-            target.GetComponent<ObjectSelector>().DeselectObject();
-        if (nearestTarget != null)
-            nearestTarget.GetComponent<ObjectSelector>().SelectObject();
-
         return nearestTarget;
     }
 }

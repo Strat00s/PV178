@@ -7,7 +7,7 @@ public class LazyEnemy : Enemy
     private int behaviour = 0;
 
     //lazy enemy damage implementation
-    protected override int calculateDamage(GameObject target)
+    protected override int CalculateDamage(GameObject target)
     {
         //normal damage when castle, othwersie double
         if (target.GetComponent<Castle>() != null)
