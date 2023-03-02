@@ -13,14 +13,7 @@ public class AggresiveEnemy : Enemy
     {
         //move to target untill it is destroyed and skip finding new target
         if (target != null)
-        {
-            if (behaviour == 0)
-            {
-                behaviour = 1;
-                _movementComponent.MoveTowards(target.transform);
-            }
             return;
-        }
         else
         {
             if (behaviour == 1)
@@ -35,6 +28,8 @@ public class AggresiveEnemy : Enemy
             //filter only towers
             if (collider.GetComponent<Tower>() != null) {
                 target = collider.gameObject;
+                behaviour = 1;
+                _movementComponent.MoveTowards(target.transform);
                 return;    
             }
         }

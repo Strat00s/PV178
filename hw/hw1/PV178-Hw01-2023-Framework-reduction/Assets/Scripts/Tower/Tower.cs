@@ -34,7 +34,7 @@ public class Tower : MonoBehaviour
     private void Start()
     {
         _healthComponent.OnDeath += HandleDeath;
-        timer = float.MaxValue;
+        timer  = _timeBetweenShots;
         target = null;
     }
 
