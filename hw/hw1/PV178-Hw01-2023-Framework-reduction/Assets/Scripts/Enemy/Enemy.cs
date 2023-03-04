@@ -41,6 +41,8 @@ public class Enemy : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         collision.gameObject.GetComponent<HealthComponent>().HealthValue -= CalculateDamage(collision.gameObject);
+        if (collision.gameObject.GetComponent<Castle>() != null)
+            Instantiate(_onSuccessParticlePrefab, this.transform.position, Quaternion.identity);
         _reward = 0;
         this._healthComponent.HealthValue = 0;
     }
@@ -60,6 +62,7 @@ public class Enemy : MonoBehaviour
         //add reward only on kill
         GameObject.FindObjectOfType<Player>().Resources += _reward;
         OnDeath?.Invoke();
+        Instantiate(_onDeathParticlePrefab, this.transform.position, Quaternion.identity);
         Destroy(gameObject);
     }
 }

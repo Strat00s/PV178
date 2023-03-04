@@ -15,6 +15,7 @@ public class ExplosiveProjectile : Projectile
                 collider.gameObject.GetComponent<HealthComponent>().HealthValue -= _damage;
         }
 
+        Instantiate(_onHitParticleSystem, this.transform.position, Quaternion.identity);
         Destroy(gameObject);    //destroy projectile
     }
 }

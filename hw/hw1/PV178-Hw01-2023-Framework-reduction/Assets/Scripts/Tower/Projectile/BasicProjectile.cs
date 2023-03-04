@@ -12,6 +12,7 @@ public class BasicProjectile : Projectile
         if ((_enemyLayerMask.value & 1 << other.gameObject.layer) != 0)
             other.gameObject.GetComponent<HealthComponent>().HealthValue -= _damage;
 
+        Instantiate(_onHitParticleSystem, this.transform.position, Quaternion.identity);
         Destroy(gameObject);    //destroy projectile
     }
 }
