@@ -1,0 +1,12 @@
+c:\Users\lbast\Downloads\UnitTestsDemo_03\TestingClass_03\bin\Debug\net7.0\TestingClass_03.deps.json
+c:\Users\lbast\Downloads\UnitTestsDemo_03\TestingClass_03\bin\Debug\net7.0\TestingClass_03.dll
+c:\Users\lbast\Downloads\UnitTestsDemo_03\TestingClass_03\bin\Debug\net7.0\TestingClass_03.pdb
+c:\Users\lbast\Downloads\UnitTestsDemo_03\TestingClass_03\obj\Debug\net7.0\TestingClass_03.csproj.AssemblyReference.cache
+c:\Users\lbast\Downloads\UnitTestsDemo_03\TestingClass_03\obj\Debug\net7.0\TestingClass_03.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\lbast\Downloads\UnitTestsDemo_03\TestingClass_03\obj\Debug\net7.0\TestingClass_03.AssemblyInfoInputs.cache
+c:\Users\lbast\Downloads\UnitTestsDemo_03\TestingClass_03\obj\Debug\net7.0\TestingClass_03.AssemblyInfo.cs
+c:\Users\lbast\Downloads\UnitTestsDemo_03\TestingClass_03\obj\Debug\net7.0\TestingClass_03.csproj.CoreCompileInputs.cache
+c:\Users\lbast\Downloads\UnitTestsDemo_03\TestingClass_03\obj\Debug\net7.0\TestingClass_03.dll
+c:\Users\lbast\Downloads\UnitTestsDemo_03\TestingClass_03\obj\Debug\net7.0\refint\TestingClass_03.dll
+c:\Users\lbast\Downloads\UnitTestsDemo_03\TestingClass_03\obj\Debug\net7.0\TestingClass_03.pdb
+c:\Users\lbast\Downloads\UnitTestsDemo_03\TestingClass_03\obj\Debug\net7.0\ref\TestingClass_03.dll
