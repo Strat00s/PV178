@@ -1,13 +1,15 @@
 ﻿using System.Linq;
+using HW02.BussinessContext;
+using HW02.BussinessContext.FileDatabase;
+using HW02.BussinessContext.Services;
 using HW02.Helpers;
 namespace HW02
 {
     internal class ConsoleApp
     {
-        static readonly string[] OneArg   = {"help", "exit", "list-products", "list-categories"};
         static readonly string[] TwoArgs  = {"delete-product", "add-category", "delete-category", "get-products-by-category"};
-        //static readonly string[] FourArgs = {"add-product"};
-        public static void Run()
+        
+        public static void Run(CategoryService categoryService, ProductService productService)
         {
             while (true)
             {
@@ -22,64 +24,50 @@ namespace HW02
 
                     else if (arguments.Length == 1)
                     {
-                        if (!OneArg.Contains(arguments[0]))
-                            ;//throw invalid operation exception
-
+                        if (arguments[0] == "help")
+                            IOHelper.PrintHelp();   //log
+                        else if (arguments[0] == "exit")
+                            return;                 //log
+                        else if (arguments[0] == "list-products")
+                            IOHelper.PrettyPrint(productService.Read());    //log
+                        else if (arguments[0] == "list-categories")
+                            IOHelper.PrettyPrint(productService.Read());    //log
+                        else
+                            ;//throw exception
                     }
                     else if (arguments.Length == 2)
                     {
-                        if (!TwoArgs.Contains(arguments[0]))
+                        if (arguments[0] == "delete-product")
+                            productService.Delete(arguments[1]);
+                        else if (arguments[0] == "add-category")
+
+                        else arguments[0] == "delete-category")
+
+                        else arguments[0] == "get-products-by-category")
+
+                        else
+                            ;//throw invalid operation exception
+                    }
+                    else if (arguments.Length == 3)
+                    {
+                        if (arguments[0] != "update-category")
                             ;//throw invalid operation exception
                     }
                     else if (arguments.Length == 4)
                     {
                         if (arguments[0] != "add-product")
                             ;//throw invalid operation exception
-
+                    }
+                    else if (arguments.Length == 5)
+                    {
+                        if (arguments[0] != "update-product")
+                            ;//throw invalid operation exception
                     }
                     else
                     {
                         //log invalid argument count
                     }
                     
-                    switch (arguments[0])
-                    {
-                        case "add-product":                
-                            IOHelper.Print("not implemented yet\n");
-                            /*name, categoryid, price*/
-                            break;
-                        case "delete-product":             
-                            IOHelper.Print("not implemented yet\n");
-                            /*productid*/
-                            break;
-                        case "list-product":               
-                            IOHelper.Print("not implemented yet\n");
-                            break;
-                        case "add-category":               
-                            IOHelper.Print("not implemented yet\n");
-                            /*name*/
-                            break;
-                        case "delete-category":            
-                            IOHelper.Print("not implemented yet\n");
-                            /*categoryid*/
-                            break;
-                        case "list-categories":            
-                            IOHelper.Print("not implemented yet\n");
-                            break;
-                        case "get-products-by-category":   
-                            IOHelper.Print("not implemented yet\n");
-                            /*categoryid*/
-                            break;
-                        case "help": 
-                            IOHelper.PrintHelp();
-                            break;
-                        case "exit":
-                            IOHelper.Print("not implemented yet\n");
-                            break;
-                        default:
-                            /*throw*/
-                            break;
-                    }
                     //write output
                 }
                 catch (Exception ex)

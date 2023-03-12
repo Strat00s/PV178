@@ -13,7 +13,7 @@
             Console.Write(message);
         }
 
-        public static void PrettyPrint(string[] lines)
+        public static void PrettyPrint(List<List<string>> data)
         {
             Console.Write(lines[0]);
         }
@@ -22,17 +22,22 @@
         {
             Console.Write(
                 "Possible commands:\n" +
-                "  add-product    <Name> <CategoryId> <Price>    Add product <Name> with price <Price> to category <CategoryId> to DB\n" +
-                "  delete-product <ProductId>                    Remove product <ProductId> from DB\n" +
-                "  list-products                                 List all products\n" +
+                "  add-product    <Name> <CategoryId> <Price>                         Add product <Name> with price <Price> to category <CategoryId> to DB\n" +
+                "  update-product <ProductId> <newName> <newCategoryId> <newPrice>    Update product <ProductId>\n" +
+                "  delete-product <ProductId>                                         Remove product <ProductId> from DB\n" +
+                "  list-products                                                      List all products\n" +
+                "  load-products                                                      (Re)load products from DB\n" +
                 "\n" +                                           
-                "  add-category <Name>                           Add category <Name>\n" +
-                "  delete-category <CategoryId>                  Delete category <CategoryId>\n" +
-                "  list-categories                               List all categories\n" +
-                "  get-products-by-category <CategoryId>         List all products in category <CategoryId>\n" +
+                "  add-category <Name>                                                Add category <Name>\n" +
+                "  update-category <CategoryId> <newName>                             Update category <CategoryId>\n" +
+                "  delete-category <CategoryId>                                       Delete category <CategoryId>\n" +
+                "  list-categories                                                    List all categories\n" +
+                "  load-categories                                                    (Re)load categories from DB\n" +
                 "\n" +
-                "  help                                          Print this help message\n" +
-                "  exit                                          Exit the application\n"
+                "  get-products-by-category <CategoryId>                              List all products in category <CategoryId>\n" +
+                "\n" +
+                "  help                                                               Print this help message\n" +
+                "  exit                                                               Exit the application\n"
                 );
         }
 
