@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace HW02.Exceptions
 {
-    internal class InvalidArgumentTypeException
+    public class InvalidArgumentTypeException : Exception
     {
+        public OpCode Op { get; }
+        public InvalidArgumentTypeException(OpCode op) 
+        {
+            Op = op;
+        }
     }
 }

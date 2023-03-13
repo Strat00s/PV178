@@ -7,93 +7,58 @@ using HW02.BussinessContext.Services;
 using HW02.Helpers;
 namespace HW02
 {
+    public enum OpCode
+    {
+        EXIT,
+        HELP,
+
+        GET_BY_CATG,
+
+        ADD_PROD,
+        UPD_PROD,
+        DEL_PROD,
+        LST_PROD,
+
+        ADD_CATG,
+        UPD_CATG,
+        DEL_CATG,
+        LST_CATG,
+
+        NONE = 99,
+        OP_ERR,
+        CNT_ERR
+    }
     internal class ConsoleApp
     {
-        
-        public static void Run(CategoryService categoryService, ProductService productService)
+        private static OpCode _opCode;
+        public static void Run(CategoryService categoryService, ProductService productService, InputParser inputParser)
         {
             while (true)
             {
                 try
                 {
-                    /*
-                    string[] arguments = IOHelper.ReadLine(); //read
-                    //do action
-                    if (arguments.Length == 0) 
+                    _opCode = inputParser.Parse(IOHelper.ReadLine());
+                    //I know that there is duplicit code. I just wanted to have the input parsing seperated from the main logic
+                    switch (_opCode)
                     {
-                        //log empty actions?
+                        case OpCode.EXIT: return;
+                        case OpCode.HELP: IOHelper.PrintHelp(); break;
+                        case OpCode.GET_BY_CATG: IOHelper.PrintProducts(productService.ListByCategory(inputParser.CId)); break ;
+                        case OpCode.ADD_PROD: productService.Create(inputParser.Name, inputParser.CId, inputParser.Price); break;
+                        case OpCode.UPD_PROD: productService.Update(inputParser.PId, inputParser.Name, inputParser.CId, inputParser.Price); break;
+                        case OpCode.DEL_PROD: productService.Delete(inputParser.PId); break;
+                        case OpCode.LST_PROD: IOHelper.PrintProducts(productService.List()); break;
+                        case OpCode.ADD_CATG: categoryService.Create(inputParser.Name); break;
+                        case OpCode.UPD_CATG: categoryService.Update(inputParser.CId, inputParser.Name); break;
+                        case OpCode.DEL_CATG: categoryService.Delete(inputParser.CId); break;
+                        case OpCode.LST_CATG: IOHelper.PrintCategories(categoryService.List()); break;
                     }
-
-                    else if (arguments.Length == 1)
-                    {
-                        if (arguments[0] == "exit")
-                            return;                                             //log
-                        else if (arguments[0] == "help")
-                            IOHelper.PrintHelp();                               //log
-                        else if (arguments[0] == "list-products")
-                            IOHelper.PrintProducts(productService.List());      //log
-                        else if (arguments[0] == "list-categories")
-                            IOHelper.PrintCategories(categoryService.List());   //log
-                        else
-                            ;//throw exception
-                    }
-                    else if (arguments.Length == 2)
-                    {
-                        if (arguments[0] == "delete-product")
-                        {
-                            productService.Delete(ParseHelper.ParseInt(arguments[1]));
-                            //invoke event to log and print about deleted entity
-                            IOHelper.WriteLine("Product deleted");
-                        }
-                        else if (arguments[0] == "delete-category")
-                        {
-                            categoryService.Delete(ParseHelper.ParseInt(arguments[1]));
-                            IOHelper.WriteLine("Category deleted");
-                        }
-                        else if (arguments[0] == "add-category")
-                        {
-                            categoryService.Create(arguments[1]);
-                            IOHelper.WriteLine("Category '" + arguments[1] + "' created");
-                        }
-                        else if (arguments[0] == "get-products-by-category")
-                        {
-                            IOHelper.PrintProducts(productService.ListByCategory(ParseHelper.ParseInt(arguments[1])));
-                        }
-                        else
-                            ;//throw invalid operation exception
-                    }
-                    else if (arguments.Length == 3)
-                    {
-                        if (arguments[0] != "update-category")
-                            ;//throw invalid operation exception
-                        categoryService.Update(ParseHelper.ParseInt(arguments[1]), arguments[2]);
-                        IOHelper.WriteLine("Category updated");
-                    }
-                    else if (arguments.Length == 4)
-                    {
-                        if (arguments[0] != "add-product")
-                            ;//throw invalid operation exception
-                        productService.Create(arguments[1], ParseHelper.ParseInt(arguments[2]), ParseHelper.ParseDec(arguments[3]));
-                        IOHelper.WriteLine("Product '" + arguments[1] + "' added");
-                    }
-                    else if (arguments.Length == 5)
-                    {
-                        if (arguments[0] != "update-product")
-                            ;//throw invalid operation exception
-                        productService.Update(ParseHelper.ParseInt(arguments[1]), arguments[2], ParseHelper.ParseInt(arguments[3]), ParseHelper.ParseDec(arguments[4]));
-                        IOHelper.WriteLine("Product updated");
-                    }
-                    else
-                    {
-                        //log invalid argument count
-                    }
-                    */
-                    
                     //write output
                 }
                 catch (Exception ex)
                 {
                     //handle exception ExHandler.HandleException(ex);
+                    IOHelper.WriteLine(nameof(ex));
                 }
             }
         }

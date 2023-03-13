@@ -1,5 +1,7 @@
 ﻿/* Product and category services are very similiar. Probably could've used some parent class and inheritance, but whatever. */
 
+using HW02.Exceptions;
+
 namespace HW02.BussinessContext.Services
 {
     public class ProductService
@@ -59,7 +61,7 @@ namespace HW02.BussinessContext.Services
             List<Product> products = new List<Product>();
             foreach (var product in _products)
             {
-                if (product.Id == categoryId)
+                if (product.CategoryId == categoryId)
                     products.Add(product);
             }
             return products;
@@ -67,11 +69,11 @@ namespace HW02.BussinessContext.Services
         }
 
         //Update product
-        public Product Update(int id, string newName, int newCategoryId, decimal newPrice)
+        public Product Update(int productId, string newName, int newCategoryId, decimal newPrice)
         {
-            Product? product = FindProduct(id);
+            Product? product = FindProduct(productId);
             if (product == null)
-                return;//throw update failed
+                throw new EntityNotFound(OpCode.UPD_PROD, productId);
 
             product.Name       = newName;
             product.CategoryId = newCategoryId;
@@ -82,11 +84,11 @@ namespace HW02.BussinessContext.Services
         }
 
         //Delete product
-        public Product Delete(int id)
+        public Product Delete(int productId)
         {
-            Product? product = FindProduct(id);
+            Product? product = FindProduct(productId);
             if (product == null)
-                return;//throw delete failed
+                throw new EntityNotFound(OpCode.DEL_PROD, productId);
 
             _products.Remove(product);
             _db.SaveProducts(_products);

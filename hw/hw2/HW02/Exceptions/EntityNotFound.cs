@@ -3,12 +3,12 @@ namespace HW02.Exceptions
 {
     public class EntityNotFound : Exception
     {
-        public int OpCode {get;}
-        public int EntityId {get;}
-        public EntityNotFound(int opCode, int entityId) 
+        public int Id {get;}
+        public OpCode OpCode {get; }
+        public EntityNotFound(OpCode opCode, int id) 
         {
             OpCode = opCode;
-            EntityId = entityId;
+            Id = id;
         }
     }
 }

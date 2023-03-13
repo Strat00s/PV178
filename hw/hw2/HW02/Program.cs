@@ -15,12 +15,14 @@ namespace HW02
             var productDB       = new ProductDBContext(categoryDB);
             var categoryService = new CategoryService(categoryDB);
             var productService  = new ProductService(productDB);
+
+            var inputParser = new InputParser();
             
             Seeder.FillDB(categoryService, productService);
 
             Console.WriteLine("Hello eShop!");
             Console.WriteLine("Type 'help' to list possible commands and uses");
-            ConsoleApp.Run(categoryService, productService);
+            ConsoleApp.Run(categoryService, productService, inputParser);
             Console.WriteLine("Exiting...");
         }
     }

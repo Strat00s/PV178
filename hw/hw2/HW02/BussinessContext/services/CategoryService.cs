@@ -61,7 +61,7 @@ namespace HW02.BussinessContext.Services
         {
             Category? category = FindCategory(categoryId);
             if (category == null)
-                throw new CategoryNotFoundException("Category with id '" + id + "' not found");
+                throw new EntityNotFound(OpCode.UPD_CATG, categoryId);
 
             category.Name = newName;
             _db.SaveCategories(_categories);
@@ -69,11 +69,11 @@ namespace HW02.BussinessContext.Services
             return category;
         }
 
-        public Category Delete(int id)
+        public Category Delete(int categoryId)
         {
-            Category? category = FindCategory(id);
+            Category? category = FindCategory(categoryId);
             if (category == null)
-                throw new CategoryNotFoundException("Category with id '" + id + "' not found");
+                throw new EntityNotFound(OpCode.DEL_CATG, categoryId);
 
             _categories.Remove(category);
             _db.SaveCategories(_categories);

@@ -1,56 +1,15 @@
-﻿using HW02.BussinessContext;
-using HW02.BussinessContext.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using HW02.Exceptions;
 
 namespace HW02.Helpers
 {
-    public static class InputParser
+    public class InputParser
     {
-        //private int _pId;
-        //private int _cId;
-        //private decimal _price;
-        //private string _name;
+        private int _pId;
+        private int _cId;
+        private decimal _price;
+        private string _name;
+        private OpCode _opCode;
 
-        //public int PId {get { return _pId;}}
-        //public int CId { get { return _cId;}}
-        //public decimal Price { get { return _price;}}
-        //public string Name { get { return _name;}}
-
-        public enum OpCode
-        {
-            NONE = 0,
-            
-            EXIT,
-            HELP,
-            
-            ADD_PROD,
-            DEL_PROD,
-            UPD_PROD,
-            LST_PROD,
-
-            GET_BY_CATG,
-
-            ADD_CATG,
-            DEL_CATG,
-            UPD_CATG,
-            LST_CATG,
-
-
-            OP_ERR  = 100,
-            CNT_ERR
-        }
-
-        //public InputParser(int pId, int cId, decimal price, string name)
-        //{
-        //    _pId   = 0;
-        //    _cId   = 0;
-        //    _price = 0;
-        //    _name  = string.Empty;
-        //}
         private static readonly string[] _operations = {
             "exit",
             "help",
@@ -59,45 +18,117 @@ namespace HW02.Helpers
             "add-category", "update-category", "delete-category", "list-categories"
         };
 
-        public static (OpCode, List<string>?) Parse(string input)
+
+        public int PId {get { return _pId;}}
+        public int CId { get { return _cId;}}
+        public decimal Price { get { return _price;}}
+        public string Name { get { return _name;}}
+
+        public InputParser()
+        {
+            _pId   = 0;
+            _cId   = 0;
+            _price = 0;
+            _name  = string.Empty;
+        }
+
+
+        private void CheckArgCount(int length, int required)
+        {
+            if (length - 1 != required)
+                throw new InvalidArgumentCountException(_opCode, length - 1);
+        }
+
+        //convert operation to internal opcode
+        public static OpCode OperationToOpCode(string op)
+        {
+            if (!_operations.Contains(op))
+                throw new InvalidOpException(op);
+            return (OpCode)Array.IndexOf(_operations, op);
+        }
+
+        //throws type error on invalid argument
+        public static int ParseInt(OpCode op, string input)
+        {
+            if (Int32.TryParse(input, out int output))
+                return output;
+
+            throw new InvalidArgumentTypeException(op);
+        }
+
+        //throws type error on invalid argument
+        public static decimal ParseDec(OpCode op, string input)
+        {
+            if (Decimal.TryParse(input, out decimal output))
+                return output;
+            throw new InvalidArgumentTypeException(op);
+        }
+
+        public OpCode Parse(string input)
         {
             string[] arguments = input.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+
+            //empty line
             if (arguments.Length == 0)
-                return (OpCode.NONE, null);
+                return OpCode.NONE;
 
-            if (!_operations.Contains(arguments[0]))
-                throw new InvalidOperationException(arguments[0]);
+            _opCode = OperationToOpCode(arguments[0]);
 
-            else if (arguments.Length == 1)
+            switch (_opCode)
             {
-                if (arguments[0] == _operations[0])
-                    return (OpCode.EXIT, null);
-                else if (arguments[0] == _operations[1])
-                    return (OpCode.HELP, null);
-                else if (arguments[0] == _operations[6])
-                    return (OpCode.LST_PROD, null);
-                else /*if (arguments[0] == _operations[10])*/
-                    return (OpCode.LST_CATG, null);
+                //argumentless operations
+                case OpCode.EXIT:
+                case OpCode.HELP:
+                case OpCode.LST_PROD:
+                case OpCode.LST_CATG:
+                    CheckArgCount(arguments.Length, 0);
+                    return _opCode;
+
+                //single argument operations
+                case OpCode.DEL_PROD:
+                    CheckArgCount(arguments.Length, 1);
+                    _pId = ParseInt(_opCode, arguments[1]);
+                    return _opCode;
+
+                case OpCode.DEL_CATG:
+                case OpCode.GET_BY_CATG:
+                    CheckArgCount(arguments.Length, 1);
+                    _cId = ParseInt(_opCode, arguments[1]);
+                    return _opCode;
+
+                case OpCode.ADD_CATG:
+                    CheckArgCount(arguments.Length, 1);
+                    _name = arguments[1];
+                    return _opCode;
+
+                //only 2 argument operation
+                case OpCode.UPD_CATG:
+                    CheckArgCount(arguments.Length, 2);
+                    _cId = ParseInt(_opCode, arguments[1]);
+                    _name = arguments[2];
+                    return _opCode;
+
+                //only 3 argument operation
+                case OpCode.ADD_PROD:
+                    CheckArgCount(arguments.Length, 3);
+                    _name = arguments[1];
+                    _cId = ParseInt(OpCode.ADD_PROD, arguments[2]);
+                    _price = ParseDec(OpCode.ADD_PROD, arguments[3]);
+                    return _opCode;
+
+                //only 4 argument operation
+                case OpCode.UPD_PROD:
+                    CheckArgCount(arguments.Length, 4);
+                    _name = arguments[2];
+                    _pId = ParseInt(OpCode.UPD_PROD, arguments[1]);
+                    _cId = ParseInt(OpCode.UPD_PROD, arguments[3]);
+                    _price = ParseDec(OpCode.UPD_PROD, arguments[4]);
+                    return _opCode;
+                
+                //
+                default:
+                    throw new InvalidOpException(arguments[0]);
             }
-            else if (arguments.Length == 2)
-            {
-                if (arguments[0] == _operations[5])
-                    return (OpCode.DEL_PROD, null);
-                else if (arguments[0] == _operations[9])
-                    return (OpCode.DEL_CATG, null);
-                else if (arguments[0] == _operations[7])
-                    return (OpCode.ADD_CATG, null);
-                else /*if (arguments[0] == _operations[2])*/
-                    return (OpCode.GET_BY_CATG, null);
-            }
-            else if (arguments.Length == 3)
-                return (OpCode.UPD_CATG, null);
-            else if (arguments.Length == 4)
-                return ( OpCode.ADD_PROD, null);
-            else if (arguments.Length == 5)
-                return (OpCode.UPD_PROD, null);
-            else
-                return (OpCode.CNT_ERR, null);
         }
     }
 }
