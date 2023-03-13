@@ -13,9 +13,14 @@
             Console.Write(message);
         }
 
-        public static void PrettyPrint(List<List<string>> data)
+        public static void PrintProducts(List<List<string>> data)
         {
-            Console.Write(lines[0]);
+            Console.Write(data[0]);
+        }
+
+        public static void PrettyCategories(List<List<string>> data)
+        {
+            Console.Write(data[0]);
         }
 
         public static void PrintHelp()
@@ -26,13 +31,11 @@
                 "  update-product <ProductId> <newName> <newCategoryId> <newPrice>    Update product <ProductId>\n" +
                 "  delete-product <ProductId>                                         Remove product <ProductId> from DB\n" +
                 "  list-products                                                      List all products\n" +
-                "  load-products                                                      (Re)load products from DB\n" +
                 "\n" +                                           
                 "  add-category <Name>                                                Add category <Name>\n" +
                 "  update-category <CategoryId> <newName>                             Update category <CategoryId>\n" +
                 "  delete-category <CategoryId>                                       Delete category <CategoryId>\n" +
                 "  list-categories                                                    List all categories\n" +
-                "  load-categories                                                    (Re)load categories from DB\n" +
                 "\n" +
                 "  get-products-by-category <CategoryId>                              List all products in category <CategoryId>\n" +
                 "\n" +
