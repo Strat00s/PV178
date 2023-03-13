@@ -1,26 +1,41 @@
-﻿namespace HW02.Helpers
+﻿using HW02.BussinessContext;
+
+namespace HW02.Helpers
 {
     internal interface IOHelper
     {
-        public static string[] ReadLine()
+        //public static string[] ReadLine()
+        public static string ReadLine()
         {
             Console.Write("Command: ");
-            return Console.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();  //split input by spaces if there is any, otherwise return empty array
+            //return Console.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();  //split input by spaces if there is any, otherwise return empty array
+            return Console.ReadLine() ?? "";
         }
 
-        public static void Print(string message)
+        public static void Write(string message)
         {
             Console.Write(message);
         }
 
-        public static void PrintProducts(List<List<string>> data)
+        public static void WriteLine(string message)
         {
-            Console.Write(data[0]);
+            Console.WriteLine(message);
         }
 
-        public static void PrettyCategories(List<List<string>> data)
+        public static void PrintProducts(List<Product> products)
         {
-            Console.Write(data[0]);
+            Console.WriteLine("Id | Name | CategoryId | Price\n");
+            Console.WriteLine("-------------------------------------\n");
+            foreach (var product in products)
+                Console.WriteLine(product.Id + " | " + product.Name + " | " + product.CategoryId + " | " + product.Price);
+        }
+
+        public static void PrintCategories(List<Category> categories)
+        {
+            Console.WriteLine("Id | Name\n");
+            Console.WriteLine("------------------n");
+            foreach (var category in categories)
+                Console.WriteLine(category.Id + " | " + category.Name);
         }
 
         public static void PrintHelp()
@@ -42,11 +57,6 @@
                 "  help                                                               Print this help message\n" +
                 "  exit                                                               Exit the application\n"
                 );
-        }
-
-        public static string[] ParseArguments(string input)
-        {
-            return input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }

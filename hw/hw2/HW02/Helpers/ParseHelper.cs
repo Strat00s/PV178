@@ -16,7 +16,7 @@ namespace HW02.Helpers
             if (Int32.TryParse(input, out output))
                 return output;
 
-            return 0;//throw syntax error
+            throw new ArgumentException("Invalid argument: '" + input + "' is not a number");
         }
 
 
@@ -26,7 +26,7 @@ namespace HW02.Helpers
             decimal output;
             if (Decimal.TryParse(input, out output))
                 return output;
-            return 0;
+            throw new ArgumentException("Invalid argument: '" + input + "' is not a number");
         }
     }
 }

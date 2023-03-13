@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HW02.Helpers
+namespace HW02.Exceptions
 {
-    internal class ArgumentParser
+    internal class ProductNotFoundException
     {
     }
 }

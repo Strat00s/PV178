@@ -1,4 +1,7 @@
-﻿using HW02.BussinessContext.FileDatabase;
+﻿/* Product and category services are very similiar. Probably could've used some parent class and inheritance, but whatever. */
+
+using HW02.BussinessContext.FileDatabase;
+using HW02.Exceptions;
 
 namespace HW02.BussinessContext.Services
 {
@@ -6,73 +9,76 @@ namespace HW02.BussinessContext.Services
     {
         private readonly CategoryDBContext _db;
         private List<Category> _categories;
+        private int _lastId;
 
+
+        //TODO implement it as a binary search
+        private Category? FindCategory(int id)
+        {
+            for (int i = 0; i < _categories.Count; i++)
+            {
+                if (id == _categories[i].Id)
+                    return _categories[i];
+            }
+            return null;
+        }
+
+        //Constructor
         public CategoryService(CategoryDBContext db)
         { 
             _db = db;
             _categories = _db.ReadCategories();
+            _lastId = 0;
+
+            //get biggest id
+            foreach (var product in _categories)
+            {
+                if (_lastId < product.Id)
+                    _lastId = product.Id;
+            }
             //log operation
         }
 
-        public void Load()
+
+        //Create new product
+        public Category Create(string name)
         {
-            _categories = _db.ReadCategories();
+            Category newCategory = new(++_lastId, name);    //create new category
+            _categories.Add(newCategory);                   //add the product
+            _db.SaveCategories(_categories);                //save
             //log operation
+            return newCategory;
         }
 
-        public void Create(string name)
+        public List<Category> List()
         {
-            Category newCategory;
-
-            //increase category id if there are any categories, otherwise add first category
-            if (_categories.Any())
-                newCategory = new Category(_categories.Last().Id + 1, name);
-            else
-                newCategory = new Category(1, name);
-
-            _categories.Add(newCategory);       //add the product
-            _db.SaveCategories(_categories);    //save
-            //log operation
-        }
-
-        public List<List<String>> Read()
-        {
-            var result = new List<List<String>>();
-            foreach (var category in _categories)
-                result.Add(new List<String>() {category.Id.ToString(), category.Name});
-
-            return result;  //return the list of strings
+            return _categories;  //return the list of strings
             //log action
         }
 
-        public void Update(int categoryId, string newName)
-        {            
-            for (int i = 0; i < _categories.Count; i++)
-            {
-                if (_categories[i].Id == categoryId)
-                {
-                    _categories[i].Name = newName;
-                    _db.SaveCategories(_categories);
-                    //log operation
-                    return;
-                }
-            }
-            //throw error that item was not found and update failed
+        //Update category
+        public Category Update(int categoryId, string newName)
+        {
+            Category? category = FindCategory(categoryId);
+            if (category == null)
+                throw new CategoryNotFoundException("Category with id '" + id + "' not found");
+
+            category.Name = newName;
+            _db.SaveCategories(_categories);
+            //log operation
+            return category;
         }
 
-        public void Delete(int id)
+        public Category Delete(int id)
         {
-            for (int i = 0; i < _categories.Count; i++)
-            {
-                if (_categories[i].Id == id) 
-                {
-                    _categories.RemoveAt(i);
-                    _db.SaveCategories(_categories);
-                    //log operation
-                    break;
-                }
-            }
-            //throw error that item was not found and update failed
+            Category? category = FindCategory(id);
+            if (category == null)
+                throw new CategoryNotFoundException("Category with id '" + id + "' not found");
+
+            _categories.Remove(category);
+            _db.SaveCategories(_categories);
+            //log operation
+            return category;
         }
     }
 }
