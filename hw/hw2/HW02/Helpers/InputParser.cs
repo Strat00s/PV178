@@ -53,7 +53,7 @@ namespace HW02.Helpers
             if (Int32.TryParse(input, out int output))
                 return output;
 
-            throw new InvalidArgumentTypeException(op);
+            throw new InvalidArgumentTypeException(op, input);
         }
 
         //throws type error on invalid argument
@@ -61,7 +61,7 @@ namespace HW02.Helpers
         {
             if (Decimal.TryParse(input, out decimal output))
                 return output;
-            throw new InvalidArgumentTypeException(op);
+            throw new InvalidArgumentTypeException(op, input);
         }
 
         public OpCode Parse(string input)

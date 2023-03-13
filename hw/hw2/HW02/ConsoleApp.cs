@@ -4,6 +4,7 @@ using System.Linq;
 using HW02.BussinessContext;
 using HW02.BussinessContext.FileDatabase;
 using HW02.BussinessContext.Services;
+using HW02.Exceptions;
 using HW02.Helpers;
 namespace HW02
 {
@@ -54,6 +55,22 @@ namespace HW02
                         case OpCode.LST_CATG: IOHelper.PrintCategories(categoryService.List()); break;
                     }
                     //write output
+                }
+                catch (EntityNotFound ex)
+                {
+                    IOHelper.WriteLine(nameof(_opCode) + "; Entity wiht id '"+ ex.Id +"' not found");
+                }
+                catch (InvalidArgumentCountException ex)
+                {
+                    IOHelper.WriteLine(nameof(ex.Op) + "; Invalid number of arguments: " + ex.Cnt);
+                }
+                catch (InvalidArgumentTypeException ex)
+                {
+                    IOHelper.WriteLine(nameof(ex.Op) + "; Argument '" + ex.Argument + "' is not a number");
+                }
+                catch (InvalidOpException ex)
+                {
+                    IOHelper.WriteLine("Other; Unknown operation: " + ex.Op);
                 }
                 catch (Exception ex)
                 {

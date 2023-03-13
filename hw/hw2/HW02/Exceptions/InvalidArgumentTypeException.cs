@@ -9,9 +9,11 @@ namespace HW02.Exceptions
     public class InvalidArgumentTypeException : Exception
     {
         public OpCode Op { get; }
-        public InvalidArgumentTypeException(OpCode op) 
+        public string Argument { get; }
+        public InvalidArgumentTypeException(OpCode op, string argument) 
         {
             Op = op;
+            Argument = argument;
         }
     }
 }
