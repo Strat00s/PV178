@@ -16,11 +16,11 @@ namespace HW02.LoggerContext.DB
 
 
         // TODO: replace type 'object' with your data model
-        public void WriteLog(object log)
+        public void WriteLog(string log)
         {
             using StreamWriter sw = File.AppendText(_filePath);
             // TODO: when your data model is ready, uncomment following line
-            sw.WriteLine(/* TODO: example log.ToLogString()*/);
+            sw.WriteLine(log);
         }
     }
 }

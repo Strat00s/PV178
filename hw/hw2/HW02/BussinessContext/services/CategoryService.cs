@@ -2,6 +2,7 @@
 
 using HW02.BussinessContext.FileDatabase;
 using HW02.Exceptions;
+using HW02.Helpers;
 
 namespace HW02.BussinessContext.Services
 {
@@ -10,6 +11,7 @@ namespace HW02.BussinessContext.Services
         private readonly CategoryDBContext _db;
         private List<Category> _categories;
         private int _lastId;
+        private EventHelper _eventHelper;
 
 
         //TODO implement it as a binary search
@@ -24,11 +26,12 @@ namespace HW02.BussinessContext.Services
         }
 
         //Constructor
-        public CategoryService(CategoryDBContext db)
+        public CategoryService(CategoryDBContext db, EventHelper eventHelper)
         { 
             _db = db;
             _categories = _db.ReadCategories();
             _lastId = 0;
+            _eventHelper = eventHelper;
 
             //get biggest id
             foreach (var product in _categories)
@@ -36,7 +39,8 @@ namespace HW02.BussinessContext.Services
                 if (_lastId < product.Id)
                     _lastId = product.Id;
             }
-            //log operation
+
+            eventHelper.Log(OpCode.NONE, true, null, "Category DB loaded");
         }
 
 
@@ -46,38 +50,32 @@ namespace HW02.BussinessContext.Services
             Category newCategory = new(++_lastId, name);    //create new category
             _categories.Add(newCategory);                   //add the product
             _db.SaveCategories(_categories);                //save
-            //log operation
+            _eventHelper.Log(OpCode.ADD_CATG, true, newCategory);
             return newCategory;
         }
 
         public List<Category> List()
         {
+            _eventHelper.Log(OpCode.LST_CATG, true);
             return _categories;  //return the list of strings
-            //log action
         }
 
         //Update category
         public Category Update(int categoryId, string newName)
         {
-            Category? category = FindCategory(categoryId);
-            if (category == null)
-                throw new EntityNotFound(OpCode.UPD_CATG, categoryId);
-
+            Category? category = FindCategory(categoryId) ?? throw new EntityNotFound(OpCode.UPD_CATG, categoryId);
             category.Name = newName;
             _db.SaveCategories(_categories);
-            //log operation
+            _eventHelper.Log(OpCode.UPD_CATG, true, category);
             return category;
         }
 
         public Category Delete(int categoryId)
         {
-            Category? category = FindCategory(categoryId);
-            if (category == null)
-                throw new EntityNotFound(OpCode.DEL_CATG, categoryId);
-
+            Category? category = FindCategory(categoryId) ?? throw new EntityNotFound(OpCode.DEL_CATG, categoryId);
             _categories.Remove(category);
             _db.SaveCategories(_categories);
-            //log operation
+            _eventHelper.Log(OpCode.DEL_CATG, true, category);
             return category;
         }
     }

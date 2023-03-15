@@ -1,37 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace HW02.BussinessContext
 {
-    public class Product
+    public class Product : Category
     {
-        private readonly int _id;
-        private string _name;
         private int _categoryId;
         private decimal _price;
-
-        public int Id
-        {
-            get 
-            { 
-                return _id;
-            }
-        }
-
-        public string Name
-        {
-            get
-            { 
-                return _name;
-            }
-            set
-            { 
-                _name = value; 
-            }
-        }
 
         public int CategoryId
         {
@@ -60,10 +33,8 @@ namespace HW02.BussinessContext
             }
         }
 
-        public Product(int id, string name, int categoryId, decimal price)
+        public Product(int id, string name, int categoryId, decimal price) : base(id, name)
         {
-            _id = id;
-            _name = name;
             _categoryId = categoryId;
             _price = price;
         }
