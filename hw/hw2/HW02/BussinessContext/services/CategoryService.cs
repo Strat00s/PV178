@@ -8,30 +8,30 @@ namespace HW02.BussinessContext.Services
 {
     public class CategoryService
     {
-        private readonly CategoryDBContext _db;
-        private List<Category> _categories;
+        //lazy init factory
+        private ProductService? _productService;
 
-        private ProductService _productService;
-
-        private EventHelper _eventHelper;
-
-        private int _lastId;
+        private readonly CategoryDBContext _db; //DB handler
+        private readonly List<Category> _categories;     //current list of categories
+        private readonly EventHelper _eventHelper;       //used for logging events
+        private int _lastId;                    //stores last entity id
        
 
-        private Category? FindCategory(int id)
+        public Category? FindCategory(int id)
         {
             return _categories.Find(x => x.Id == id);
         }
 
 
         //Constructor
-        public CategoryService(CategoryDBContext db, ProductService productService, EventHelper eventHelper)
-        { 
-            _db             = db;
-            _categories     = _db.ReadCategories();
-            _productService = productService;
-            _eventHelper    = eventHelper;
-            _lastId         = 0;
+        public CategoryService(CategoryDBContext db, EventHelper eventHelper)
+        {
+            _productService = null;
+
+            _db          = db;
+            _categories  = _db.ReadCategories();
+            _eventHelper = eventHelper;
+            _lastId      = 0;
 
             //get biggest id
             foreach (var product in _categories)
@@ -41,6 +41,12 @@ namespace HW02.BussinessContext.Services
             }
 
             eventHelper.Log(OpCode.NONE, true, null, "Category DB loaded");
+        }
+
+        //
+        public void SetProductService(ProductService productService)
+        {
+            _productService = productService;
         }
 
 
@@ -73,7 +79,7 @@ namespace HW02.BussinessContext.Services
         public Category Delete(int categoryId)
         {
             Category? category = FindCategory(categoryId) ?? throw new EntityNotFound(OpCode.DEL_CATG, categoryId);
-            _productService.DeleteByCategory(categoryId);
+            _productService?.DeleteByCategory(categoryId);
             _categories.Remove(category);
             _db.SaveCategories(_categories);
             _eventHelper.Log(OpCode.DEL_CATG, true, category);

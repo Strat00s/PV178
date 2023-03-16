@@ -2,9 +2,9 @@
 
 namespace HW02.Helpers
 {
-    public interface IOHelper
+    public class IOHelper
     {
-        //public static string[] ReadLine()
+        //read string from console
         public static string ReadLine()
         {
             Console.Write("Command: ");
@@ -12,19 +12,22 @@ namespace HW02.Helpers
             return Console.ReadLine() ?? "";
         }
 
+        //write string to console
         public static void Write(string message)
         {
             Console.Write(message);
         }
 
+        //write line to console
         public static void WriteLine(string message)
         {
             Console.WriteLine(message);
         }
 
+        //pretty print table to console
         public static void PrintTable<T>(List<T> entities) where T : Category
         {
-            List<int> maxLengths = new List<int>() { 2, 4, 10, 5 }; //default field lengths
+            List<int> maxLengths = new() { 2, 4, 10, 5 }; //default field lengths
 
             //find lengths of every value
             foreach (T entity in entities)
@@ -42,9 +45,14 @@ namespace HW02.Helpers
             //print the table
             Console.Write("Id".PadRight(maxLengths[0]));
             Console.Write(" | " + "Name".PadRight(maxLengths[1]));
-            Console.Write(" | " + "CategoryId".PadRight(maxLengths[2]));
-            Console.WriteLine(" | Price");
-            Console.WriteLine(new string('-', maxLengths.Sum() + 3 * 3));
+            if (typeof(T) == typeof(Product))
+            {
+                Console.Write(" | " + "CategoryId".PadRight(maxLengths[2]));
+                Console.WriteLine(" | Price");
+                Console.WriteLine(new string('-', maxLengths.Sum() + 3 * 3));
+            }
+            else
+                Console.WriteLine(new string('-', maxLengths[0] + maxLengths[1] + 3));
 
             foreach (var entity in entities) {
                 Console.Write(entity.Id.ToString().PadLeft(maxLengths[0]));
@@ -58,6 +66,7 @@ namespace HW02.Helpers
             Console.WriteLine();
         }
 
+        //print help to console
         public static void PrintHelp()
         {
             Console.Write(
@@ -77,6 +86,40 @@ namespace HW02.Helpers
                 "  help                                                               Print this help message\n" +
                 "  exit                                                               Exit the application\n"
                 );
+        }
+
+        public static void HandleEvent(OpCode opCode, bool status, Category? entity = null, string? msg = null)
+        {
+            string output = "";
+
+            if (!status)
+            {
+                output += "Operatio failed: " + msg;
+                Console.WriteLine(output);
+                return;
+            }
+
+            //write appropriate output
+            switch (opCode)
+            {
+                case OpCode.EXIT:
+                case OpCode.HELP:
+                case OpCode.GET_BY_CATG:
+                case OpCode.LST_CATG:
+                case OpCode.LST_PROD: return;
+
+                case OpCode.ADD_PROD: output += "Product '" + entity?.Name + "' added"; break;
+                case OpCode.DEL_PROD: output += "Product '" + entity?.Name + "' deleted"; break;
+                case OpCode.UPD_PROD: output += "Product '" + entity?.Name + "' updated"; break;
+
+                case OpCode.ADD_CATG: output += "Category; '" + entity?.Name + "' added"; break;
+                case OpCode.DEL_CATG: output += "Category; '" + entity?.Name + "' deleted"; break;
+                case OpCode.UPD_CATG: output += "Category; '" + entity?.Name + "' updated"; break;
+
+                default: output += "ERR: " + msg ?? ""; break;
+            }
+
+            Console.WriteLine(output);
         }
     }
 }

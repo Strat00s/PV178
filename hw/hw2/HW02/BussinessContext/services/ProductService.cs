@@ -7,13 +7,15 @@ namespace HW02.BussinessContext.Services
 {
     public class ProductService
     {
+        private CategoryService? _categoryService;
+
         private readonly ProductDBContext _db;
-        private List<Product> _products;
+        private readonly List<Product> _products;
         private int _lastId;
-        private EventHelper _eventHelper;
+        private readonly EventHelper _eventHelper;
 
 
-        private Product? FindProduct(int id)
+        public Product? FindProduct(int id)
         {
            return _products.Find(x => x.Id == id);
         }
@@ -21,10 +23,12 @@ namespace HW02.BussinessContext.Services
         //Constructor
         public ProductService(ProductDBContext db, EventHelper eventHelper)
         {
-            _db       = db;
-            _products = _db.ReadProducts();
-            _lastId   = 0;
+            _categoryService = null;
+
+            _db          = db;
+            _products    = _db.ReadProducts();
             _eventHelper = eventHelper;
+            _lastId      = 0;
 
             //get biggest id
             foreach (var product in _products)
@@ -37,9 +41,17 @@ namespace HW02.BussinessContext.Services
         }
 
 
+        public void SetCategoryService(CategoryService categoryService)
+        {
+            _categoryService = categoryService;
+        }
+
+
         //Create new product
         public Product Create(string name, int categoryId, decimal price)
         {
+            if (_categoryService?.FindCategory(categoryId) == null)
+                throw new EntityNotFound(OpCode.ADD_PROD, categoryId);
             Product newProduct = new(++_lastId, name, categoryId, price);   //create new product with valid id
             _products.Add(newProduct);                                      //add the product
             _db.SaveProducts(_products);                                    //save it
@@ -56,7 +68,7 @@ namespace HW02.BussinessContext.Services
 
         public List<Product> ListByCategory(int categoryId)
         {
-            List<Product> products = new List<Product>();
+            List<Product> products = new();
             foreach (var product in _products)
             {
                 if (product.CategoryId == categoryId)
@@ -93,7 +105,7 @@ namespace HW02.BussinessContext.Services
         public void DeleteByCategory(int categoryId)
         {
             _products.RemoveAll(product => product.CategoryId == categoryId);
-            _db.SaveProducts(_products)
+            _db.SaveProducts(_products);
         }
     }
 }
