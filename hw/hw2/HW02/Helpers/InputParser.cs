@@ -10,12 +10,13 @@ namespace HW02.Helpers
 {
     public class InputParser
     {
-        private int _pId;
-        private int _cId;
-        private decimal _price;
-        private string _name;
-        private OpCode _opCode;
+        private int _pId;       //product id
+        private int _cId;       //category id
+        private decimal _price; //product price
+        private string _name;   //product or category name
+        private OpCode _opCode; //operation code
 
+        //used for easy operation to opcode conversion
         private static readonly string[] _operations = {
             "exit",
             "help",
@@ -30,6 +31,8 @@ namespace HW02.Helpers
         public decimal Price { get { return _price;}}
         public string Name { get { return _name;}}
 
+
+        //Constructor
         public InputParser()
         {
             _pId   = 0;
@@ -46,7 +49,7 @@ namespace HW02.Helpers
                 throw new InvalidArgumentCountException(_opCode, length - 1);
         }
 
-        //throws type error on invalid argument
+        //throws type error on invalid argument type
         public static int ParseInt(OpCode op, string input)
         {
             if (Int32.TryParse(input, out int output))
@@ -54,25 +57,26 @@ namespace HW02.Helpers
 
             throw new InvalidArgumentTypeException(op, input);
         }
-
-        //throws type error on invalid argument
         public static decimal ParseDec(OpCode op, string input)
         {
             if (Decimal.TryParse(input, out decimal output))
                 return output;
+
             throw new InvalidArgumentTypeException(op, input);
         }
 
+        //Parse the input and return opcode (or throw some exception)
         public OpCode Parse(string input)
         {
-            string[] arguments = input.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+            string[] arguments = input.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();  //split input by spaces
 
-            //empty line
+            //don't do anything on empty line
             if (arguments.Length == 0)
                 return OpCode.NONE;
 
             _opCode = _operations.Contains(arguments[0]) ? (OpCode)Array.IndexOf(_operations, arguments[0]) : OpCode.OP_ERR;    //convert string operation to internal opcode
 
+            //check argument types and count depending on opcode
             switch (_opCode)
             {
                 //argumentless operations
@@ -100,14 +104,14 @@ namespace HW02.Helpers
                     _name = arguments[1];
                     return _opCode;
 
-                //only 2 argument operation
+                //2 argument operation
                 case OpCode.UPD_CATG:
                     CheckArgCount(arguments.Length, 2);
                     _cId  = ParseInt(_opCode, arguments[1]);
                     _name = arguments[2];
                     return _opCode;
 
-                //only 3 argument operation
+                //3 argument operation
                 case OpCode.ADD_PROD:
                     CheckArgCount(arguments.Length, 3);
                     _name  = arguments[1];
@@ -115,7 +119,7 @@ namespace HW02.Helpers
                     _price = ParseDec(OpCode.ADD_PROD, arguments[3]);
                     return _opCode;
 
-                //only 4 argument operation
+                //4 argument operation
                 case OpCode.UPD_PROD:
                     CheckArgCount(arguments.Length, 4);
                     _name  = arguments[2];
@@ -124,7 +128,7 @@ namespace HW02.Helpers
                     _price = ParseDec(OpCode.UPD_PROD, arguments[4]);
                     return _opCode;
                 
-                //op_err opcode
+                //invalid opcode
                 default:
                     throw new InvalidOpException(arguments[0]);
             }

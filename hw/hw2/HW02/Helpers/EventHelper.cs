@@ -1,4 +1,7 @@
-﻿using HW02.BussinessContext;
+﻿/* Event helper for invoking the one and only event for logging, data collecting and printing to console
+ */
+
+using HW02.BussinessContext;
 
 namespace HW02.Helpers
 {

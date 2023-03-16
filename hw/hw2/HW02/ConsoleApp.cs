@@ -12,31 +12,26 @@ namespace HW02
     {
         public static void Run(CategoryService categoryService, ProductService productService, IOHelper ioHelper, InputParser inputParser, EventHelper eventHelper)
         {
-            int firstRun = 0;
+            bool firstRun = true;
 
             while (true)
             {
                 try
                 {
                     //seeder moved here to allow for exception catching when seeding
-                    if (firstRun == 0)
+                    if (firstRun)
                     {
-                        firstRun++;
+                        firstRun = false;
                         Seeder.FillDB(categoryService, productService);
-                        eventHelper.LogEvent += IOHelper.HandleEvent;   //attach iohelper to event after seeding is done
-                        firstRun++;
-                    }
-                    //exit on 
-                    else if (firstRun == 1)
-                        return;
-
+                        eventHelper.LogEvent += IOHelper.HandleEvent;   //attach iohelper to event after succesful seeding; if there are any errors during seeding, user won't see it
+                    };
 
                     switch (inputParser.Parse(IOHelper.ReadLine()))
                     {
                         case OpCode.NONE:                                                                                                      continue;
                         case OpCode.EXIT:                                                                                                      return;
                         case OpCode.HELP:        IOHelper.PrintHelp();                                                                         break;
-                        case OpCode.GET_BY_CATG: IOHelper.PrintTable(productService.ListByCategory(inputParser.CId));                          break;
+                        case OpCode.GET_BY_CATG: IOHelper.PrintTable(productService.ListByCategory(inputParser.CId));                          break;   //apparently specifiying the template type is not required...
                         case OpCode.ADD_PROD:    productService.Create(inputParser.Name, inputParser.CId, inputParser.Price);                  break;
                         case OpCode.UPD_PROD:    productService.Update(inputParser.PId, inputParser.Name, inputParser.CId, inputParser.Price); break;
                         case OpCode.DEL_PROD:    productService.Delete(inputParser.PId);                                                       break;

@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/* Apparently it is good practice to have enums in their own files. So here it is
+ */
 
 namespace HW02
 {
     public enum OpCode
     {
-        EXIT,
+        EXIT = 0,
         HELP,
 
         GET_BY_CATG,

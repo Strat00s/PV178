@@ -1,4 +1,5 @@
-﻿/*I probably missunderstood how this class is suppose to work...*/
+﻿/* I probably missunderstood how this class is suppose to work...
+ */
 
 using HW02.BussinessContext;
 using HW02.LoggerContext.DB;
@@ -14,9 +15,10 @@ namespace HW02
             _db = loggerDBContext;
         }
 
+        //handle event and create string that will be logged
         public void HandleEvent(OpCode opCode, bool status, Category? entity = null, string? msg = null)
         {
-            string log = DateTime.Now.ToString("[MM/dd/yyyy HH:mm:ss]") + " ";
+            string log = DateTime.Now.ToString("[MM/dd/yyyy HH:mm:ss]") + " ";  //add time
 
             //write appropriate command
             switch (opCode)

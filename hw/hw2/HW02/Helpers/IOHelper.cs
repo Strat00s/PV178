@@ -1,4 +1,8 @@
-﻿using HW02.BussinessContext;
+﻿/* Input and output class
+ * Used for reading and writing from/to console
+ */
+
+using HW02.BussinessContext;
 
 namespace HW02.Helpers
 {
@@ -8,7 +12,6 @@ namespace HW02.Helpers
         public static string ReadLine()
         {
             Console.Write("Command: ");
-            //return Console.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();  //split input by spaces if there is any, otherwise return empty array
             return Console.ReadLine() ?? "";
         }
 
@@ -92,6 +95,7 @@ namespace HW02.Helpers
                 );
         }
 
+        //event handler for printing information to console (I already have all the information for logs, why not use it for console output as well?)
         public static void HandleEvent(OpCode opCode, bool status, Category? entity = null, string? msg = null)
         {
             string output = "";

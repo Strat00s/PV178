@@ -1,4 +1,7 @@
-﻿using HW02.BussinessContext.Services;
+﻿/* Pretty straight forward
+ */
+
+using HW02.BussinessContext.Services;
 
 namespace HW02.Helpers
 {
