@@ -10,33 +10,13 @@ namespace HW02.BussinessContext
 {
     public class Category
     {
-        private readonly int _id;
-        private string _name;
-
-        public int Id
-        {
-            get 
-            {
-                return _id;
-            }
-        }
-
-        public string Name
-        {
-            get 
-            {
-                return _name;
-            }
-            set 
-            {
-                _name = value;
-            }
-        }
+        public int Id { get; }
+        public string Name { get; set; }
 
         public Category(int id, string name)
         {
-            _id = id;
-            _name = name;
+            Id = id;
+            Name = name;
         }
     }
 }

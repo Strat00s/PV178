@@ -3,10 +3,10 @@ namespace HW02.Exceptions
 {
     public class InvalidOpException : Exception
     {
-        public string Op {get;}
-        public InvalidOpException(string op) 
+        public string Operation {get;}
+        public InvalidOpException(string operation) 
         {
-            Op = op;
+            Operation = operation;
         }
     }
 }

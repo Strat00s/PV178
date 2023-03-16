@@ -18,25 +18,27 @@ namespace HW02
         {
             string log = DateTime.Now.ToString("[MM/dd/yyyy HH:mm:ss]") + " ";
 
+            //write appropriate command
             switch (opCode)
             {
                 case OpCode.EXIT: log += "Exit"; _db.WriteLog(log); return;
                 case OpCode.HELP: log += "Help"; _db.WriteLog(log); return;
                 
                 case OpCode.GET_BY_CATG:
-                case OpCode.LST_PROD: log += "Get;    Product;  "; break;
-                case OpCode.ADD_PROD: log += "Add;    Product;  "; break;
-                case OpCode.DEL_PROD: log += "Delete; Product;  "; break;
-                case OpCode.UPD_PROD: log += "Update; Product;  "; break;
+                case OpCode.LST_PROD: log += "Get; Product; ";    break;
+                case OpCode.ADD_PROD: log += "Add; Product; ";    break;
+                case OpCode.DEL_PROD: log += "Delete; Product; "; break;
+                case OpCode.UPD_PROD: log += "Update; Product; "; break;
                 
-                case OpCode.ADD_CATG: log += "Add;    Category; "; break;
+                case OpCode.ADD_CATG: log += "Add; Category; ";    break;
                 case OpCode.DEL_CATG: log += "Delete; Category; "; break;
                 case OpCode.UPD_CATG: log += "Update; Category; "; break;
-                case OpCode.LST_CATG: log += "Get;    Category; "; break;
+                case OpCode.LST_CATG: log += "Get; Category; ";    break;
 
                 default: log += "Other; " + msg ?? ""; _db.WriteLog(log); return;
             }
 
+            //write message on fail
             if (!status)
             {
                 log += "Failure; " + msg ?? "";
@@ -46,6 +48,7 @@ namespace HW02
 
             log += "Success; ";
             
+            //get commands don't have entity
             if (entity == null)
             {
                 _db.WriteLog(log);
@@ -54,6 +57,7 @@ namespace HW02
 
             log += entity.Id + "; " + entity.Name + "; ";
 
+            //check which entity we got
             if (entity is Product product)
                 log += product.CategoryId;
             else

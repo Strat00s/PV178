@@ -10,28 +10,28 @@ namespace HW02.BussinessContext.Services
     {
         private readonly CategoryDBContext _db;
         private List<Category> _categories;
-        private int _lastId;
+
+        private ProductService _productService;
+
         private EventHelper _eventHelper;
 
+        private int _lastId;
+       
 
-        //TODO implement it as a binary search
         private Category? FindCategory(int id)
         {
-            for (int i = 0; i < _categories.Count; i++)
-            {
-                if (id == _categories[i].Id)
-                    return _categories[i];
-            }
-            return null;
+            return _categories.Find(x => x.Id == id);
         }
 
+
         //Constructor
-        public CategoryService(CategoryDBContext db, EventHelper eventHelper)
+        public CategoryService(CategoryDBContext db, ProductService productService, EventHelper eventHelper)
         { 
-            _db = db;
-            _categories = _db.ReadCategories();
-            _lastId = 0;
-            _eventHelper = eventHelper;
+            _db             = db;
+            _categories     = _db.ReadCategories();
+            _productService = productService;
+            _eventHelper    = eventHelper;
+            _lastId         = 0;
 
             //get biggest id
             foreach (var product in _categories)
@@ -73,6 +73,7 @@ namespace HW02.BussinessContext.Services
         public Category Delete(int categoryId)
         {
             Category? category = FindCategory(categoryId) ?? throw new EntityNotFound(OpCode.DEL_CATG, categoryId);
+            _productService.DeleteByCategory(categoryId);
             _categories.Remove(category);
             _db.SaveCategories(_categories);
             _eventHelper.Log(OpCode.DEL_CATG, true, category);

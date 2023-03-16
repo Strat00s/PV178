@@ -13,15 +13,9 @@ namespace HW02.BussinessContext.Services
         private EventHelper _eventHelper;
 
 
-        //TODO implement it as a binary search
         private Product? FindProduct(int id)
         {
-            for (int i = 0; i < _products.Count; i++)
-            {
-                if (id == _products[i].Id)
-                    return _products[i];
-            }
-            return null;
+           return _products.Find(x => x.Id == id);
         }
 
         //Constructor
@@ -92,6 +86,14 @@ namespace HW02.BussinessContext.Services
             _db.SaveProducts(_products);
             _eventHelper.Log(OpCode.DEL_PROD, true, product);
             return product;
+        }
+
+        //delete products by category; used only with delete-category
+        //is logged together with delete-category
+        public void DeleteByCategory(int categoryId)
+        {
+            _products.RemoveAll(product => product.CategoryId == categoryId);
+            _db.SaveProducts(_products)
         }
     }
 }

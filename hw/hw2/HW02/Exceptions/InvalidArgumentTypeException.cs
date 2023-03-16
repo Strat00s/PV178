@@ -8,11 +8,11 @@ namespace HW02.Exceptions
 {
     public class InvalidArgumentTypeException : Exception
     {
-        public OpCode Op { get; }
+        public OpCode OpCode { get; }
         public string Argument { get; }
-        public InvalidArgumentTypeException(OpCode op, string argument) 
+        public InvalidArgumentTypeException(OpCode opCode, string argument) 
         {
-            Op = op;
+            OpCode = opCode;
             Argument = argument;
         }
     }

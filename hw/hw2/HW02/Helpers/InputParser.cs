@@ -2,6 +2,10 @@
 
 namespace HW02.Helpers
 {
+    /* Input parser for reading and parsing input
+     * Used to check argument types and argument count
+     * Returns "internal" operation opcode and stores the rest of the arguments
+     */
     public class InputParser
     {
         private int _pId;
@@ -33,6 +37,7 @@ namespace HW02.Helpers
         }
 
 
+        //check operation argument count
         private void CheckArgCount(int length, int required)
         {
             if (length - 1 != required)
@@ -42,9 +47,7 @@ namespace HW02.Helpers
         //convert operation to internal opcode
         public static OpCode OperationToOpCode(string op)
         {
-            if (!_operations.Contains(op))
-                throw new InvalidOpException(op);
-            return (OpCode)Array.IndexOf(_operations, op);
+            return _operations.Contains(op) ? (OpCode)Array.IndexOf(_operations, op) : OpCode.OP_ERR;
         }
 
         //throws type error on invalid argument
@@ -104,28 +107,28 @@ namespace HW02.Helpers
                 //only 2 argument operation
                 case OpCode.UPD_CATG:
                     CheckArgCount(arguments.Length, 2);
-                    _cId = ParseInt(_opCode, arguments[1]);
+                    _cId  = ParseInt(_opCode, arguments[1]);
                     _name = arguments[2];
                     return _opCode;
 
                 //only 3 argument operation
                 case OpCode.ADD_PROD:
                     CheckArgCount(arguments.Length, 3);
-                    _name = arguments[1];
-                    _cId = ParseInt(OpCode.ADD_PROD, arguments[2]);
+                    _name  = arguments[1];
+                    _cId   = ParseInt(OpCode.ADD_PROD, arguments[2]);
                     _price = ParseDec(OpCode.ADD_PROD, arguments[3]);
                     return _opCode;
 
                 //only 4 argument operation
                 case OpCode.UPD_PROD:
                     CheckArgCount(arguments.Length, 4);
-                    _name = arguments[2];
-                    _pId = ParseInt(OpCode.UPD_PROD, arguments[1]);
-                    _cId = ParseInt(OpCode.UPD_PROD, arguments[3]);
+                    _name  = arguments[2];
+                    _pId   = ParseInt(OpCode.UPD_PROD, arguments[1]);
+                    _cId   = ParseInt(OpCode.UPD_PROD, arguments[3]);
                     _price = ParseDec(OpCode.UPD_PROD, arguments[4]);
                     return _opCode;
                 
-                //
+                //op_err opcode
                 default:
                     throw new InvalidOpException(arguments[0]);
             }

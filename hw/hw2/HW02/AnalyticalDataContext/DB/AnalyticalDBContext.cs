@@ -15,14 +15,14 @@ namespace HW02.AnalyticalDataContext.DB
         }
 
         // TODO: replace type List<object> in functions headers to the appropriate data model -> List<YourDataModel>
-        public void SaveAnalyticalData(List<object> log)
+        public void SaveAnalyticalData(List<AnalyticData> log)
         {
             string jsonString = JsonSerializer.Serialize(log);
             using StreamWriter outputFile = new StreamWriter(_filePath);
             outputFile.WriteLine(jsonString);
         }
 
-        public List<object> ReadAnalyticalData()
+        public List<AnalyticData> ReadAnalyticalData()
         {
             string? line;
             using (StreamReader inputFile = new StreamReader(_filePath))
@@ -32,10 +32,10 @@ namespace HW02.AnalyticalDataContext.DB
 
             if (line == null)
             {
-                return new List<object>();
+                return new List<AnalyticData>();
             }
 
-            var model = JsonSerializer.Deserialize<List<object>>(line);
+            var model = JsonSerializer.Deserialize<List<AnalyticData>>(line);
             return model;
         }
     }

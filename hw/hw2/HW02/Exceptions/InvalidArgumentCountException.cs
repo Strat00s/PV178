@@ -8,11 +8,11 @@ namespace HW02.Exceptions
 {
     internal class InvalidArgumentCountException : Exception
     {
-        public OpCode Op { get; }
+        public OpCode OpCode { get; }
         public int Cnt { get; }
-        public InvalidArgumentCountException(OpCode op, int cnt) 
-        { 
-            Op = op;
+        public InvalidArgumentCountException(OpCode opCode, int cnt) 
+        {
+            OpCode = opCode;
             Cnt = cnt;
         }
     }

@@ -1,8 +1,4 @@
-﻿//TODO change iohelper to event based printing???
-
-using System.Linq;
-using HW02.BussinessContext;
-using HW02.BussinessContext.FileDatabase;
+﻿using HW02.BussinessContext;
 using HW02.BussinessContext.Services;
 using HW02.Exceptions;
 using HW02.Helpers;
@@ -29,20 +25,21 @@ namespace HW02
         OP_ERR,
         CNT_ERR
     }
+
+    /* Wrapper for main logic
+     * Gets opcode from input parser and executes the required action
+     */
     public static class ConsoleApp
     {
-        //private static OpCode opCode;
-        
         public static void Run(CategoryService categoryService, ProductService productService, InputParser inputParser, EventHelper eventHelper)
         {
-            int firstRun     = 0;
-            OpCode opCode    = OpCode.NONE;
+            int firstRun = 0;
 
             while (true)
             {
-                opCode = OpCode.NONE;
                 try
                 {
+                    //seeder moved here to allow for exception catching when seeding
                     if (firstRun == 0)
                     {
                         firstRun++;
@@ -52,46 +49,43 @@ namespace HW02
                     else if (firstRun == 1)
                         return;
 
-                    opCode = inputParser.Parse(IOHelper.ReadLine());
-                    //I know that this is kinda duplicit code. I just wanted to have the input parsing seperated from the main logic
-                    switch (opCode)
+
+                    switch (inputParser.Parse(IOHelper.ReadLine()))
                     {
                         case OpCode.NONE:        continue;
                         case OpCode.EXIT:        return;
                         case OpCode.HELP:        IOHelper.PrintHelp();                                                                         break;
-                        case OpCode.GET_BY_CATG: IOHelper.PrintProducts(productService.ListByCategory(inputParser.CId));                       break;
+                        case OpCode.GET_BY_CATG: IOHelper.PrintTable<Product>(productService.ListByCategory(inputParser.CId));                 break;
                         case OpCode.ADD_PROD:    productService.Create(inputParser.Name, inputParser.CId, inputParser.Price);                  break;
                         case OpCode.UPD_PROD:    productService.Update(inputParser.PId, inputParser.Name, inputParser.CId, inputParser.Price); break;
                         case OpCode.DEL_PROD:    productService.Delete(inputParser.PId);                                                       break;
-                        case OpCode.LST_PROD:    IOHelper.PrintProducts(productService.List());                                                break;
+                        case OpCode.LST_PROD:    IOHelper.PrintTable<Product>(productService.List());                                          break;
                         case OpCode.ADD_CATG:    categoryService.Create(inputParser.Name);                                                     break;
                         case OpCode.UPD_CATG:    categoryService.Update(inputParser.CId, inputParser.Name);                                    break;
                         case OpCode.DEL_CATG:    categoryService.Delete(inputParser.CId);                                                      break;
-                        case OpCode.LST_CATG:    IOHelper.PrintCategories(categoryService.List());                                             break;
+                        case OpCode.LST_CATG:    IOHelper.PrintTable<Category>(categoryService.List());                                        break;
                     }
 
                 }
+                //handle exceptions
                 catch (EntityNotFound ex)
                 {
-                    //IOHelper.WriteLine(nameof(opCode) + "; Entity wiht id '"+ ex.Id +"' not found");
-                    //opCode = ex.OpCode;
                     eventHelper.Log(ex.OpCode, false, null, "Entity wiht id '"+ ex.Id + "' not found");
                 }
                 catch (InvalidArgumentCountException ex)
                 {
-                    eventHelper.Log(ex.Op, false, null, "Invalid number of arguments: " + ex.Cnt);
+                    eventHelper.Log(ex.OpCode, false, null, "Invalid number of arguments: " + ex.Cnt);
                 }
                 catch (InvalidArgumentTypeException ex)
                 {
-                    eventHelper.Log(ex.Op, false, null, "Argument '" + ex.Argument + "' is not a number");
+                    eventHelper.Log(ex.OpCode, false, null, "Argument '" + ex.Argument + "' is not a number");
                 }
                 catch (InvalidOpException ex)
                 {
-                    eventHelper.Log(OpCode.NONE, false, null, "Unknown operation: " + ex.Op);
+                    eventHelper.Log(OpCode.NONE, false, null, "Unknown operation: " + ex.Operation);
                 }
                 catch (Exception ex)
                 {
-                    //handle exception ExHandler.HandleException(ex);
                     eventHelper.Log(OpCode.NONE, false, null, ex.Message);
                 }
             }

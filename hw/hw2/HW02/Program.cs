@@ -1,4 +1,6 @@
-﻿using HW02.BussinessContext;
+﻿using HW02.AnalyticalDataContext;
+using HW02.AnalyticalDataContext.DB;
+using HW02.BussinessContext;
 using HW02.BussinessContext.FileDatabase;
 using HW02.BussinessContext.Services;
 using HW02.Helpers;
@@ -10,22 +12,28 @@ namespace HW02
     {
         public static void Main()
         {
-            //TODO logger will also print :wesmart:
-            //TODO: Initialize all clases here, when some dependency needed, insert object through constrcutor
-            var loggerDB = new LoggerDBContext();
+            //logger setup
+            var loggerDB          = new LoggerDBContext();
             LoggerListener logger = new LoggerListener(loggerDB);
 
+            //analytics setup
+            var analyticalDB                 = new AnalyticalDBContext();
+            AnalyticalDataListener analytics = new AnalyticalDataListener(analyticalDB);
+
+            //event setup
             EventHelper eventHelper = new();
             eventHelper.LogEvent += logger.HandleEvent;
+            eventHelper.LogEvent += analytics.HandleEvent;
 
+            //main services setup
             var categoryDB      = new CategoryDBContext();
             var productDB       = new ProductDBContext(categoryDB);
-            var categoryService = new CategoryService(categoryDB, eventHelper);
             var productService  = new ProductService(productDB, eventHelper);
+            var categoryService = new CategoryService(categoryDB, productService, eventHelper);
 
+            //other
             var inputParser         = new InputParser();
             
-            //Seeder.FillDB(categoryService, productService);
 
             Console.WriteLine("Hello eShop!");
             Console.WriteLine("Type 'help' to list possible commands and uses");

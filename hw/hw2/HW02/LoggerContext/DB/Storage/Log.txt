@@ -1,18 +1,15 @@
-[03.15.2023 17:32:58] Other; Category DB loaded
-[03.15.2023 17:32:58] Other; Product DB loaded
-[03.15.2023 17:32:58] Add;    Category; Success; 1; Lake; 1
-[03.15.2023 17:32:58] Add;    Product;  Success; 1; Canoe; 1
-[03.15.2023 17:32:58] Add;    Product;  Success; 2; Tent; 1
-[03.15.2023 17:32:58] Add;    Product;  Success; 3; Fishing rod; 1
-[03.15.2023 17:32:58] Add;    Category; Success; 2; House; 2
-[03.15.2023 17:32:58] Add;    Product;  Success; 4; Chair; 2
-[03.15.2023 17:32:58] Add;    Product;  Success; 5; Kitchen sink; 2
-[03.15.2023 17:32:58] Add;    Category; Success; 3; Car; 3
-[03.15.2023 17:32:58] Add;    Product;  Success; 6; Tire; 3
-[03.15.2023 17:32:58] Add;    Product;  Success; 7; Muffler; 3
-[03.15.2023 17:32:58] Add;    Product;  Success; 8; Seatbelt; 3
-[03.15.2023 17:32:58] Add;    Product;  Success; 9; Windshield; 3
-[03.15.2023 17:33:25] Add;    Category; Success; 4; test; 4
-[03.15.2023 17:33:44] Delete; Category; Success; 2; House; 2
-[03.15.2023 17:34:27] Get;    Product;  Success; 
-[03.15.2023 17:34:30] Get;    Category; Success; 
+[03.16.2023 11:45:02] Other; Category DB loaded
+[03.16.2023 11:45:02] Other; Product DB loaded
+[03.16.2023 11:45:02] Add;    Category; Success; 1; Lake; 1
+[03.16.2023 11:45:02] Add;    Product;  Success; 1; Canoe; 1
+[03.16.2023 11:45:02] Add;    Product;  Success; 2; Tent; 1
+[03.16.2023 11:45:02] Add;    Product;  Success; 3; Fishing rod; 1
+[03.16.2023 11:45:02] Add;    Category; Success; 2; House; 2
+[03.16.2023 11:45:02] Add;    Product;  Success; 4; Chair; 2
+[03.16.2023 11:45:02] Add;    Product;  Success; 5; Kitchen sink; 2
+[03.16.2023 11:45:02] Add;    Category; Success; 3; Car; 3
+[03.16.2023 11:45:02] Add;    Product;  Success; 6; Tire; 3
+[03.16.2023 11:45:02] Add;    Product;  Success; 7; Muffler; 3
+[03.16.2023 11:45:02] Add;    Product;  Success; 8; Seatbelt; 3
+[03.16.2023 11:45:02] Add;    Product;  Success; 9; Windshield; 3
+[03.16.2023 11:45:05] Get;    Product;  Success; 
