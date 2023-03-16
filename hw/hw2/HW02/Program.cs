@@ -20,9 +20,6 @@ namespace HW02
             var analyticalDB                 = new AnalyticalDBContext();
             AnalyticalDataListener analytics = new(analyticalDB);
 
-            //IOHelper for reading and writing
-            IOHelper ioHelper = new();
-
             //event setup
             EventHelper eventHelper = new();
             eventHelper.LogEvent += logger.HandleEvent;
@@ -43,7 +40,7 @@ namespace HW02
             
             Console.WriteLine("Hello eShop!");
             Console.WriteLine("Type 'help' to list possible commands and uses");
-            ConsoleApp.Run(categoryService, productService, ioHelper, inputParser, eventHelper);
+            ConsoleApp.Run(categoryService, productService, inputParser, eventHelper);
             Console.WriteLine("Exiting...");
         }
     }

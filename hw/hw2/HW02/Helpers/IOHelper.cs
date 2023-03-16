@@ -6,7 +6,7 @@ using HW02.BussinessContext;
 
 namespace HW02.Helpers
 {
-    public class IOHelper
+    public interface IOHelper
     {
         //read string from console
         public static string ReadLine()

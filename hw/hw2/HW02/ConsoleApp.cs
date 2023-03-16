@@ -10,7 +10,7 @@ namespace HW02
 {
     public static class ConsoleApp
     {
-        public static void Run(CategoryService categoryService, ProductService productService, IOHelper ioHelper, InputParser inputParser, EventHelper eventHelper)
+        public static void Run(CategoryService categoryService, ProductService productService, InputParser inputParser, EventHelper eventHelper)
         {
             bool firstRun = true;
 
@@ -21,9 +21,9 @@ namespace HW02
                     //seeder moved here to allow for exception catching when seeding
                     if (firstRun)
                     {
-                        firstRun = false;
                         Seeder.FillDB(categoryService, productService);
                         eventHelper.LogEvent += IOHelper.HandleEvent;   //attach iohelper to event after succesful seeding; if there are any errors during seeding, user won't see it
+                        firstRun = false;
                     };
 
                     switch (inputParser.Parse(IOHelper.ReadLine()))
@@ -66,6 +66,15 @@ namespace HW02
                 catch (Exception ex)
                 {
                     eventHelper.Log(OpCode.NONE, false, null, ex.Message);
+                }
+
+                //this will happen if seeding failed, so let's attach the iohelper to event for printing and tell the user something
+                //maybe should've used some error writing, but whatever (assignment does not mention any specific output type). 
+                if (firstRun)
+                {
+                    firstRun = false;
+                    eventHelper.LogEvent += IOHelper.HandleEvent;
+                    IOHelper.WriteLine("Problem occured while populating DB. Please check the log!");
                 }
             }
         }
