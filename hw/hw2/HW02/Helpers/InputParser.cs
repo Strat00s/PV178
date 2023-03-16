@@ -1,11 +1,13 @@
-﻿using HW02.Exceptions;
+﻿/* Input parser for reading and parsing input
+ * Used to check argument types and argument count
+ * Returns "internal" operation opcode and stores the rest of the arguments
+ */
+
+
+using HW02.Exceptions;
 
 namespace HW02.Helpers
 {
-    /* Input parser for reading and parsing input
-     * Used to check argument types and argument count
-     * Returns "internal" operation opcode and stores the rest of the arguments
-     */
     public class InputParser
     {
         private int _pId;
@@ -37,17 +39,11 @@ namespace HW02.Helpers
         }
 
 
-        //check operation argument count
+        //check operation argument count (each operation has some number of arguments)
         private void CheckArgCount(int length, int required)
         {
             if (length - 1 != required)
                 throw new InvalidArgumentCountException(_opCode, length - 1);
-        }
-
-        //convert operation to internal opcode
-        public static OpCode OperationToOpCode(string op)
-        {
-            return _operations.Contains(op) ? (OpCode)Array.IndexOf(_operations, op) : OpCode.OP_ERR;
         }
 
         //throws type error on invalid argument
@@ -75,7 +71,7 @@ namespace HW02.Helpers
             if (arguments.Length == 0)
                 return OpCode.NONE;
 
-            _opCode = OperationToOpCode(arguments[0]);
+            _opCode = _operations.Contains(arguments[0]) ? (OpCode)Array.IndexOf(_operations, arguments[0]) : OpCode.OP_ERR;    //convert string operation to internal opcode
 
             switch (_opCode)
             {

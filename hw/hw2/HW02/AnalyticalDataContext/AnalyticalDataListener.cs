@@ -40,6 +40,7 @@ namespace HW02.AnalyticalDataContext
                     _data.Find(item => item.CategoryId == product2.CategoryId)?.AddProduct(product2.Id);
                     break;
 
+                //remove product from entry
                 case OpCode.DEL_PROD:
                     if (entity is Product product3)
                         _data.Find(item => item.CategoryId == product3.CategoryId)?.RemoveProduct(product3.Id);

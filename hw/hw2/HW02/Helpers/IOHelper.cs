@@ -38,7 +38,7 @@ namespace HW02.Helpers
                 if (entity is Product product)
                 {
                     maxLengths[2] = Math.Max(maxLengths[2], product.CategoryId.ToString().Length);
-                    maxLengths[3] = Math.Max(maxLengths[3], product.Price.ToString().Length);
+                    maxLengths[3] = Math.Max(maxLengths[3], product.Price.ToString("0.00").Length);
                 }
             }
 
@@ -52,7 +52,10 @@ namespace HW02.Helpers
                 Console.WriteLine(new string('-', maxLengths.Sum() + 3 * 3));
             }
             else
+            {
+                Console.WriteLine();
                 Console.WriteLine(new string('-', maxLengths[0] + maxLengths[1] + 3));
+            }
 
             foreach (var entity in entities) {
                 Console.Write(entity.Id.ToString().PadLeft(maxLengths[0]));
@@ -60,8 +63,9 @@ namespace HW02.Helpers
                 if (entity is Product product)
                 {
                     Console.Write(" | " + product.CategoryId.ToString().PadLeft(maxLengths[2]));
-                    Console.WriteLine(" | " + product.Price.ToString().PadLeft(maxLengths[3]));
+                    Console.Write(" | " + product.Price.ToString("0.00").PadLeft(maxLengths[3]));
                 }
+                Console.WriteLine();
             }
             Console.WriteLine();
         }
@@ -108,15 +112,15 @@ namespace HW02.Helpers
                 case OpCode.LST_CATG:
                 case OpCode.LST_PROD: return;
 
-                case OpCode.ADD_PROD: output += "Product '" + entity?.Name + "' added"; break;
-                case OpCode.DEL_PROD: output += "Product '" + entity?.Name + "' deleted"; break;
-                case OpCode.UPD_PROD: output += "Product '" + entity?.Name + "' updated"; break;
+                case OpCode.ADD_PROD: output += "Product '" + entity?.Id + "' added"; break;
+                case OpCode.DEL_PROD: output += "Product '" + entity?.Id + "' deleted"; break;
+                case OpCode.UPD_PROD: output += "Product '" + entity?.Id + "' updated"; break;
 
-                case OpCode.ADD_CATG: output += "Category; '" + entity?.Name + "' added"; break;
-                case OpCode.DEL_CATG: output += "Category; '" + entity?.Name + "' deleted"; break;
-                case OpCode.UPD_CATG: output += "Category; '" + entity?.Name + "' updated"; break;
+                case OpCode.ADD_CATG: output += "Category; '" + entity?.Id + "' added"; break;
+                case OpCode.DEL_CATG: output += "Category; '" + entity?.Id + "' deleted"; break;
+                case OpCode.UPD_CATG: output += "Category; '" + entity?.Id + "' updated"; break;
 
-                default: output += "ERR: " + msg ?? ""; break;
+                default: output += "An error occured: " + msg ?? ""; break;
             }
 
             Console.WriteLine(output);

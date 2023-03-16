@@ -24,7 +24,6 @@ namespace HW02
         LST_CATG,
 
         NONE = 99,
-        OP_ERR,
-        CNT_ERR
+        OP_ERR
     }
 }

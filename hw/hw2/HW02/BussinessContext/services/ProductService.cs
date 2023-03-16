@@ -10,32 +10,17 @@ namespace HW02.BussinessContext.Services
         private CategoryService? _categoryService;
 
         private readonly ProductDBContext _db;
-        private readonly List<Product> _products;
-        private int _lastId;
         private readonly EventHelper _eventHelper;
+        private int _lastId;
 
-
-        public Product? FindProduct(int id)
-        {
-           return _products.Find(x => x.Id == id);
-        }
 
         //Constructor
         public ProductService(ProductDBContext db, EventHelper eventHelper)
         {
             _categoryService = null;
-
-            _db          = db;
-            _products    = _db.ReadProducts();
-            _eventHelper = eventHelper;
-            _lastId      = 0;
-
-            //get biggest id
-            foreach (var product in _products)
-            {
-                if (_lastId < product.Id)
-                    _lastId = product.Id;
-            }
+            _db              = db;
+            _eventHelper     = eventHelper;
+            _lastId          = 0;
 
             _eventHelper.Log(OpCode.NONE, true, null, "Product DB loaded");
         }
@@ -47,56 +32,64 @@ namespace HW02.BussinessContext.Services
         }
 
 
-        //Create new product
+        //create new product
         public Product Create(string name, int categoryId, decimal price)
         {
+            //check if category does exist
             if (_categoryService?.FindCategory(categoryId) == null)
                 throw new EntityNotFound(OpCode.ADD_PROD, categoryId);
-            Product newProduct = new(++_lastId, name, categoryId, price);   //create new product with valid id
-            _products.Add(newProduct);                                      //add the product
-            _db.SaveProducts(_products);                                    //save it
-            _eventHelper.Log(OpCode.ADD_PROD, true, newProduct);
+
+            Product newProduct = new(++_lastId, name, categoryId, price);   //create new product
+            
+            //add, save
+            var products = _db.ReadProducts();
+            products.Add(newProduct);
+            _db.SaveProducts(products);
+
+            _eventHelper.Log(OpCode.ADD_PROD, true, newProduct);    //log it
             return newProduct;
         }
 
+        //get list of all products
         public List<Product> List()
         {
             _eventHelper.Log(OpCode.LST_PROD, true);
-            return _products;
+            return _db.ReadProducts();
         }
 
-
+        //get list of all products in category
         public List<Product> ListByCategory(int categoryId)
         {
-            List<Product> products = new();
-            foreach (var product in _products)
-            {
-                if (product.CategoryId == categoryId)
-                    products.Add(product);
-            }
             _eventHelper.Log(OpCode.LST_PROD, true);
-            return products;
+            return _db.ReadProducts().FindAll(product => product.CategoryId == categoryId);
         }
 
-        //Update product
+        //update product
         public Product Update(int productId, string newName, int newCategoryId, decimal newPrice)
         {
-            Product? product = FindProduct(productId) ?? throw new EntityNotFound(OpCode.UPD_PROD, productId);
-            product.Name       = newName;
+            //check if category exists
+            if (_categoryService?.FindCategory(newCategoryId) == null)
+                throw new EntityNotFound(OpCode.ADD_PROD, newCategoryId);
+            
+            var products       = _db.ReadProducts();
+            var product        = products.Find(entity => entity.Id == productId) ?? throw new EntityNotFound(OpCode.UPD_PROD, productId);   //check if product exists
+            product.Name       = newName;                                                                                                   //update it
             product.CategoryId = newCategoryId;
             product.Price      = newPrice;
-            _db.SaveProducts(_products); //save
-            _eventHelper.Log(OpCode.UPD_PROD, true, product);
+            _db.SaveProducts(products);                                                                                                     //save it
+            _eventHelper.Log(OpCode.UPD_PROD, true, product);                                                                               //log it
             return product;
         }
 
-        //Delete product
+        //delete product
         public Product Delete(int productId)
         {
-            Product? product = FindProduct(productId) ?? throw new EntityNotFound(OpCode.DEL_PROD, productId);
-            _products.Remove(product);
-            _db.SaveProducts(_products);
-            _eventHelper.Log(OpCode.DEL_PROD, true, product);
+
+            var products = _db.ReadProducts();
+            var product  = products.Find(entity => entity.Id == productId) ?? throw new EntityNotFound(OpCode.DEL_PROD, productId); //check if product exists
+            products.RemoveAll(entity => entity.Id == productId);                                                                   //remove it
+            _db.SaveProducts(products);                                                                                             //save it
+            _eventHelper.Log(OpCode.DEL_PROD, true, product);                                                                       //log it
             return product;
         }
 
@@ -104,8 +97,9 @@ namespace HW02.BussinessContext.Services
         //is logged together with delete-category
         public void DeleteByCategory(int categoryId)
         {
-            _products.RemoveAll(product => product.CategoryId == categoryId);
-            _db.SaveProducts(_products);
+            var products = _db.ReadProducts();
+            products.RemoveAll(product => product.CategoryId == categoryId);
+            _db.SaveProducts(products);
         }
     }
 }

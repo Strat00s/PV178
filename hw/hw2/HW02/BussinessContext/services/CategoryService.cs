@@ -8,81 +8,77 @@ namespace HW02.BussinessContext.Services
 {
     public class CategoryService
     {
-        //lazy init factory
         private ProductService? _productService;
 
-        private readonly CategoryDBContext _db; //DB handler
-        private readonly List<Category> _categories;     //current list of categories
-        private readonly EventHelper _eventHelper;       //used for logging events
-        private int _lastId;                    //stores last entity id
+        private readonly CategoryDBContext _db;         //DB handler
+        private readonly EventHelper _eventHelper;      //used for logging events
+        private int _lastId;                            //stores last entity id
        
-
-        public Category? FindCategory(int id)
-        {
-            return _categories.Find(x => x.Id == id);
-        }
-
 
         //Constructor
         public CategoryService(CategoryDBContext db, EventHelper eventHelper)
         {
             _productService = null;
-
-            _db          = db;
-            _categories  = _db.ReadCategories();
-            _eventHelper = eventHelper;
-            _lastId      = 0;
-
-            //get biggest id
-            foreach (var product in _categories)
-            {
-                if (_lastId < product.Id)
-                    _lastId = product.Id;
-            }
+            _db             = db;
+            _eventHelper    = eventHelper;
+            _lastId         = 0;
 
             eventHelper.Log(OpCode.NONE, true, null, "Category DB loaded");
         }
 
-        //
+
         public void SetProductService(ProductService productService)
         {
             _productService = productService;
         }
 
 
+        //used only in product service to check if category exists during update
+        //might not be required as DBcontext checks that too...
+        public Category? FindCategory(int id)
+        {
+            return _db.ReadCategories().Find(category => category.Id == id);
+        }
+
         //Create new product
         public Category Create(string name)
         {
-            Category newCategory = new(++_lastId, name);    //create new category
-            _categories.Add(newCategory);                   //add the product
-            _db.SaveCategories(_categories);                //save
-            _eventHelper.Log(OpCode.ADD_CATG, true, newCategory);
+            var categories = _db.ReadCategories();                  //load it
+            Category newCategory = new(++_lastId, name);            //create new category
+            categories.Add(newCategory);                            //add category
+            _db.SaveCategories(categories);                         //save it
+            _eventHelper.Log(OpCode.ADD_CATG, true, newCategory);   //log it
             return newCategory;
         }
 
+        //get list of all categories
         public List<Category> List()
         {
-            _eventHelper.Log(OpCode.LST_CATG, true);
-            return _categories;  //return the list of strings
+            _eventHelper.Log(OpCode.LST_CATG, true);    //log it
+            return _db.ReadCategories();                //return the list of strings
         }
 
         //Update category
         public Category Update(int categoryId, string newName)
         {
-            Category? category = FindCategory(categoryId) ?? throw new EntityNotFound(OpCode.UPD_CATG, categoryId);
-            category.Name = newName;
-            _db.SaveCategories(_categories);
-            _eventHelper.Log(OpCode.UPD_CATG, true, category);
+            //remove old, add new, save
+            var categories = _db.ReadCategories();                                                                                      //load it
+            var category = categories.Find(entity => entity.Id == categoryId) ?? throw new EntityNotFound(OpCode.UPD_CATG, categoryId); //check if category exists
+            category.Name = newName;                                                                                                    //update it 
+            _db.SaveCategories(categories);                                                                                             //save it
+            _eventHelper.Log(OpCode.UPD_CATG, true, category);                                                                          //log it
             return category;
         }
 
+        //delete category
         public Category Delete(int categoryId)
         {
-            Category? category = FindCategory(categoryId) ?? throw new EntityNotFound(OpCode.DEL_CATG, categoryId);
-            _productService?.DeleteByCategory(categoryId);
-            _categories.Remove(category);
-            _db.SaveCategories(_categories);
-            _eventHelper.Log(OpCode.DEL_CATG, true, category);
+            var categories = _db.ReadCategories();                                                                                      //load it
+            var category = categories.Find(entity => entity.Id == categoryId) ?? throw new EntityNotFound(OpCode.UPD_CATG, categoryId); //check if category exists
+            _productService?.DeleteByCategory(categoryId);                                                                              //remove products
+            categories.RemoveAll(entity => entity.Id == categoryId);                                                                    //remove category
+            _db.SaveCategories(categories);                                                                                             //save it
+            _eventHelper.Log(OpCode.DEL_CATG, true, category);                                                                          //log it
             return category;
         }
     }

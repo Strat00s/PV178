@@ -38,11 +38,9 @@ namespace HW02
             categoryService.SetProductService(productService);
             productService.SetCategoryService(categoryService);
 
-
             //other
             var inputParser         = new InputParser();
             
-
             Console.WriteLine("Hello eShop!");
             Console.WriteLine("Type 'help' to list possible commands and uses");
             ConsoleApp.Run(categoryService, productService, ioHelper, inputParser, eventHelper);

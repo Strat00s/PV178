@@ -1,14 +1,22 @@
-[03.16.2023 14:27:43] Other; Product DB loaded
-[03.16.2023 14:27:43] Other; Category DB loaded
-[03.16.2023 14:27:43] Add; Category; Success; 1; Lake; 1
-[03.16.2023 14:27:43] Add; Product; Success; 1; Canoe; 1
-[03.16.2023 14:27:43] Add; Product; Success; 2; Tent; 1
-[03.16.2023 14:27:43] Add; Product; Success; 3; Fishing rod; 1
-[03.16.2023 14:27:43] Add; Category; Success; 2; House; 2
-[03.16.2023 14:27:43] Add; Product; Success; 4; Chair; 2
-[03.16.2023 14:27:43] Add; Product; Success; 5; Kitchen sink; 2
-[03.16.2023 14:27:43] Add; Category; Success; 3; Car; 3
-[03.16.2023 14:27:43] Add; Product; Success; 6; Tire; 3
-[03.16.2023 14:27:43] Add; Product; Success; 7; Muffler; 3
-[03.16.2023 14:27:43] Add; Product; Success; 8; Seatbelt; 3
-[03.16.2023 14:27:43] Add; Product; Success; 9; Windshield; 3
+[03.16.2023 19:29:30] Other; Product DB loaded
+[03.16.2023 19:29:30] Other; Category DB loaded
+[03.16.2023 19:29:31] Add; Category; Success; 1; Lake; 1
+[03.16.2023 19:29:31] Add; Product; Success; 1; Canoe; 1
+[03.16.2023 19:29:31] Add; Product; Success; 2; Tent; 1
+[03.16.2023 19:29:31] Add; Product; Success; 3; Fishing rod; 1
+[03.16.2023 19:29:31] Add; Category; Success; 2; House; 2
+[03.16.2023 19:29:31] Add; Product; Success; 4; Chair; 2
+[03.16.2023 19:29:31] Add; Product; Success; 5; Kitchen sink; 2
+[03.16.2023 19:29:31] Add; Category; Success; 3; Car; 3
+[03.16.2023 19:29:31] Add; Product; Success; 6; Tire; 3
+[03.16.2023 19:29:31] Add; Product; Success; 7; Muffler; 3
+[03.16.2023 19:29:31] Add; Product; Success; 8; Seatbelt; 3
+[03.16.2023 19:29:31] Add; Product; Success; 9; Windshield; 3
+[03.16.2023 19:29:40] Update; Product; Failure; Argument 'a' is not a number
+[03.16.2023 19:29:43] Update; Product; Failure; Argument 'a' is not a number
+[03.16.2023 19:29:45] Add; Product; Failure; Category with id '123' not found
+[03.16.2023 19:29:48] Update; Product; Failure; Product with id '10' not found
+[03.16.2023 19:30:32] Update; Product; Success; 9; a; 1
+[03.16.2023 19:30:57] Get; Product; Success; 
+[03.16.2023 19:31:24] Update; Product; Success; 1; awdawda; 2
+[03.16.2023 19:31:28] Get; Product; Success; 
