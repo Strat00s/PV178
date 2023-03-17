@@ -46,10 +46,10 @@ namespace HW02
                 //handle exceptions
                 catch (EntityNotFound ex)
                 {
-                    if (ex.OpCode == OpCode.DEL_PROD || ex.OpCode == OpCode.UPD_PROD)
-                        eventHelper.Log(ex.OpCode, false, null, "Product with id '"+ ex.Id + "' not found");
-                    else
+                    if (ex.IsCategory)
                         eventHelper.Log(ex.OpCode, false, null, "Category with id '" + ex.Id + "' not found");
+                    else
+                        eventHelper.Log(ex.OpCode, false, null, "Product with id '"+ ex.Id + "' not found");
                 }
                 catch (InvalidArgumentCountException ex)
                 {
@@ -72,9 +72,9 @@ namespace HW02
                 //maybe should've used some error writing, but whatever (assignment does not mention any specific output type). 
                 if (firstRun)
                 {
-                    firstRun = false;
-                    eventHelper.LogEvent += IOHelper.HandleEvent;
                     IOHelper.WriteLine("Problem occured while populating DB. Please check the log!");
+                    eventHelper.LogEvent += IOHelper.HandleEvent;
+                    firstRun = false;
                 }
             }
         }

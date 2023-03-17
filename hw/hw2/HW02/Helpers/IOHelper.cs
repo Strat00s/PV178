@@ -116,13 +116,13 @@ namespace HW02.Helpers
                 case OpCode.LST_CATG:
                 case OpCode.LST_PROD: return;
 
-                case OpCode.ADD_PROD: output += "Product '" + entity?.Id + "' added"; break;
-                case OpCode.DEL_PROD: output += "Product '" + entity?.Id + "' deleted"; break;
-                case OpCode.UPD_PROD: output += "Product '" + entity?.Id + "' updated"; break;
+                case OpCode.ADD_PROD: output += "Product '" + entity?.Name + "' (" + entity?.Id + ") added"; break;
+                case OpCode.DEL_PROD: output += "Product '" + entity?.Name + "' (" + entity?.Id + ") deleted"; break;
+                case OpCode.UPD_PROD: output += "Product '" + entity?.Name + "' (" + entity?.Id + ") updated"; break;
 
-                case OpCode.ADD_CATG: output += "Category; '" + entity?.Id + "' added"; break;
-                case OpCode.DEL_CATG: output += "Category; '" + entity?.Id + "' deleted"; break;
-                case OpCode.UPD_CATG: output += "Category; '" + entity?.Id + "' updated"; break;
+                case OpCode.ADD_CATG: output += "Category '" + entity?.Name + "' (" + entity?.Id + ") added"; break;
+                case OpCode.DEL_CATG: output += "Category '" + entity?.Name + "' (" + entity?.Id + ") deleted"; break;
+                case OpCode.UPD_CATG: output += "Category '" + entity?.Name + "' (" + entity?.Id + ") updated"; break;
 
                 default: output += "An error occured: " + msg ?? ""; break;
             }

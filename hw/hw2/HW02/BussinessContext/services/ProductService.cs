@@ -35,9 +35,9 @@ namespace HW02.BussinessContext.Services
         //create new product
         public Product Create(string name, int categoryId, decimal price)
         {
-            //check if category does exist
+            //check if category does exist; not required as DBContext does that
             if (_categoryService?.FindCategory(categoryId) == null)
-                throw new EntityNotFound(OpCode.ADD_PROD, categoryId);
+                throw new EntityNotFound(OpCode.ADD_PROD, categoryId, true);
 
             Product newProduct = new(++_lastId, name, categoryId, price);   //create new product
             
@@ -60,6 +60,10 @@ namespace HW02.BussinessContext.Services
         //get list of all products in category
         public List<Product> ListByCategory(int categoryId)
         {
+            //check if category exists; not required as DBContext does that
+            if (_categoryService?.FindCategory(categoryId) == null)
+                throw new EntityNotFound(OpCode.LST_PROD, categoryId, true);
+
             _eventHelper.Log(OpCode.LST_PROD, true);
             return _db.ReadProducts().FindAll(product => product.CategoryId == categoryId);
         }
@@ -67,29 +71,28 @@ namespace HW02.BussinessContext.Services
         //update product
         public Product Update(int productId, string newName, int newCategoryId, decimal newPrice)
         {
-            //check if category exists
+            //check if category exists; not required as DBContext does that
             if (_categoryService?.FindCategory(newCategoryId) == null)
-                throw new EntityNotFound(OpCode.ADD_PROD, newCategoryId);
+                throw new EntityNotFound(OpCode.UPD_PROD, newCategoryId, true);
             
             var products       = _db.ReadProducts();
-            var product        = products.Find(entity => entity.Id == productId) ?? throw new EntityNotFound(OpCode.UPD_PROD, productId);   //check if product exists
-            product.Name       = newName;                                                                                                   //update it
+            var product        = products.Find(entity => entity.Id == productId) ?? throw new EntityNotFound(OpCode.UPD_PROD, productId, false);    //check if product exists
+            product.Name       = newName;                                                                                                           //update it
             product.CategoryId = newCategoryId;
             product.Price      = newPrice;
-            _db.SaveProducts(products);                                                                                                     //save it
-            _eventHelper.Log(OpCode.UPD_PROD, true, product);                                                                               //log it
+            _db.SaveProducts(products);                                                                                                             //save it
+            _eventHelper.Log(OpCode.UPD_PROD, true, product);                                                                                       //log it
             return product;
         }
 
         //delete product
         public Product Delete(int productId)
         {
-
             var products = _db.ReadProducts();
-            var product  = products.Find(entity => entity.Id == productId) ?? throw new EntityNotFound(OpCode.DEL_PROD, productId); //check if product exists
-            products.RemoveAll(entity => entity.Id == productId);                                                                   //remove it
-            _db.SaveProducts(products);                                                                                             //save it
-            _eventHelper.Log(OpCode.DEL_PROD, true, product);                                                                       //log it
+            var product  = products.Find(entity => entity.Id == productId) ?? throw new EntityNotFound(OpCode.DEL_PROD, productId, false);  //check if product exists
+            products.RemoveAll(entity => entity.Id == productId);                                                                           //remove it
+            _db.SaveProducts(products);                                                                                                     //save it
+            _eventHelper.Log(OpCode.DEL_PROD, true, product);                                                                               //log it
             return product;
         }
 

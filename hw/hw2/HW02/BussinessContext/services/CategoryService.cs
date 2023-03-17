@@ -62,23 +62,23 @@ namespace HW02.BussinessContext.Services
         public Category Update(int categoryId, string newName)
         {
             //remove old, add new, save
-            var categories = _db.ReadCategories();                                                                                      //load it
-            var category = categories.Find(entity => entity.Id == categoryId) ?? throw new EntityNotFound(OpCode.UPD_CATG, categoryId); //check if category exists
-            category.Name = newName;                                                                                                    //update it 
-            _db.SaveCategories(categories);                                                                                             //save it
-            _eventHelper.Log(OpCode.UPD_CATG, true, category);                                                                          //log it
+            var categories = _db.ReadCategories();                                                                                              //load it
+            var category = categories.Find(entity => entity.Id == categoryId) ?? throw new EntityNotFound(OpCode.UPD_CATG, categoryId, true);   //check if category exists
+            category.Name = newName;                                                                                                            //update it 
+            _db.SaveCategories(categories);                                                                                                     //save it
+            _eventHelper.Log(OpCode.UPD_CATG, true, category);                                                                                  //log it
             return category;
         }
 
         //delete category
         public Category Delete(int categoryId)
         {
-            var categories = _db.ReadCategories();                                                                                      //load it
-            var category = categories.Find(entity => entity.Id == categoryId) ?? throw new EntityNotFound(OpCode.UPD_CATG, categoryId); //check if category exists
-            _productService?.DeleteByCategory(categoryId);                                                                              //remove products
-            categories.RemoveAll(entity => entity.Id == categoryId);                                                                    //remove category
-            _db.SaveCategories(categories);                                                                                             //save it
-            _eventHelper.Log(OpCode.DEL_CATG, true, category);                                                                          //log it
+            var categories = _db.ReadCategories();                                                                                              //load it
+            var category = categories.Find(entity => entity.Id == categoryId) ?? throw new EntityNotFound(OpCode.UPD_CATG, categoryId, true);   //check if category exists
+            _productService?.DeleteByCategory(categoryId);                                                                                      //remove products
+            categories.RemoveAll(entity => entity.Id == categoryId);                                                                            //remove category
+            _db.SaveCategories(categories);                                                                                                     //save it
+            _eventHelper.Log(OpCode.DEL_CATG, true, category);                                                                                  //log it
             return category;
         }
     }

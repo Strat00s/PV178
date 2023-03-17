@@ -18,7 +18,7 @@ namespace HW02
         //handle event and create string that will be logged
         public void HandleEvent(OpCode opCode, bool status, Category? entity = null, string? msg = null)
         {
-            string log = DateTime.Now.ToString("[MM/dd/yyyy HH:mm:ss]") + " ";  //add time
+            string log = DateTime.Now.ToString("[dd/MM/yyyy HH:mm:ss]") + " ";  //add time
 
             //write appropriate command
             switch (opCode)
