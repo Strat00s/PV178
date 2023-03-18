@@ -1,86 +1,71 @@
-[03.17.2023 21:15:13] Other; Product DB loaded
-[03.17.2023 21:15:13] Other; Category DB loaded
-[03.17.2023 21:15:13] Add; Category; Success; 1; Lake; 1
-[03.17.2023 21:15:13] Add; Product; Success; 1; Canoe; 1
-[03.17.2023 21:15:13] Add; Product; Success; 2; Tent; 1
-[03.17.2023 21:15:13] Add; Product; Success; 3; Fishing rod; 1
-[03.17.2023 21:15:13] Add; Category; Success; 2; House; 2
-[03.17.2023 21:15:13] Add; Product; Success; 4; Chair; 2
-[03.17.2023 21:15:13] Add; Product; Success; 5; Kitchen sink; 2
-[03.17.2023 21:15:13] Add; Category; Success; 3; Car; 3
-[03.17.2023 21:15:13] Add; Product; Success; 6; Tire; 3
-[03.17.2023 21:15:13] Add; Product; Success; 7; Muffler; 3
-[03.17.2023 21:15:13] Add; Product; Success; 8; Seatbelt; 3
-[03.17.2023 21:15:13] Add; Product; Success; 9; Windshield; 3
-[03.17.2023 21:15:19] Add; Category; Success; 4; testing; 4
-[03.17.2023 21:16:15] Add; Product; Success; 10; add1; 4
-[03.17.2023 21:16:43] Add; Product; Failure; Category with id '9' not found
-[03.17.2023 21:16:50] Add; Product; Failure; Argument 'a' is not a number
-[03.17.2023 21:16:56] Add; Product; Failure; Invalid number of arguments: 2
-[03.17.2023 21:17:37] Delete; Product; Failure; Product with id '11' not found
-[03.17.2023 21:17:54] Delete; Product; Success; 10; add1; 4
-[03.17.2023 21:18:11] Add; Product; Success; 11; add1; 4
-[03.17.2023 21:18:19] Get; Product; Success; 
-[03.17.2023 21:18:21] Get; Product; Failure; Invalid number of arguments: 1
-[03.17.2023 21:18:25] Get; Product; Success; 
-[03.17.2023 21:18:52] Update; Product; Success; 11; add1_upd; 4
-[03.17.2023 21:19:25] Update; Product; Success; 11; add1_upd; 3
-[03.17.2023 21:19:30] Get; Product; Success; 
-[03.17.2023 21:19:45] Update; Product; Success; 11; add1_upd; 4
-[03.17.2023 21:19:53] Update; Product; Success; 11; add1_upd; 4
-[03.17.2023 21:19:57] Get; Product; Success; 
-[03.17.2023 21:20:05] Update; Product; Failure; Category with id '5' not found
-[03.17.2023 21:20:13] Update; Product; Failure; Argument 'a' is not a number
-[03.17.2023 21:20:30] Update; Product; Failure; Product with id '12' not found
-[03.17.2023 21:20:38] Get; Product; Success; 
-[03.17.2023 21:20:50] Update; Product; Success; 11; add1_upd; 4
-[03.17.2023 21:20:57] Get; Product; Success; 
-[03.17.2023 21:21:08] Add; Category; Success; 5; testing; 5
-[03.17.2023 21:21:13] Get; Category; Success; 
-[03.17.2023 21:21:16] Get; Category; Failure; Invalid number of arguments: 1
-[03.17.2023 21:21:18] Get; Category; Failure; Invalid number of arguments: 1
-[03.17.2023 21:21:19] Get; Category; Success; 
-[03.17.2023 21:21:22] Add; Category; Failure; Invalid number of arguments: 2
-[03.17.2023 21:21:35] Delete; Category; Failure; Argument 'a' is not a number
-[03.17.2023 21:21:58] Update; Category; Failure; Category with id '11' not found
-[03.17.2023 21:22:03] Delete; Category; Success; 5; testing; 5
-[03.17.2023 21:22:11] Delete; Product; Failure; Argument 'a' is not a number
-[03.17.2023 21:22:24] Update; Product; Failure; Invalid number of arguments: 5
-[03.17.2023 21:22:25] Update; Product; Failure; Argument 'a' is not a number
-[03.17.2023 21:22:27] Update; Product; Failure; Argument 'a' is not a number
-[03.17.2023 21:22:31] Update; Product; Failure; Argument 'awd' is not a number
-[03.17.2023 21:22:35] Update; Product; Failure; Category with id '5' not found
-[03.17.2023 21:23:14] Update; Category; Success; 4; testing_upd; 4
-[03.17.2023 21:23:21] Update; Category; Failure; Argument 'a' is not a number
-[03.17.2023 21:23:23] Update; Category; Failure; Category with id '5' not found
-[03.17.2023 21:23:31] Update; Category; Failure; Invalid number of arguments: 3
-[03.17.2023 21:23:33] Update; Category; Failure; Invalid number of arguments: 1
-[03.17.2023 21:23:46] Get; Product; Success; 
-[03.17.2023 21:23:56] Get; Product; Success; 
-[03.17.2023 21:23:58] Get; Product; Success; 
-[03.17.2023 21:25:15] Get; Product; Failure; Category with id '10' not found
-[03.17.2023 21:25:26] Get; Product; Failure; Category with id '5' not found
-[03.17.2023 21:25:27] Get; Product; Success; 
-[03.17.2023 21:25:31] Get; Product; Success; 
-[03.17.2023 21:25:33] Get; Product; Success; 
-[03.17.2023 21:25:34] Get; Product; Success; 
-[03.17.2023 21:27:12] Add; Product; Failure; Category with id '5' not found
-[03.17.2023 21:27:17] Add; Category; Success; 6; test; 6
-[03.17.2023 21:27:21] Add; Product; Success; 12; test; 6
-[03.17.2023 21:28:01] Delete; Category; Success; 3; Car; 3
-[03.17.2023 21:28:13] Get; Product; Success; 
-[03.17.2023 21:28:23] Get; Product; Failure; Category with id '3' not found
-[03.17.2023 21:28:34] Get; Category; Success; 
-[17.03.2023 21:30:59] Get; Category; Success; 
-[17.03.2023 21:31:35] Get; Product; Failure; Category with id '3' not found
-[17.03.2023 21:31:38] Get; Product; Success; 
-[17.03.2023 21:31:44] Get; Product; Success; 
-[17.03.2023 21:31:47] Get; Category; Success; 
-[17.03.2023 21:33:10] Other; Unknown operation: wqf
-[17.03.2023 21:35:16] Get; Product; Success; 
-[17.03.2023 21:35:41] Update; Product; Failure; Argument '3599.99' is not a number
-[17.03.2023 21:35:44] Update; Product; Success; 1; canoe_upd; 6
-[17.03.2023 21:35:58] Get; Product; Success; 
-[17.03.2023 21:36:12] Add; Product; Success; 13; add2; 6
-[17.03.2023 21:36:22] Delete; Product; Success; 12; test; 6
-[17.03.2023 21:36:26] Get; Product; Success; 
+[18.03.2023 11:16:21] Other; Product DB loaded
+[18.03.2023 11:16:21] Other; Category DB loaded
+[18.03.2023 11:16:21] Add; Category; Success; 1; Lake; 1
+[18.03.2023 11:16:21] Add; Product; Success; 1; Canoe; 1
+[18.03.2023 11:16:21] Add; Product; Success; 2; Tent; 1
+[18.03.2023 11:16:21] Add; Product; Success; 3; Fishing rod; 1
+[18.03.2023 11:16:21] Add; Category; Success; 2; House; 2
+[18.03.2023 11:16:21] Add; Product; Success; 4; Chair; 2
+[18.03.2023 11:16:21] Add; Product; Success; 5; Kitchen sink; 2
+[18.03.2023 11:16:21] Add; Category; Success; 3; Car; 3
+[18.03.2023 11:16:21] Add; Product; Success; 6; Tire; 3
+[18.03.2023 11:16:21] Add; Product; Success; 7; Muffler; 3
+[18.03.2023 11:16:21] Add; Product; Success; 8; Seatbelt; 3
+[18.03.2023 11:16:21] Add; Product; Success; 9; Windshield; 3
+[18.03.2023 11:17:00] Add; Product; Success; 10; add1; 1
+[18.03.2023 11:17:12] Other; Unknown operation: list-products-by-category
+[18.03.2023 11:17:18] Get; Product; Success; 
+[18.03.2023 11:17:51] Add; Product; Failure; Argument 'cat' is not a number
+[18.03.2023 11:17:55] Add; Product; Failure; Argument 'price' is not a number
+[18.03.2023 11:18:00] Add; Product; Failure; Category with id '5' not found
+[18.03.2023 11:18:07] Add; Product; Failure; Invalid number of arguments: 2
+[18.03.2023 11:18:14] Add; Product; Failure; Invalid number of arguments: 4
+[18.03.2023 11:18:17] Add; Product; Failure; Category with id '123' not found
+[18.03.2023 11:18:22] Add; Product; Failure; Category with id '4' not found
+[18.03.2023 11:18:26] Add; Product; Success; 11; add2; 3
+[18.03.2023 11:18:32] Get; Product; Success; 
+[18.03.2023 11:19:27] Update; Product; Failure; Product with id '12' not found
+[18.03.2023 11:19:37] Update; Product; Failure; Argument 'id' is not a number
+[18.03.2023 11:19:41] Update; Product; Failure; Argument 'cid' is not a number
+[18.03.2023 11:19:44] Update; Product; Failure; Argument 'price' is not a number
+[18.03.2023 11:19:48] Update; Product; Failure; Category with id '12' not found
+[18.03.2023 11:19:53] Update; Product; Failure; Product with id '12' not found
+[18.03.2023 11:19:56] Update; Product; Success; 10; add1; 3
+[18.03.2023 11:20:16] Get; Product; Success; 
+[18.03.2023 11:20:28] Update; Product; Failure; Invalid number of arguments: 2
+[18.03.2023 11:20:44] Update; Product; Failure; Category with id '123' not found
+[18.03.2023 11:20:50] Update; Product; Failure; Invalid number of arguments: 5
+[18.03.2023 11:21:35] Delete; Product; Failure; Argument 'id' is not a number
+[18.03.2023 11:21:52] Delete; Product; Failure; Invalid number of arguments: 2
+[18.03.2023 11:21:54] Delete; Product; Failure; Invalid number of arguments: 2
+[18.03.2023 11:21:56] Delete; Product; Failure; Invalid number of arguments: 0
+[18.03.2023 11:22:03] Delete; Product; Success; 10; add1; 3
+[18.03.2023 11:22:15] Get; Product; Success; 
+[18.03.2023 11:23:15] Add; Category; Failure; Invalid number of arguments: 0
+[18.03.2023 11:23:18] Add; Category; Failure; Invalid number of arguments: 2
+[18.03.2023 11:23:20] Add; Category; Success; 4; asd; 4
+[18.03.2023 11:24:39] Update; Category; Failure; Argument 'a' is not a number
+[18.03.2023 11:24:42] Update; Category; Failure; Invalid number of arguments: 3
+[18.03.2023 11:24:46] Update; Category; Failure; Invalid number of arguments: 3
+[18.03.2023 11:24:48] Update; Category; Failure; Invalid number of arguments: 1
+[18.03.2023 11:24:51] Update; Category; Success; 3; updated; 3
+[18.03.2023 11:25:38] Get; Category; Success; 
+[18.03.2023 11:25:41] Get; Product; Success; 
+[18.03.2023 11:27:33] Other; Unknown operation: remove-category
+[18.03.2023 11:27:36] Other; Unknown operation: remove-category
+[18.03.2023 11:27:44] Delete; Category; Failure; Invalid number of arguments: 2
+[18.03.2023 11:27:47] Delete; Category; Failure; Argument 'a' is not a number
+[18.03.2023 11:27:49] Delete; Category; Failure; Invalid number of arguments: 0
+[18.03.2023 11:27:51] Delete; Category; Success; 1; Lake; 1
+[18.03.2023 11:27:52] Delete; Category; Success; 2; House; 2
+[18.03.2023 11:28:15] Add; Product; Failure; Invalid number of arguments: 2
+[18.03.2023 11:28:18] Add; Product; Failure; Category with id '1' not found
+[18.03.2023 11:28:28] Delete; Category; Success; 3; updated; 3
+[18.03.2023 11:28:33] Get; Category; Success; 
+[18.03.2023 11:28:35] Get; Product; Success; 
+[18.03.2023 11:28:49] Get; Product; Failure; Category with id '1' not found
+[18.03.2023 11:28:50] Get; Product; Success; 
+[18.03.2023 11:29:17] Add; Product; Success; 12; test; 4
+[18.03.2023 11:29:42] Get; Product; Success; 
+[18.03.2023 11:29:44] Get; Product; Success; 
+[18.03.2023 11:29:46] Get; Category; Success; 

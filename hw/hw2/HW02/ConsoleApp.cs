@@ -6,11 +6,13 @@
 using HW02.BussinessContext.Services;
 using HW02.Exceptions;
 using HW02.Helpers;
+using static HW02.Helpers.EventPublisher;
+
 namespace HW02
 {
     public static class ConsoleApp
     {
-        public static void Run(CategoryService categoryService, ProductService productService, InputParser inputParser, EventHelper eventHelper)
+        public static void Run(CategoryService categoryService, ProductService productService, InputParser inputParser, EventPublisher eventHelper)
         {
             bool firstRun = true;
 
@@ -47,25 +49,25 @@ namespace HW02
                 catch (EntityNotFound ex)
                 {
                     if (ex.IsCategory)
-                        eventHelper.Log(ex.OpCode, false, null, "Category with id '" + ex.Id + "' not found");
+                        eventHelper.Log(new(ex.OpCode, false, null, "Category with id '" + ex.Id + "' not found"));
                     else
-                        eventHelper.Log(ex.OpCode, false, null, "Product with id '"+ ex.Id + "' not found");
+                        eventHelper.Log(new(ex.OpCode, false, null, "Product with id '" + ex.Id + "' not found"));
                 }
                 catch (InvalidArgumentCountException ex)
                 {
-                    eventHelper.Log(ex.OpCode, false, null, "Invalid number of arguments: " + ex.Cnt);
+                    eventHelper.Log(new(ex.OpCode, false, null, "Invalid number of arguments: " + ex.Cnt));
                 }
                 catch (InvalidArgumentTypeException ex)
                 {
-                    eventHelper.Log(ex.OpCode, false, null, "Argument '" + ex.Argument + "' is not a number");
+                    eventHelper.Log(new(ex.OpCode, false, null, "Argument '" + ex.Argument + "' is not a number"));
                 }
                 catch (InvalidOpException ex)
                 {
-                    eventHelper.Log(OpCode.NONE, false, null, "Unknown operation: " + ex.Operation);
+                    eventHelper.Log(new(OpCode.NONE, false, null, "Unknown operation: " + ex.Operation));
                 }
                 catch (Exception ex)
                 {
-                    eventHelper.Log(OpCode.NONE, false, null, ex.Message);
+                    eventHelper.Log(new(OpCode.NONE, false, null, ex.Message));
                 }
 
                 //this will happen if seeding failed, so let's attach the iohelper to event for printing and tell the user something

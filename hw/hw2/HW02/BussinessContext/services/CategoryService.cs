@@ -11,19 +11,19 @@ namespace HW02.BussinessContext.Services
         private ProductService? _productService;
 
         private readonly CategoryDBContext _db;         //DB handler
-        private readonly EventHelper _eventHelper;      //used for logging events
+        private readonly EventPublisher _eventPublisher;      //used for logging events
         private int _lastId;                            //stores last entity id
        
 
         //Constructor
-        public CategoryService(CategoryDBContext db, EventHelper eventHelper)
+        public CategoryService(CategoryDBContext db, EventPublisher eventPublisher)
         {
             _productService = null;
             _db             = db;
-            _eventHelper    = eventHelper;
+            _eventPublisher    = eventPublisher;
             _lastId         = 0;
 
-            eventHelper.Log(OpCode.NONE, true, null, "Category DB loaded");
+            _eventPublisher.Log(new(OpCode.NONE, true, null, "Category DB loaded"));
         }
 
 
@@ -47,14 +47,14 @@ namespace HW02.BussinessContext.Services
             Category newCategory = new(++_lastId, name);            //create new category
             categories.Add(newCategory);                            //add category
             _db.SaveCategories(categories);                         //save it
-            _eventHelper.Log(OpCode.ADD_CATG, true, newCategory);   //log it
+            _eventPublisher.Log(new(OpCode.ADD_CATG, true, newCategory));   //log it
             return newCategory;
         }
 
         //get list of all categories
         public List<Category> List()
         {
-            _eventHelper.Log(OpCode.LST_CATG, true);    //log it
+            _eventPublisher.Log(new(OpCode.LST_CATG, true));    //log it
             return _db.ReadCategories();                //return the list of strings
         }
 
@@ -66,7 +66,7 @@ namespace HW02.BussinessContext.Services
             var category = categories.Find(entity => entity.Id == categoryId) ?? throw new EntityNotFound(OpCode.UPD_CATG, categoryId, true);   //check if category exists
             category.Name = newName;                                                                                                            //update it 
             _db.SaveCategories(categories);                                                                                                     //save it
-            _eventHelper.Log(OpCode.UPD_CATG, true, category);                                                                                  //log it
+            _eventPublisher.Log(new(OpCode.UPD_CATG, true, category));                                                                                  //log it
             return category;
         }
 
@@ -78,7 +78,7 @@ namespace HW02.BussinessContext.Services
             _productService?.DeleteByCategory(categoryId);                                                                                      //remove products
             categories.RemoveAll(entity => entity.Id == categoryId);                                                                            //remove category
             _db.SaveCategories(categories);                                                                                                     //save it
-            _eventHelper.Log(OpCode.DEL_CATG, true, category);                                                                                  //log it
+            _eventPublisher.Log(new(OpCode.DEL_CATG, true, category));                                                                                  //log it
             return category;
         }
     }

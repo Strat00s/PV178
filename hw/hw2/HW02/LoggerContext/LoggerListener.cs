@@ -2,6 +2,7 @@
  */
 
 using HW02.BussinessContext;
+using HW02.Helpers;
 using HW02.LoggerContext.DB;
 
 namespace HW02
@@ -16,12 +17,12 @@ namespace HW02
         }
 
         //handle event and create string that will be logged
-        public void HandleEvent(OpCode opCode, bool status, Category? entity = null, string? msg = null)
+        public void HandleEvent(Object? sender, LogEventArgs e)//OpCode opCode, bool status, Category? entity = null, string? msg = null)
         {
             string log = DateTime.Now.ToString("[dd/MM/yyyy HH:mm:ss]") + " ";  //add time
 
             //write appropriate command
-            switch (opCode)
+            switch (e.OpCode)
             {
                 case OpCode.EXIT: log += "Exit"; _db.WriteLog(log); return;
                 case OpCode.HELP: log += "Help"; _db.WriteLog(log); return;
@@ -37,13 +38,13 @@ namespace HW02
                 case OpCode.UPD_CATG: log += "Update; Category; "; break;
                 case OpCode.LST_CATG: log += "Get; Category; ";    break;
 
-                default: log += "Other; " + msg ?? ""; _db.WriteLog(log); return;
+                default: log += "Other; " + e.Message ?? ""; _db.WriteLog(log); return;
             }
 
             //write message on fail
-            if (!status)
+            if (!e.Status)
             {
-                log += "Failure; " + msg ?? "";
+                log += "Failure; " + e.Message ?? "";
                 _db.WriteLog(log);
                 return;
             }
@@ -51,19 +52,19 @@ namespace HW02
             log += "Success; ";
             
             //get commands don't have entity
-            if (entity == null)
+            if (e.Entity == null)
             {
                 _db.WriteLog(log);
                 return;
             }
 
-            log += entity.Id + "; " + entity.Name + "; ";
+            log += e.Entity.Id + "; " + e.Entity.Name + "; ";
 
             //check which entity we got
-            if (entity is Product product)
+            if (e.Entity is Product product)
                 log += product.CategoryId;
             else
-                log += entity.Id;
+                log += e.Entity.Id;
 
             _db.WriteLog(log);
         }

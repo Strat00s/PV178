@@ -10,19 +10,19 @@ namespace HW02.BussinessContext.Services
         private CategoryService? _categoryService;
 
         private readonly ProductDBContext _db;
-        private readonly EventHelper _eventHelper;
+        private readonly EventPublisher _eventPublisher;
         private int _lastId;
 
 
         //Constructor
-        public ProductService(ProductDBContext db, EventHelper eventHelper)
+        public ProductService(ProductDBContext db, EventPublisher eventPublisher)
         {
             _categoryService = null;
             _db              = db;
-            _eventHelper     = eventHelper;
+            _eventPublisher     = eventPublisher;
             _lastId          = 0;
 
-            _eventHelper.Log(OpCode.NONE, true, null, "Product DB loaded");
+            _eventPublisher.Log(new(OpCode.NONE, true, null, "Product DB loaded"));
         }
 
 
@@ -46,14 +46,14 @@ namespace HW02.BussinessContext.Services
             products.Add(newProduct);
             _db.SaveProducts(products);
 
-            _eventHelper.Log(OpCode.ADD_PROD, true, newProduct);    //log it
+            _eventPublisher.Log(new(OpCode.ADD_PROD, true, newProduct));    //log it
             return newProduct;
         }
 
         //get list of all products
         public List<Product> List()
         {
-            _eventHelper.Log(OpCode.LST_PROD, true);
+            _eventPublisher.Log(new(OpCode.LST_PROD, true));
             return _db.ReadProducts();
         }
 
@@ -64,7 +64,7 @@ namespace HW02.BussinessContext.Services
             if (_categoryService?.FindCategory(categoryId) == null)
                 throw new EntityNotFound(OpCode.LST_PROD, categoryId, true);
 
-            _eventHelper.Log(OpCode.LST_PROD, true);
+            _eventPublisher.Log(new(OpCode.LST_PROD, true));
             return _db.ReadProducts().FindAll(product => product.CategoryId == categoryId);
         }
 
@@ -81,7 +81,7 @@ namespace HW02.BussinessContext.Services
             product.CategoryId = newCategoryId;
             product.Price      = newPrice;
             _db.SaveProducts(products);                                                                                                             //save it
-            _eventHelper.Log(OpCode.UPD_PROD, true, product);                                                                                       //log it
+            _eventPublisher.Log(new(OpCode.UPD_PROD, true, product));                                                                                       //log it
             return product;
         }
 
@@ -92,7 +92,7 @@ namespace HW02.BussinessContext.Services
             var product  = products.Find(entity => entity.Id == productId) ?? throw new EntityNotFound(OpCode.DEL_PROD, productId, false);  //check if product exists
             products.RemoveAll(entity => entity.Id == productId);                                                                           //remove it
             _db.SaveProducts(products);                                                                                                     //save it
-            _eventHelper.Log(OpCode.DEL_PROD, true, product);                                                                               //log it
+            _eventPublisher.Log(new(OpCode.DEL_PROD, true, product));                                                                               //log it
             return product;
         }
 

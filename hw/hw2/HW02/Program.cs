@@ -21,17 +21,17 @@ namespace HW02
             AnalyticalDataListener analytics = new(analyticalDB);
 
             //event setup
-            EventHelper eventHelper = new();
-            eventHelper.LogEvent += logger.HandleEvent;
-            eventHelper.LogEvent += analytics.HandleEvent;
+            EventPublisher eventPublisher = new();
+            eventPublisher.LogEvent += logger.HandleEvent;
+            eventPublisher.LogEvent += analytics.HandleEvent;
 
             //main services setup
             var categoryDB      = new CategoryDBContext();
             var productDB       = new ProductDBContext(categoryDB);
 
             //create services and reference each other
-            var productService  = new ProductService(productDB, eventHelper);
-            var categoryService = new CategoryService(categoryDB, eventHelper);
+            var productService  = new ProductService(productDB, eventPublisher);
+            var categoryService = new CategoryService(categoryDB, eventPublisher);
             categoryService.SetProductService(productService);
             productService.SetCategoryService(categoryService);
 
@@ -40,7 +40,7 @@ namespace HW02
             
             Console.WriteLine("Hello eShop!");
             Console.WriteLine("Type 'help' to list possible commands and uses");
-            ConsoleApp.Run(categoryService, productService, inputParser, eventHelper);
+            ConsoleApp.Run(categoryService, productService, inputParser, eventPublisher);
             Console.WriteLine("Exiting...");
         }
     }

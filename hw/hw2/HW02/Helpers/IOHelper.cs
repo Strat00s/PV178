@@ -96,19 +96,19 @@ namespace HW02.Helpers
         }
 
         //event handler for printing information to console (I already have all the information for logs, why not use it for console output as well?)
-        public static void HandleEvent(OpCode opCode, bool status, Category? entity = null, string? msg = null)
+        public static void HandleEvent(Object? sender, LogEventArgs e)// OpCode opCode, bool status, Category? entity = null, string? msg = null)
         {
             string output = "";
 
-            if (!status)
+            if (!e.Status)
             {
-                output += "Operatio failed: " + msg;
+                output += "Operatio failed: " + e.Message ?? "";
                 Console.WriteLine(output);
                 return;
             }
 
             //write appropriate output
-            switch (opCode)
+            switch (e.OpCode)
             {
                 case OpCode.EXIT:
                 case OpCode.HELP:
@@ -116,15 +116,15 @@ namespace HW02.Helpers
                 case OpCode.LST_CATG:
                 case OpCode.LST_PROD: return;
 
-                case OpCode.ADD_PROD: output += "Product '" + entity?.Name + "' (" + entity?.Id + ") added"; break;
-                case OpCode.DEL_PROD: output += "Product '" + entity?.Name + "' (" + entity?.Id + ") deleted"; break;
-                case OpCode.UPD_PROD: output += "Product '" + entity?.Name + "' (" + entity?.Id + ") updated"; break;
+                case OpCode.ADD_PROD: output += "Product '" + e.Entity?.Name + "' (" + e.Entity?.Id + ") added"; break;
+                case OpCode.DEL_PROD: output += "Product '" + e.Entity?.Name + "' (" + e.Entity?.Id + ") deleted"; break;
+                case OpCode.UPD_PROD: output += "Product '" + e.Entity?.Name + "' (" + e.Entity?.Id + ") updated"; break;
 
-                case OpCode.ADD_CATG: output += "Category '" + entity?.Name + "' (" + entity?.Id + ") added"; break;
-                case OpCode.DEL_CATG: output += "Category '" + entity?.Name + "' (" + entity?.Id + ") deleted"; break;
-                case OpCode.UPD_CATG: output += "Category '" + entity?.Name + "' (" + entity?.Id + ") updated"; break;
+                case OpCode.ADD_CATG: output += "Category '" + e.Entity?.Name + "' (" + e.Entity?.Id + ") added"; break;
+                case OpCode.DEL_CATG: output += "Category '" + e.Entity?.Name + "' (" + e.Entity?.Id + ") deleted"; break;
+                case OpCode.UPD_CATG: output += "Category '" + e.Entity?.Name + "' (" + e.Entity?.Id + ") updated"; break;
 
-                default: output += "An error occured: " + msg ?? ""; break;
+                default: output += "An error occured: " + e.Message ?? ""; break;
             }
 
             Console.WriteLine(output);
