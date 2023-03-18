@@ -16,7 +16,7 @@ namespace HW02.Helpers
         private string _name;   //product or category name
         private OpCode _opCode; //operation code
 
-        //used for easy operation to opcode conversion
+        //used for easy operation to opcode conversion; depends on OpCode enum
         private static readonly string[] _operations = {
             "exit",
             "help",
@@ -74,7 +74,8 @@ namespace HW02.Helpers
             if (arguments.Length == 0)
                 return OpCode.NONE;
 
-            _opCode = _operations.Contains(arguments[0]) ? (OpCode)Array.IndexOf(_operations, arguments[0]) : OpCode.OP_ERR;    //convert string operation to internal opcode
+            //convert string operation to internal opcode
+            _opCode = _operations.Contains(arguments[0]) ? (OpCode)Array.IndexOf(_operations, arguments[0]) : OpCode.OP_ERR;
 
             //check argument types and count depending on opcode
             switch (_opCode)

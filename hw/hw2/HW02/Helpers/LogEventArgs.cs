@@ -1,4 +1,7 @@
-﻿using HW02.BussinessContext;
+﻿/* Custom event arguments
+ */
+
+using HW02.BussinessContext;
 
 namespace HW02.Helpers
 {

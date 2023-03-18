@@ -58,9 +58,8 @@ namespace HW02
                 return;
             }
 
+            //write appropriate info
             log += e.Entity.Id + "; " + e.Entity.Name + "; ";
-
-            //check which entity we got
             if (e.Entity is Product product)
                 log += product.CategoryId;
             else

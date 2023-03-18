@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/* Exception for invalid argument count for operation
+ * Stores opcode and number of arguments given
+ */
 
 namespace HW02.Exceptions
 {

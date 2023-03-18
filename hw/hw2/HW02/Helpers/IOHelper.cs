@@ -45,7 +45,7 @@ namespace HW02.Helpers
                 }
             }
 
-            //print the table
+            //print the table header (with extra fields for product)
             Console.Write("Id".PadRight(maxLengths[0]));
             Console.Write(" | " + "Name".PadRight(maxLengths[1]));
             if (typeof(T) == typeof(Product))
@@ -60,9 +60,11 @@ namespace HW02.Helpers
                 Console.WriteLine(new string('-', maxLengths[0] + maxLengths[1] + 3));
             }
 
+            //print individual items
             foreach (var entity in entities) {
                 Console.Write(entity.Id.ToString().PadLeft(maxLengths[0]));
                 Console.Write(" | " + entity.Name.PadRight(maxLengths[1]));
+                //extra fields for product
                 if (entity is Product product)
                 {
                     Console.Write(" | " + product.CategoryId.ToString().PadLeft(maxLengths[2]));
@@ -96,13 +98,13 @@ namespace HW02.Helpers
         }
 
         //event handler for printing information to console (I already have all the information for logs, why not use it for console output as well?)
-        public static void HandleEvent(Object? sender, LogEventArgs e)// OpCode opCode, bool status, Category? entity = null, string? msg = null)
+        public static void HandleEvent(Object? sender, LogEventArgs e)
         {
             string output = "";
 
             if (!e.Status)
             {
-                output += "Operatio failed: " + e.Message ?? "";
+                output += "Operation failed: " + e.Message ?? "";
                 Console.WriteLine(output);
                 return;
             }

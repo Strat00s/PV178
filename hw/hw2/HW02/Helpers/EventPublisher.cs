@@ -7,16 +7,11 @@ namespace HW02.Helpers
 {
     public class EventPublisher
     {
-        //public delegate void LogEventHandler(Object sender, LogEventArgs args);// OpCode opCode, bool status, Category? entity = null, string? msg = null);
-
-        //public event LogEventHandler? LogEvent;
         public EventHandler<LogEventArgs>? LogEvent;
 
-        //delegate caller
-        public void Log(LogEventArgs e)// OpCode opCode, bool status, Category? entity = null, string? msg = null)
+        public void Log(LogEventArgs e)
         {
             LogEvent?.Invoke(this, e);
-            //LogEvent?.Invoke(e);// opCode, status, entity, msg);
         }
     }
 }

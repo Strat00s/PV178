@@ -26,8 +26,8 @@ namespace HW02
             eventPublisher.LogEvent += analytics.HandleEvent;
 
             //main services setup
-            var categoryDB      = new CategoryDBContext();
-            var productDB       = new ProductDBContext(categoryDB);
+            var categoryDB = new CategoryDBContext();
+            var productDB  = new ProductDBContext(categoryDB);
 
             //create services and reference each other
             var productService  = new ProductService(productDB, eventPublisher);
@@ -35,12 +35,12 @@ namespace HW02
             categoryService.SetProductService(productService);
             productService.SetCategoryService(categoryService);
 
-            //other
-            var inputParser         = new InputParser();
+            //create input parse
+            var inputParser = new InputParser();
             
             Console.WriteLine("Hello eShop!");
             Console.WriteLine("Type 'help' to list possible commands and uses");
-            ConsoleApp.Run(categoryService, productService, inputParser, eventPublisher);
+            ConsoleApp.Run(categoryService, productService, inputParser, eventPublisher);   //main app loop here
             Console.WriteLine("Exiting...");
         }
     }

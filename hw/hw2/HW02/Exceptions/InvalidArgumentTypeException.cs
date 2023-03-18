@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/* Invalid operation argument type exception
+ * Stores opcode and the invalid argument stirng
+ */
 
 namespace HW02.Exceptions
 {

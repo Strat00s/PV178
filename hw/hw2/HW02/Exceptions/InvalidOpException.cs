@@ -1,4 +1,6 @@
-﻿
+﻿/* Exception for invalid operation with the operation string
+ */
+
 namespace HW02.Exceptions
 {
     public class InvalidOpException : Exception

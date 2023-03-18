@@ -1,11 +1,12 @@
-﻿using HW02.BussinessContext;
+﻿/* Hopefully correct analytic data (json seems to be fine)
+ */
 
 namespace HW02.AnalyticalDataContext
 {
     public class AnalyticData
     {
-        private int _productCount;
-        private readonly List<int> _productIds;
+        private int _productCount;              //number of products in category
+        private readonly List<int> _productIds; //stores IDs of products for easy updating
 
         public int CategoryId { get; set; }
         public string CategoryName { get; set; }

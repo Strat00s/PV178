@@ -1,4 +1,7 @@
-﻿
+﻿/* Exception for when either product or category is not found (during add, delete, ...)
+ * Stores opcode, entity id and wheter entity is category or product (for better logging and printing)
+ */
+
 namespace HW02.Exceptions
 {
     public class EntityNotFound : Exception

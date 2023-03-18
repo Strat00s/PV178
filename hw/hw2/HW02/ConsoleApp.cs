@@ -6,7 +6,6 @@
 using HW02.BussinessContext.Services;
 using HW02.Exceptions;
 using HW02.Helpers;
-using static HW02.Helpers.EventPublisher;
 
 namespace HW02
 {
@@ -28,6 +27,7 @@ namespace HW02
                         firstRun = false;
                     };
 
+                    //do appropriate action depending on input
                     switch (inputParser.Parse(IOHelper.ReadLine()))
                     {
                         case OpCode.NONE:                                                                                                      continue;
@@ -45,7 +45,7 @@ namespace HW02
                     }
 
                 }
-                //handle exceptions
+                //handle custom exceptions first
                 catch (EntityNotFound ex)
                 {
                     if (ex.IsCategory)

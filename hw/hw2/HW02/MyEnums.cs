@@ -1,4 +1,4 @@
-﻿/* Apparently it is good practice to have enums in their own files. So here it is
+﻿/* Apparently it is a good practice to have enums in their own files. So here it is
  */
 
 namespace HW02

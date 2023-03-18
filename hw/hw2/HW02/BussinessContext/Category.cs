@@ -1,4 +1,7 @@
-﻿namespace HW02.BussinessContext
+﻿/* Category class with required properties
+ */
+
+namespace HW02.BussinessContext
 {
     public class Category
     {

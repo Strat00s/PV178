@@ -1,4 +1,7 @@
-﻿using HW02.AnalyticalDataContext.DB;
+﻿/* Analytic data listener
+ */
+
+using HW02.AnalyticalDataContext.DB;
 using HW02.BussinessContext;
 using HW02.Helpers;
 
@@ -6,12 +9,13 @@ namespace HW02.AnalyticalDataContext
 {
     public class AnalyticalDataListener
     {
-        private readonly AnalyticalDBContext _db;
-        private readonly List<AnalyticData> _data;
+        private readonly AnalyticalDBContext _db;   //DB context
+        private readonly List<AnalyticData> _data;  //list of all entries
+
         public AnalyticalDataListener(AnalyticalDBContext analyticalDBContext)
         {
             _db = analyticalDBContext;
-            _data = _db.ReadAnalyticalData();
+            _data = _db.ReadAnalyticalData();   //not really required as it won't really work, because I use internal list of ids when updating which is not stored in the json (and I am not fixing it as the assignment does not ask for this)
         }
 
         public void HandleEvent(Object? sender, LogEventArgs e)// OpCode opCode, bool status, Category? entity = null, string? msg = null)
@@ -23,7 +27,7 @@ namespace HW02.AnalyticalDataContext
             {
                 case OpCode.ADD_CATG: _data.Add(new AnalyticData(e.Entity.Id, e.Entity.Name, 0)); break;                        //add new entry
                 case OpCode.UPD_CATG: _data.Find(item => item.CategoryId == e.Entity.Id).CategoryName = e.Entity.Name; break;   //find category by id and update it's name
-                case OpCode.DEL_CATG: _data.RemoveAll(item => item.CategoryId == e.Entity.Id); break;                         //remove entry
+                case OpCode.DEL_CATG: _data.RemoveAll(item => item.CategoryId == e.Entity.Id); break;                           //remove entry
 
 
                 //always check if entity is a product

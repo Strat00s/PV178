@@ -1,4 +1,6 @@
-﻿
+﻿/* Product class based on category with additional properties
+ */
+
 namespace HW02.BussinessContext
 {
     public class Product : Category
