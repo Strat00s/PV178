@@ -20,6 +20,8 @@ namespace HW02
         DEL_CATG,
         LST_CATG,
 
+        OTHER = 50,
+
         NONE = 99,
         OP_ERR
     }

@@ -1,6 +1,8 @@
 ﻿/* Wrapper for main logic
  * Gets opcode from input parser and executes the required action
  * Also handles exceptions
+ * 
+ * Was a public static class for quite some time but I made it a normal class cause events.
  */
 
 using HW02.BussinessContext.Services;
@@ -9,74 +11,65 @@ using HW02.Helpers;
 
 namespace HW02
 {
-    public static class ConsoleApp
+    public class ConsoleApp
     {
-        public static void Run(CategoryService categoryService, ProductService productService, InputParser inputParser, EventPublisher eventHelper)
+        public EventHandler<LogEventArgs>? LogEvent;
+
+        private readonly CategoryService _categoryService;
+        private readonly ProductService _productService;
+        private readonly InputParser _inputParser;
+
+        public ConsoleApp(CategoryService categoryService, ProductService productService, InputParser inputParser)
         {
-            bool firstRun = true;
+            _categoryService = categoryService;
+            _productService = productService;
+            _inputParser = inputParser;
+        }
+        public void Run()
+        {
+            //add iohelper to event
+            _categoryService.LogEvent += IOHelper.HandleEvent;
+            _productService.LogEvent  += IOHelper.HandleEvent;
+            LogEvent                  += IOHelper.HandleEvent;
 
             while (true)
             {
                 try
                 {
-                    //seeder moved here to allow for exception catching when seeding
-                    if (firstRun)
-                    {
-                        Seeder.FillDB(categoryService, productService);
-                        eventHelper.LogEvent += IOHelper.HandleEvent;   //attach iohelper to event after succesful seeding; if there are any errors during seeding, user won't see it
-                        firstRun = false;
-                    };
-
                     //do appropriate action depending on input
-                    switch (inputParser.Parse(IOHelper.ReadLine()))
+                    switch (_inputParser.Parse(IOHelper.ReadLine()))
                     {
-                        case OpCode.NONE:                                                                                                      continue;
-                        case OpCode.EXIT:                                                                                                      return;
-                        case OpCode.HELP:        IOHelper.PrintHelp();                                                                         break;
-                        case OpCode.GET_BY_CATG: IOHelper.PrintTable(productService.ListByCategory(inputParser.CId));                          break;   //apparently specifiying the template type is not required...
-                        case OpCode.ADD_PROD:    productService.Create(inputParser.Name, inputParser.CId, inputParser.Price);                  break;
-                        case OpCode.UPD_PROD:    productService.Update(inputParser.PId, inputParser.Name, inputParser.CId, inputParser.Price); break;
-                        case OpCode.DEL_PROD:    productService.Delete(inputParser.PId);                                                       break;
-                        case OpCode.LST_PROD:    IOHelper.PrintTable(productService.List());                                                   break;
-                        case OpCode.ADD_CATG:    categoryService.Create(inputParser.Name);                                                     break;
-                        case OpCode.UPD_CATG:    categoryService.Update(inputParser.CId, inputParser.Name);                                    break;
-                        case OpCode.DEL_CATG:    categoryService.Delete(inputParser.CId);                                                      break;
-                        case OpCode.LST_CATG:    IOHelper.PrintTable(categoryService.List());                                                  break;
+                        case OpCode.NONE:                                                                                                           continue;
+                        case OpCode.EXIT:                                                                                                           return;
+                        case OpCode.HELP:        IOHelper.PrintHelp();                                                                              break;
+                        case OpCode.GET_BY_CATG: IOHelper.PrintTable(_productService.ListByCategory(_inputParser.CId));                             break;   //apparently specifiying the template type is not required...
+                        case OpCode.ADD_PROD:    _productService.Create(_inputParser.Name, _inputParser.CId, _inputParser.Price);                   break;
+                        case OpCode.UPD_PROD:    _productService.Update(_inputParser.PId, _inputParser.Name, _inputParser.CId, _inputParser.Price); break;
+                        case OpCode.DEL_PROD:    _productService.Delete(_inputParser.PId);                                                          break;
+                        case OpCode.LST_PROD:    IOHelper.PrintTable(_productService.List());                                                       break;
+                        case OpCode.ADD_CATG:    _categoryService.Create(_inputParser.Name);                                                        break;
+                        case OpCode.UPD_CATG:    _categoryService.Update(_inputParser.CId, _inputParser.Name);                                      break;
+                        case OpCode.DEL_CATG:    _categoryService.Delete(_inputParser.CId);                                                         break;
+                        case OpCode.LST_CATG:    IOHelper.PrintTable(_categoryService.List());                                                      break;
                     }
 
                 }
                 //handle custom exceptions first
-                catch (EntityNotFound ex)
-                {
-                    if (ex.IsCategory)
-                        eventHelper.Log(new(ex.OpCode, false, null, "Category with id '" + ex.Id + "' not found"));
-                    else
-                        eventHelper.Log(new(ex.OpCode, false, null, "Product with id '" + ex.Id + "' not found"));
-                }
                 catch (InvalidArgumentCountException ex)
                 {
-                    eventHelper.Log(new(ex.OpCode, false, null, "Invalid number of arguments: " + ex.Cnt));
+                    LogEvent?.Invoke(this, new(ex.OpCode, false, null, "Invalid number of arguments: " + ex.Cnt));
                 }
                 catch (InvalidArgumentTypeException ex)
                 {
-                    eventHelper.Log(new(ex.OpCode, false, null, "Argument '" + ex.Argument + "' is not a number"));
+                    LogEvent?.Invoke(this, new(ex.OpCode, false, null, "Argument '" + ex.Argument + "' is not a number"));
                 }
                 catch (InvalidOpException ex)
                 {
-                    eventHelper.Log(new(OpCode.NONE, false, null, "Unknown operation: " + ex.Operation));
+                    LogEvent?.Invoke(this, new(OpCode.NONE, false, null, "Unknown operation: " + ex.Operation));
                 }
                 catch (Exception ex)
                 {
-                    eventHelper.Log(new(OpCode.NONE, false, null, ex.Message));
-                }
-
-                //this will happen if seeding failed, so let's attach the iohelper to event for printing and tell the user something
-                //maybe should've used some error writing, but whatever (assignment does not mention any specific output type). 
-                if (firstRun)
-                {
-                    IOHelper.WriteLine("Problem occured while populating DB. Please check the log!");
-                    eventHelper.LogEvent += IOHelper.HandleEvent;
-                    firstRun = false;
+                    LogEvent?.Invoke(this, new(OpCode.NONE, false, null, ex.Message));
                 }
             }
         }

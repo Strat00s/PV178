@@ -102,7 +102,7 @@ namespace HW02.Helpers
         {
             string output = "";
 
-            if (!e.Status)
+            if (!e.Success)
             {
                 output += "Operation failed: " + e.Message ?? "";
                 Console.WriteLine(output);

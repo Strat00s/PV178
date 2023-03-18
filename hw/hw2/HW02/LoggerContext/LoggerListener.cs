@@ -42,7 +42,7 @@ namespace HW02
             }
 
             //write message on fail
-            if (!e.Status)
+            if (!e.Success)
             {
                 log += "Failure; " + e.Message ?? "";
                 _db.WriteLog(log);

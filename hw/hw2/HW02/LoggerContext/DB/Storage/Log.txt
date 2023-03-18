@@ -1,71 +1,22 @@
-[18.03.2023 11:16:21] Other; Product DB loaded
-[18.03.2023 11:16:21] Other; Category DB loaded
-[18.03.2023 11:16:21] Add; Category; Success; 1; Lake; 1
-[18.03.2023 11:16:21] Add; Product; Success; 1; Canoe; 1
-[18.03.2023 11:16:21] Add; Product; Success; 2; Tent; 1
-[18.03.2023 11:16:21] Add; Product; Success; 3; Fishing rod; 1
-[18.03.2023 11:16:21] Add; Category; Success; 2; House; 2
-[18.03.2023 11:16:21] Add; Product; Success; 4; Chair; 2
-[18.03.2023 11:16:21] Add; Product; Success; 5; Kitchen sink; 2
-[18.03.2023 11:16:21] Add; Category; Success; 3; Car; 3
-[18.03.2023 11:16:21] Add; Product; Success; 6; Tire; 3
-[18.03.2023 11:16:21] Add; Product; Success; 7; Muffler; 3
-[18.03.2023 11:16:21] Add; Product; Success; 8; Seatbelt; 3
-[18.03.2023 11:16:21] Add; Product; Success; 9; Windshield; 3
-[18.03.2023 11:17:00] Add; Product; Success; 10; add1; 1
-[18.03.2023 11:17:12] Other; Unknown operation: list-products-by-category
-[18.03.2023 11:17:18] Get; Product; Success; 
-[18.03.2023 11:17:51] Add; Product; Failure; Argument 'cat' is not a number
-[18.03.2023 11:17:55] Add; Product; Failure; Argument 'price' is not a number
-[18.03.2023 11:18:00] Add; Product; Failure; Category with id '5' not found
-[18.03.2023 11:18:07] Add; Product; Failure; Invalid number of arguments: 2
-[18.03.2023 11:18:14] Add; Product; Failure; Invalid number of arguments: 4
-[18.03.2023 11:18:17] Add; Product; Failure; Category with id '123' not found
-[18.03.2023 11:18:22] Add; Product; Failure; Category with id '4' not found
-[18.03.2023 11:18:26] Add; Product; Success; 11; add2; 3
-[18.03.2023 11:18:32] Get; Product; Success; 
-[18.03.2023 11:19:27] Update; Product; Failure; Product with id '12' not found
-[18.03.2023 11:19:37] Update; Product; Failure; Argument 'id' is not a number
-[18.03.2023 11:19:41] Update; Product; Failure; Argument 'cid' is not a number
-[18.03.2023 11:19:44] Update; Product; Failure; Argument 'price' is not a number
-[18.03.2023 11:19:48] Update; Product; Failure; Category with id '12' not found
-[18.03.2023 11:19:53] Update; Product; Failure; Product with id '12' not found
-[18.03.2023 11:19:56] Update; Product; Success; 10; add1; 3
-[18.03.2023 11:20:16] Get; Product; Success; 
-[18.03.2023 11:20:28] Update; Product; Failure; Invalid number of arguments: 2
-[18.03.2023 11:20:44] Update; Product; Failure; Category with id '123' not found
-[18.03.2023 11:20:50] Update; Product; Failure; Invalid number of arguments: 5
-[18.03.2023 11:21:35] Delete; Product; Failure; Argument 'id' is not a number
-[18.03.2023 11:21:52] Delete; Product; Failure; Invalid number of arguments: 2
-[18.03.2023 11:21:54] Delete; Product; Failure; Invalid number of arguments: 2
-[18.03.2023 11:21:56] Delete; Product; Failure; Invalid number of arguments: 0
-[18.03.2023 11:22:03] Delete; Product; Success; 10; add1; 3
-[18.03.2023 11:22:15] Get; Product; Success; 
-[18.03.2023 11:23:15] Add; Category; Failure; Invalid number of arguments: 0
-[18.03.2023 11:23:18] Add; Category; Failure; Invalid number of arguments: 2
-[18.03.2023 11:23:20] Add; Category; Success; 4; asd; 4
-[18.03.2023 11:24:39] Update; Category; Failure; Argument 'a' is not a number
-[18.03.2023 11:24:42] Update; Category; Failure; Invalid number of arguments: 3
-[18.03.2023 11:24:46] Update; Category; Failure; Invalid number of arguments: 3
-[18.03.2023 11:24:48] Update; Category; Failure; Invalid number of arguments: 1
-[18.03.2023 11:24:51] Update; Category; Success; 3; updated; 3
-[18.03.2023 11:25:38] Get; Category; Success; 
-[18.03.2023 11:25:41] Get; Product; Success; 
-[18.03.2023 11:27:33] Other; Unknown operation: remove-category
-[18.03.2023 11:27:36] Other; Unknown operation: remove-category
-[18.03.2023 11:27:44] Delete; Category; Failure; Invalid number of arguments: 2
-[18.03.2023 11:27:47] Delete; Category; Failure; Argument 'a' is not a number
-[18.03.2023 11:27:49] Delete; Category; Failure; Invalid number of arguments: 0
-[18.03.2023 11:27:51] Delete; Category; Success; 1; Lake; 1
-[18.03.2023 11:27:52] Delete; Category; Success; 2; House; 2
-[18.03.2023 11:28:15] Add; Product; Failure; Invalid number of arguments: 2
-[18.03.2023 11:28:18] Add; Product; Failure; Category with id '1' not found
-[18.03.2023 11:28:28] Delete; Category; Success; 3; updated; 3
-[18.03.2023 11:28:33] Get; Category; Success; 
-[18.03.2023 11:28:35] Get; Product; Success; 
-[18.03.2023 11:28:49] Get; Product; Failure; Category with id '1' not found
-[18.03.2023 11:28:50] Get; Product; Success; 
-[18.03.2023 11:29:17] Add; Product; Success; 12; test; 4
-[18.03.2023 11:29:42] Get; Product; Success; 
-[18.03.2023 11:29:44] Get; Product; Success; 
-[18.03.2023 11:29:46] Get; Category; Success; 
+[18.03.2023 17:33:39] Add; Category; Success; 1; Lake; 1
+[18.03.2023 17:33:39] Add; Product; Success; 1; Canoe; 1
+[18.03.2023 17:33:39] Add; Product; Success; 2; Tent; 1
+[18.03.2023 17:33:39] Add; Product; Success; 3; Fishing rod; 1
+[18.03.2023 17:33:39] Add; Category; Success; 2; House; 2
+[18.03.2023 17:33:39] Add; Product; Success; 4; Chair; 2
+[18.03.2023 17:33:39] Add; Product; Success; 5; Kitchen sink; 2
+[18.03.2023 17:33:39] Add; Category; Success; 3; Car; 3
+[18.03.2023 17:33:39] Add; Product; Success; 6; Tire; 3
+[18.03.2023 17:33:39] Add; Product; Success; 7; Muffler; 3
+[18.03.2023 17:33:39] Add; Product; Success; 8; Seatbelt; 3
+[18.03.2023 17:33:39] Add; Product; Success; 9; Windshield; 3
+[18.03.2023 17:34:21] Add; Product; Failure; Invalid number of arguments: 0
+[18.03.2023 17:34:31] Add; Product; Failure; Category with id '123' not found
+[18.03.2023 17:34:39] Add; Product; Success; 10; awd; 1
+[18.03.2023 17:34:49] Get; Product; Success; 
+[18.03.2023 17:35:23] Update; Category; Failure; Category with id '99' not found
+[18.03.2023 17:36:02] Update; Category; Failure; Category with id '99' not found
+[18.03.2023 17:36:06] Delete; Category; Failure; Category with id '99' not found
+[18.03.2023 17:36:11] Delete; Category; Success; 1; Lake; 1
+[18.03.2023 17:36:13] Get; Product; Success; 
+[18.03.2023 17:36:21] Add; Product; Failure; Category with id '1' not found

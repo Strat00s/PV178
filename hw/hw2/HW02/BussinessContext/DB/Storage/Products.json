@@ -1,1 +1,1 @@
-[{"CategoryId":4,"Price":4,"Id":12,"Name":"test"}]
+[{"CategoryId":2,"Price":399.99,"Id":4,"Name":"Chair"},{"CategoryId":2,"Price":4999.99,"Id":5,"Name":"Kitchen sink"},{"CategoryId":3,"Price":6000.25,"Id":6,"Name":"Tire"},{"CategoryId":3,"Price":3200.99,"Id":7,"Name":"Muffler"},{"CategoryId":3,"Price":568.89,"Id":8,"Name":"Seatbelt"},{"CategoryId":3,"Price":15260,"Id":9,"Name":"Windshield"}]

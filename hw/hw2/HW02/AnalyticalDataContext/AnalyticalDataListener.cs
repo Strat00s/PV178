@@ -20,7 +20,7 @@ namespace HW02.AnalyticalDataContext
 
         public void HandleEvent(Object? sender, LogEventArgs e)// OpCode opCode, bool status, Category? entity = null, string? msg = null)
         {
-            if (!e.Status || e.Entity == null)
+            if (!e.Success || e.Entity == null)
                 return;
 
             switch (e.OpCode)

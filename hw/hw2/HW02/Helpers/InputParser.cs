@@ -1,10 +1,13 @@
 ﻿/* Input parser for reading and parsing input
  * Used to check argument types and argument count
  * Returns "internal" operation opcode and stores the rest of the arguments
+ * 
+ * Input parser does not use events to test custom exceptions
  */
 
 
 using HW02.Exceptions;
+using HW02.LoggerContext;
 
 namespace HW02.Helpers
 {
@@ -35,10 +38,10 @@ namespace HW02.Helpers
         //Constructor
         public InputParser()
         {
-            _pId   = 0;
-            _cId   = 0;
-            _price = 0;
-            _name  = string.Empty;
+            _pId        = 0;
+            _cId        = 0;
+            _price      = 0;
+            _name       = string.Empty;
         }
 
 
@@ -65,7 +68,7 @@ namespace HW02.Helpers
             throw new InvalidArgumentTypeException(op, input);
         }
 
-        //Parse the input and return opcode (or throw some exception)
+        //Parse the input and return pair of strings: operation and entity type
         public OpCode Parse(string input)
         {
             string[] arguments = input.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();  //split input by spaces

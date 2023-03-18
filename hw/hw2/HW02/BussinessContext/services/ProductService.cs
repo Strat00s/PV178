@@ -3,6 +3,7 @@
 
 using HW02.Exceptions;
 using HW02.Helpers;
+using HW02.LoggerContext;
 
 namespace HW02.BussinessContext.Services
 {
@@ -10,19 +11,16 @@ namespace HW02.BussinessContext.Services
     {
         private CategoryService? _categoryService;          //category service for checking if category exists
         private readonly ProductDBContext _db;              //DB context for reading and writing
-        private readonly EventPublisher _eventPublisher;    //event publisher
         private int _lastId;                                //id assigned to last category
 
+        public EventHandler<LogEventArgs>? LogEvent;
 
         //Constructor
-        public ProductService(ProductDBContext db, EventPublisher eventPublisher)
+        public ProductService(ProductDBContext db)
         {
             _categoryService = null;
             _db              = db;
-            _eventPublisher  = eventPublisher;
             _lastId          = 0;
-
-            _eventPublisher.Log(new(OpCode.NONE, true, null, "Product DB loaded"));
         }
 
 
@@ -33,24 +31,27 @@ namespace HW02.BussinessContext.Services
 
 
         //create new product
-        public Product Create(string name, int categoryId, decimal price)
+        public Product? Create(string name, int categoryId, decimal price)
         {
-            //check if category does exist
+            //check if category does exist and log failure
             if (_categoryService?.FindCategory(categoryId) == null)
-                throw new EntityNotFound(OpCode.ADD_PROD, categoryId, true);
+            {
+                LogEvent?.Invoke(this, new(OpCode.ADD_PROD, false, null, "Category with id '" + categoryId + "' not found"));
+                return null;
+            }
 
             Product newProduct = new(++_lastId, name, categoryId, price);   //create new product
             var products = _db.ReadProducts();                              //load db
             products.Add(newProduct);                                       //add product
             _db.SaveProducts(products);                                     //save it
-            _eventPublisher.Log(new(OpCode.ADD_PROD, true, newProduct));    //log it
+            LogEvent?.Invoke(this, new(OpCode.ADD_PROD, true, newProduct)); //log it
             return newProduct;
         }
 
         //get list of all products
         public List<Product> List()
         {
-            _eventPublisher.Log(new(OpCode.LST_PROD, true));    //log it
+            LogEvent?.Invoke(this, new(OpCode.LST_PROD, true)); //log it
             return _db.ReadProducts();                          //return the entiry list of products
         }
 
@@ -59,37 +60,61 @@ namespace HW02.BussinessContext.Services
         {
             //check if category exists
             if (_categoryService?.FindCategory(categoryId) == null)
-                throw new EntityNotFound(OpCode.LST_PROD, categoryId, true);
+            {
+                LogEvent?.Invoke(this, new(OpCode.LST_PROD, false, null, "Category with id '" + categoryId + "' not found"));
+                return new List<Product>();
+            }
 
-            _eventPublisher.Log(new(OpCode.LST_PROD, true));                                //log it
+            LogEvent?.Invoke(this, new(OpCode.LST_PROD, true));                             //log it
             return _db.ReadProducts().FindAll(product => product.CategoryId == categoryId); //return the list of products
         }
 
         //update product
-        public Product Update(int productId, string newName, int newCategoryId, decimal newPrice)
+        public Product? Update(int productId, string newName, int newCategoryId, decimal newPrice)
         {
             //check if category exists; not required as DBContext does that
             if (_categoryService?.FindCategory(newCategoryId) == null)
-                throw new EntityNotFound(OpCode.UPD_PROD, newCategoryId, true);
+            {
+                LogEvent?.Invoke(this, new(OpCode.UPD_PROD, false, null, "Category with id '" + newCategoryId + "' not found"));    //log failure
+                return null;
+            }
+
+            var products = _db.ReadProducts();  //load db
             
-            var products       = _db.ReadProducts();                                                                                                //load db
-            var product        = products.Find(entity => entity.Id == productId) ?? throw new EntityNotFound(OpCode.UPD_PROD, productId, false);    //check if product exists
-            product.Name       = newName;                                                                                                           //update it
+            //check if product exists
+            var product = products.Find(entity => entity.Id == productId);
+            if (product == null)
+            {
+                LogEvent?.Invoke(this, new(OpCode.UPD_PROD, false, null, "Product with id '" + productId + "' not found"));    //check if product exists
+                return null;
+            }
+
+            //update the product
+            product.Name       = newName;
             product.CategoryId = newCategoryId;
             product.Price      = newPrice;
-            _db.SaveProducts(products);                                                                                                             //save it
-            _eventPublisher.Log(new(OpCode.UPD_PROD, true, product));                                                                               //log it
+
+            _db.SaveProducts(products);                                     //save it
+            LogEvent?.Invoke(this, new(OpCode.UPD_PROD, true, product));    //log it
             return product;
         }
 
         //delete product
-        public Product Delete(int productId)
+        public Product? Delete(int productId)
         {
-            var products = _db.ReadProducts();                                                                                              //load db
-            var product  = products.Find(entity => entity.Id == productId) ?? throw new EntityNotFound(OpCode.DEL_PROD, productId, false);  //check if product exists
-            products.RemoveAll(entity => entity.Id == productId);                                                                           //remove it
-            _db.SaveProducts(products);                                                                                                     //save it
-            _eventPublisher.Log(new(OpCode.DEL_PROD, true, product));                                                                       //log it
+            var products = _db.ReadProducts();  //load db
+
+            //check if product exists
+            var product = products.Find(entity => entity.Id == productId);
+            if (product == null)
+            {
+                LogEvent?.Invoke(this, new(OpCode.DEL_PROD, false, null, "Product with id '" + productId + "' not found"));  //check if product exists
+                return null;
+            }
+
+            products.RemoveAll(entity => entity.Id == productId);           //remove it
+            _db.SaveProducts(products);                                     //save it
+            LogEvent?.Invoke(this, new(OpCode.DEL_PROD, true, product));    //log it
             return product;
         }
 

@@ -20,27 +20,34 @@ namespace HW02
             var analyticalDB                 = new AnalyticalDBContext();
             AnalyticalDataListener analytics = new(analyticalDB);
 
-            //event setup
-            EventPublisher eventPublisher = new();
-            eventPublisher.LogEvent += logger.HandleEvent;
-            eventPublisher.LogEvent += analytics.HandleEvent;
-
             //main services setup
             var categoryDB = new CategoryDBContext();
             var productDB  = new ProductDBContext(categoryDB);
 
             //create services and reference each other
-            var productService  = new ProductService(productDB, eventPublisher);
-            var categoryService = new CategoryService(categoryDB, eventPublisher);
+            var productService  = new ProductService(productDB);
+            var categoryService = new CategoryService(categoryDB);
             categoryService.SetProductService(productService);
             productService.SetCategoryService(categoryService);
 
-            //create input parse
+            //input parser and main app logic
             var inputParser = new InputParser();
-            
+            var app         = new ConsoleApp(categoryService, productService, inputParser);
+
+            //subscribe to events
+            categoryService.LogEvent += logger.HandleEvent;
+            categoryService.LogEvent += analytics.HandleEvent;
+            productService.LogEvent  += logger.HandleEvent;
+            productService.LogEvent  += analytics.HandleEvent;
+            app.LogEvent             += logger.HandleEvent; //just logger as the main app handles only exceptions which are useless for analytics
+
+            //fill db
+            Seeder.FillDB(categoryService, productService);
+
+            //run the app
             Console.WriteLine("Hello eShop!");
             Console.WriteLine("Type 'help' to list possible commands and uses");
-            ConsoleApp.Run(categoryService, productService, inputParser, eventPublisher);   //main app loop here
+            app.Run();
             Console.WriteLine("Exiting...");
         }
     }
