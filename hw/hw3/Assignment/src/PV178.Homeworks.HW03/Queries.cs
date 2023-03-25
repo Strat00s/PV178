@@ -102,8 +102,26 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public Dictionary<string, string> MostProlificNicknamesInCountriesQuery()
         {
-            // TODO...
-            throw new NotImplementedException();
+            var attacksWithNicknames = DataContext.SharkSpecies
+                .Where(s => s.AlsoKnownAs != null && s.AlsoKnownAs != "")
+                .Join(DataContext.SharkAttacks,
+                    species => species.Id,
+                    attack => attack.SharkSpeciesId,
+                    (species, attack) => new { attack, nickName = species.AlsoKnownAs! }
+                );
+
+            return DataContext.Countries
+                .Where(a => a.Continent == "South America")                                                     //get south america continents
+                .GroupJoin(attacksWithNicknames,                                                                //get nicknames for the attack at the continents
+                    country => country.Id,
+                    attackNick => attackNick.attack.CountryId,
+                    (country, attackNick) => new { countryName = country.Name!, attackNick }
+                )
+                .SelectMany(e => e.attackNick, (e, attackNick) => new { e.countryName, attackNick.nickName })   //flatten the attackNick to keep only nicknames
+                .GroupBy(pair => new { pair.countryName, pair.nickName })                                       //group everything
+                .OrderByDescending(group => group.Count())                                                      //order it by group size
+                .DistinctBy(group => group.Key.countryName)                                                     //remove everything but first occurance of each continent (leaving only biggest group)
+                .ToDictionary(group => group.Key.countryName, group => group.Key.nickName);                     //make dictionary
         }
 
         /// <summary>
