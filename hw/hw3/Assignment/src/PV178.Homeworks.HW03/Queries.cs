@@ -48,26 +48,20 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public List<string> InfoAboutPeopleThatNamesStartsWithCAndWasInBahamasQuery()
         {
-            //get list of sharkids whose latin name starts with I or N
-            //var sharkIds = DataContext.SharkSpecies
-            //    .Where(s => s.LatinName.StartsWith("I") || s.LatinName.StartsWith("N"))
-            //    .Select(s => s.Id)
-            //    .ToList();
             return DataContext.SharkAttacks
                 .Where(a => a.CountryId == DataContext.Countries.First(b => b.Name == "Bahamas").Id)                    //get shark attacks with bahamas id
                 .Join(DataContext.SharkSpecies.Where(s => s.LatinName.StartsWith("I") || s.LatinName.StartsWith("N")),  //join it by speciesid that is fillter for species with latin names starting with I or N
-                    shark => shark.CountryId,
+                    shark => shark.SharkSpeciesId,
                     species => species.Id,
-                    (shark, species) => new { shark, species }
+                    (shark, species) => new { shark, species }                                                          //save shark and species
                 )
-                .Join(DataContext.AttackedPeople,                                                        //join it with attacked people
+                .Join(DataContext.AttackedPeople,                                                                       //join it with attacked people
                     sharkInfo => sharkInfo.shark.AttackedPersonId,
                     person => person.Id,
-                    (sharkInfo, person) => new { sharkInfo.species.LatinName, person.Name }
+                    (sharkInfo, person) => new { sharkInfo.species.LatinName, person.Name }                             //save latin name and person name
                 )
-                .Select(a => $"{a.Name} was attacked in Bahamas by {a.LatinName}")
-                .ToList();
-            //throw new NotImplementedException();
+                .Select(a => $"{a.Name} was attacked in Bahamas by {a.LatinName}")                                      //create the string
+                .ToList();                                                                                              //convert it to list
         }
 
         /// <summary>
@@ -84,8 +78,14 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public int FortunateSharkAttacksSumWithinMonarchyOrTerritoryQuery()
         {
-            // TODO...
-            throw new NotImplementedException();
+            return DataContext.Countries
+                .Where(a => a.GovernmentForm == GovernmentForm.Monarchy || a.GovernmentForm == GovernmentForm.Territory)
+                .Join(DataContext.SharkAttacks,
+                    country => country.Id,
+                    shark => shark.CountryId,
+                    (country, shark) => new { shark }
+                )
+                .Count(a => a.shark.AttackSeverenity != AttackSeverenity.Fatal);
         }
 
         /// <summary>
