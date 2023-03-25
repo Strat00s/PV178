@@ -1,0 +1,17 @@
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\bin\Debug\net6.0\PV178.Homeworks.HW03.exe
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\bin\Debug\net6.0\PV178.Homeworks.HW03.deps.json
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\bin\Debug\net6.0\PV178.Homeworks.HW03.runtimeconfig.json
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\bin\Debug\net6.0\PV178.Homeworks.HW03.dll
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\bin\Debug\net6.0\PV178.Homeworks.HW03.pdb
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\bin\Debug\net6.0\CsvHelper.dll
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\obj\Debug\net6.0\PV178.Homeworks.HW03.csproj.AssemblyReference.cache
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\obj\Debug\net6.0\PV178.Homeworks.HW03.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\obj\Debug\net6.0\PV178.Homeworks.HW03.AssemblyInfoInputs.cache
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\obj\Debug\net6.0\PV178.Homeworks.HW03.AssemblyInfo.cs
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\obj\Debug\net6.0\PV178.Homeworks.HW03.csproj.CoreCompileInputs.cache
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\obj\Debug\net6.0\PV178.Homeworks.HW03.csproj.CopyComplete
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\obj\Debug\net6.0\PV178.Homeworks.HW03.dll
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\obj\Debug\net6.0\refint\PV178.Homeworks.HW03.dll
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\obj\Debug\net6.0\PV178.Homeworks.HW03.pdb
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\obj\Debug\net6.0\PV178.Homeworks.HW03.genruntimeconfig.cache
+C:\Users\Stratos\Documents\0_projects\PV178\hw\hw3\Assignment\src\PV178.Homeworks.HW03\obj\Debug\net6.0\ref\PV178.Homeworks.HW03.dll
