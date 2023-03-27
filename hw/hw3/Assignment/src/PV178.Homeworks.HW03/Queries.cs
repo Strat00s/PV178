@@ -171,7 +171,7 @@ namespace PV178.Homeworks.HW03
             //get all species with valid speed
             var speciesWithSpeed = DataContext.SharkSpecies
                 .Where(s => s.TopSpeed.HasValue);
-            
+
             return DataContext.Countries
                 .Join(swimmingAttacks,                                                                      //get countries with swimming attacks
                     country => country.Id,
@@ -394,15 +394,15 @@ namespace PV178.Homeworks.HW03
                 .Where(a => a.DateTime.HasValue && a.DateTime.Value.Year == 2001)   //2001 results only
                 .Where(a => a.AttackedPersonId.HasValue);                           //remove attacks without know person
 
-           return Attacks2001
-                .Select(a => DataContext.SharkSpecies.FirstOrDefault(s => s.Id == a.SharkSpeciesId))    //"replace" attacks with species with same id as in the attack
-                .Zip(Attacks2001, (s, a) => new { Attack = a, Species = s?.Name })                      //"add back" the attack
-                .Where(a => a.Species == "Tiger shark")                                                 //filter by species
-                .Select(a =>                                                                            //create the string
-                    $"{DataContext.AttackedPeople.First(p => p.Id == a.Attack.AttackedPersonId).Name} was tiggered in " +
-                    $"{DataContext.Countries.FirstOrDefault(c => c.Id == a.Attack.CountryId)?.Name ?? "Unknown country"}"
-                )
-                .ToList();                                                                              //convert it to list
+            return Attacks2001
+                 .Select(a => DataContext.SharkSpecies.FirstOrDefault(s => s.Id == a.SharkSpeciesId))    //"replace" attacks with species with same id as in the attack
+                 .Zip(Attacks2001, (s, a) => new { Attack = a, Species = s?.Name })                      //"add back" the attack
+                 .Where(a => a.Species == "Tiger shark")                                                 //filter by species
+                 .Select(a =>                                                                            //create the string
+                     $"{DataContext.AttackedPeople.First(p => p.Id == a.Attack.AttackedPersonId).Name} was tiggered in " +
+                     $"{DataContext.Countries.FirstOrDefault(c => c.Id == a.Attack.CountryId)?.Name ?? "Unknown country"}"
+                 )
+                 .ToList();                                                                              //convert it to list
         }
 
         /// <summary>
