@@ -241,6 +241,25 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public List<Tuple<string, List<SharkSpecies>>> LightestSharksInSouthAmericaQuery()
         {
+            var lightSharkAttacks = DataContext.SharkSpecies
+                .OrderBy(s => s.Weight)
+                .Take(10)
+                .Join(DataContext.SharkAttacks,
+                    species => species.Id,
+                    attacks => attacks.SharkSpeciesId,
+                    (species, attacks) => attacks
+                );
+
+            var query = DataContext.Countries
+                .Where(c => c.Continent == "South America")
+                .GroupJoin(lightSharkAttacks,
+                    countries => countries.Id,
+                    attacks => attacks.CountryId,
+                    (countries, attacks) => new { Countries = countries, Attacks = attacks }
+                )
+                .GroupBy(g => g.Countries.Name);
+
+
             // TODO...
             throw new NotImplementedException();
         }
