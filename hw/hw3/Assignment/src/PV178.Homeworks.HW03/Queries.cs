@@ -119,10 +119,10 @@ namespace PV178.Homeworks.HW03
                     (country, attackNick) => new { countryName = country.Name!, attackNick }
                 )
                 .SelectMany(e => e.attackNick, (e, attackNick) => new { e.countryName, attackNick.nickName })   //flatten the attackNick to keep only nicknames
-                .GroupBy(pair => new { pair.countryName, pair.nickName })                                       //group everything
-                .OrderByDescending(group => group.Count())                                                      //order it by group size
-                .DistinctBy(group => group.Key.countryName)                                                     //remove everything but first occurance of each continent (leaving only biggest group)
-                .ToDictionary(group => group.Key.countryName, group => group.Key.nickName);                     //make dictionary
+                .GroupBy(p => new { p.countryName, p.nickName })                                                //g everything
+                .OrderByDescending(g => g.Count())                                                              //order it by g size
+                .DistinctBy(g => g.Key.countryName)                                                             //remove everything but first occurance of each continent (leaving only biggest g)
+                .ToDictionary(g => g.Key.countryName, g => g.Key.nickName);                                     //make dictionary
         }
 
         /// <summary>
@@ -136,8 +136,18 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public List<int> ThreeSharksOrderedByNumberOfAttacksOnMenQuery()
         {
-            // TODO...
-            throw new NotImplementedException();
+            return DataContext.AttackedPeople
+                .Where(p => p.Sex == Sex.Male)  //males only
+                .Join(DataContext.SharkAttacks,
+                    person => person.Id,
+                    attack => attack.AttackedPersonId,
+                    (person, attack) => attack
+                )
+                .GroupBy(a => a.SharkSpeciesId)
+                .OrderByDescending(g => g.Count())
+                .Select(g => g.Key)
+                .Take(3)
+                .ToList();
         }
 
         /// <summary>
@@ -312,7 +322,7 @@ namespace PV178.Homeworks.HW03
         /// V prípade, že chýba informácia o krajine útoku, uveďte namiesto názvu krajiny reťazec "Unknown country".
         /// V prípade, že informácie o obete vôbec neexistuje, útok ignorujte.
         ///
-        /// Ale pozor! Váš nový nadriadený má panický strach z operácie `Join` alebo `GroupJoin`.
+        /// Ale pozor! Váš nový nadriadený má panický strach z operácie `Join` alebo `gJoin`.
         /// Informácie musíte zistiť bez spojenia hocijakých dvoch tabuliek. Skúste sa napríklad zamyslieť,
         /// či by vám pomohla metóda `Zip`.
         /// </summary>
