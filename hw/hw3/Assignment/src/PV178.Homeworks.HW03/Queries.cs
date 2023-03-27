@@ -2,8 +2,6 @@
 using PV178.Homeworks.HW03.DataLoading.Factory;
 using PV178.Homeworks.HW03.Model;
 using PV178.Homeworks.HW03.Model.Enums;
-using System.Security.Cryptography;
-using System.Xml;
 
 namespace PV178.Homeworks.HW03
 {
@@ -137,17 +135,17 @@ namespace PV178.Homeworks.HW03
         public List<int> ThreeSharksOrderedByNumberOfAttacksOnMenQuery()
         {
             return DataContext.AttackedPeople
-                .Where(p => p.Sex == Sex.Male)  //males only
-                .Join(DataContext.SharkAttacks,
+                .Where(p => p.Sex == Sex.Male)          //males only
+                .Join(DataContext.SharkAttacks,         //get attack that occured on males
                     person => person.Id,
                     attack => attack.AttackedPersonId,
                     (person, attack) => attack
                 )
-                .GroupBy(a => a.SharkSpeciesId)
-                .OrderByDescending(g => g.Count())
-                .Select(g => g.Key)
-                .Take(3)
-                .ToList();
+                .GroupBy(a => a.SharkSpeciesId)         //group it by sharkspecies
+                .OrderByDescending(g => g.Count())      //get the most occuring species id
+                .Select(g => g.Key)                     //select only keys (species id)
+                .Take(3)                                //we want first 3
+                .ToList();                              //make it a list
         }
 
         /// <summary>
@@ -163,10 +161,39 @@ namespace PV178.Homeworks.HW03
         /// u ktorých nie je známa maximálná rýchlosť. Priemerné rýchlosti budú zaokrúhlené na dve desatinné miesta.
         /// </summary>
         /// <returns>The query result</returns>
+        //TODO refactor
         public Dictionary<string, double> SwimmerAttacksSharkAverageSpeedQuery()
         {
-            // TODO...
-            throw new NotImplementedException();
+            //get attacks where the activity contained swimming
+            var swimmingAttacks = DataContext.SharkAttacks
+                .Where(a => a.Activity!.Contains("Swimming") || a.Activity!.Contains("swimming"));
+
+            //get all species with valid speed
+            var speciesWithSpeed = DataContext.SharkSpecies
+                .Where(s => s.TopSpeed.HasValue);
+            
+            return DataContext.Countries
+                .Join(swimmingAttacks,                                                                      //get countries with swimming attacks
+                    country => country.Id,
+                    attack => attack.CountryId,
+                    (country, attack) => new { Country = country, Attack = attack }
+                )
+                .GroupJoin(speciesWithSpeed,                                                                //get species for every attack in every country
+                    data => data.Attack.SharkSpeciesId,
+                    species => species.Id,
+                    (data, species) => new { Continent = data.Country.Continent, Species = species }
+                )
+                .Where(g => g.Species.Any())                                                                //remove empty species
+                .GroupBy(g => g.Continent)                                                                  //group it by continent
+                .Select(g => new                                                                            //get desired data
+                {
+                    Continent = g.Key!,
+                    Speed = g.SelectMany(x => x.Species).Average(s => s?.TopSpeed ?? 0).ToString("0.00")    //TopSpeed will always have a value, but ToString is complaining about it being nullable
+                })
+                .ToDictionary(                                                                              //convert it to the resulting dictionary
+                    g => g.Continent,
+                    g => Convert.ToDouble(g.Speed)
+                );
         }
 
         /// <summary>
