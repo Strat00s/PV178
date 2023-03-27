@@ -209,8 +209,23 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public List<string> NonFatalAttemptOfZambeziSharkOnPeopleBetweenDAndKQuery()
         {
-            // TODO...
-            throw new NotImplementedException();
+            var zambesiSharkId = DataContext.SharkSpecies.First(s => s.AlsoKnownAs == "Zambesi shark").Id;
+
+            return DataContext.SharkAttacks
+                .Where(a =>
+                    a.AttackSeverenity == AttackSeverenity.NonFatal &&              //only nonfatal attack
+                    a.Type == AttackType.Boating &&                                 //only boating type
+                    a.SharkSpeciesId == zambesiSharkId &&                           //only zambesi shark
+                    a.DateTime >= new DateTime(1960, 3, 3)                          //after 3.3.1960
+                )
+                .Join(DataContext.AttackedPeople,                                   //join attacks with people and keep only people
+                    attacks => attacks.AttackedPersonId,
+                    people => people.Id,
+                    (attacks, people) => people
+                )
+                .Where(p => p.Name != null && p.Name[0] >= 'D' && p.Name[0] <= 'K') //check names
+                .Select(p => p.Name!)                                               //get only names
+                .ToList();                                                          //return them as list
         }
 
         /// <summary>
