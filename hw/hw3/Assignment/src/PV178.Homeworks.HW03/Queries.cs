@@ -167,33 +167,32 @@ namespace PV178.Homeworks.HW03
         {
             //get attacks where the activity contained swimming
             var swimmingAttacks = DataContext.SharkAttacks
-                .Where(a => a.Activity!.Contains("Swimming") || a.Activity!.Contains("swimming"));
+                .Where(x => x.Activity != null && x.Activity.ToLower().Contains("swimming"));
 
             //get all species with valid speed
             var speciesWithSpeed = DataContext.SharkSpecies
-                .Where(s => s.TopSpeed.HasValue);
+                .Where(x => x.TopSpeed.HasValue);
 
             return DataContext.Countries
-                .Join(swimmingAttacks,                                                                      //get countries with swimming attacks
+                .Join(swimmingAttacks,                                                              //get shark species ids per continent
                     country => country.Id,
                     attack => attack.CountryId,
-                    (country, attack) => new { Country = country, Attack = attack }
+                    (country, attack) => new { country.Continent, attack.SharkSpeciesId }
                 )
-                .GroupJoin(speciesWithSpeed,                                                                //get species for every attack in every country
-                    data => data.Attack.SharkSpeciesId,
+                .GroupJoin(speciesWithSpeed,                                                        //get all species specific to the continent
+                    countryAttack => countryAttack.SharkSpeciesId,
                     species => species.Id,
-                    (data, species) => new { Continent = data.Country.Continent, Species = species }
+                    (countryAttack, species) => new { countryAttack.Continent, Species = species }
                 )
-                .Where(g => g.Species.Any())                                                                //remove empty species
-                .GroupBy(g => g.Continent)                                                                  //group it by continent
-                .Select(g => new                                                                            //get desired data
-                {
-                    Continent = g.Key!,
-                    Speed = g.SelectMany(x => x.Species).Average(s => s?.TopSpeed ?? 0).ToString("0.00")    //TopSpeed will always have a value, but ToString is complaining about it being nullable
-                })
-                .ToDictionary(                                                                              //convert it to the resulting dictionary
-                    g => g.Continent,
-                    g => Convert.ToDouble(g.Speed)
+                .Where(x => x.Species.Any())                                                        //remove any empty species lists
+                .GroupBy(x => x.Continent)                                                          //group it by continent
+                .ToDictionary(                                                                      //create the dictionary
+                    x => x.Key!,
+                    x => Convert.ToDouble(                                                          //convert to string and than back to double for 2 decimal places formating
+                        x.SelectMany(y => y.Species)                                                //select all species for each continent
+                        .Average(y => y.TopSpeed.Value)                                             //average their speed
+                        .ToString("0.00")
+                    )
                 );
         }
 
@@ -408,7 +407,6 @@ namespace PV178.Homeworks.HW03
         /// hodnotou je súhrnný počet obetí spôsobený daným druhom žraloka.
         /// </summary>
         /// <returns>The query result</returns>
-        // FIX
         public Dictionary<string, int> FiveSharkNamesWithMostFatalitiesQuery()
         {
             return DataContext.SharkAttacks
