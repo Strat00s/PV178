@@ -256,10 +256,15 @@ namespace PV178.Homeworks.HW03
                 .GroupJoin(lightSharkAttacks,
                     countries => countries.Id,
                     data => data.Attacks.CountryId,
-                    (countries, data) => new { Countries = countries, AttackSpecies = data.DistinctBy(x => x.Species.Id)}
+                    (countries, data) => new { 
+                        Countries = countries,
+                        Species = data
+                            .DistinctBy(x => x.Species.Id)
+                            .Select(x => x.Species)
+                    }
                 )
-                .GroupBy(g => g.Countries.Name)
-                .Select(g => Tuple.Create(g.Key, g.SelectMany(x => x.AttackSpecies.Select(y => y.Species)).ToList()))
+                .GroupBy(g => g.Countries.Name!)
+                .Select(g => Tuple.Create(g.Key, g.SelectMany(x => x.Species).ToList()))
                 .ToList();
         }
 
@@ -275,8 +280,26 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public bool FiftySixMaxSpeedAndAgeQuery()
         {
-            // TODO...
-            throw new NotImplementedException();
+            var peopleAbove56 = DataContext.AttackedPeople
+                .Where(x => x.Age > 56);
+
+            var speedySpecies = DataContext.SharkSpecies
+                .Where(x => x.TopSpeed >= 56);
+
+            var query = DataContext.SharkAttacks
+                .Join(DataContext.AttackedPeople.Where(x => x.Age > 56),
+                    attacks => attacks.AttackedPersonId,
+                    people => people.Id,
+                    (attacks, people) => new { Attacks = attacks, People = people }
+                )
+                .Join(DataContext.SharkSpecies,
+                    data => data.Attacks.SharkSpeciesId,
+                    species => species.Id,
+                    (data, species) => new { data, Species = species }
+                )
+                .Where(x => x.Species.TopSpeed < 56);
+
+            return !query.Any();
         }
 
         /// <summary>
