@@ -283,9 +283,9 @@ namespace PV178.Homeworks.HW03
             var peopleAbove56 = DataContext.AttackedPeople
                 .Where(x => x.Age > 56);
 
-            var query = DataContext.SharkSpecies
-                .Where(x => x.TopSpeed >= 56)                       //every shark with speed at least 56
-                .Join(DataContext.SharkAttacks,                     //use attacks for joining with attacked people
+            return DataContext.SharkSpecies
+                .Where(x => x.TopSpeed >= 56)                           //every shark with speed at least 56
+                .Join(DataContext.SharkAttacks,                         //use attacks for joining with attacked people
                     x => x.Id,
                     y => y.SharkSpeciesId,
                     (x, y) => new { Species = x, Attacks = y }
@@ -295,9 +295,8 @@ namespace PV178.Homeworks.HW03
                     y => y.Id,
                     (x, y) => new { Species = x.Species, People = y }
                 )
-                .GroupBy(x => x.Species.Id);
-
-            return query.All(x => x.Any());
+                .GroupBy(x => x.Species.Id)                             //group it by the id
+                .All(x => x.Any());                                     //check that every id has at least one person with age > 56 under it
         }
 
         /// <summary>
@@ -316,8 +315,35 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public List<string> InfoAboutPeopleAndCountriesOnBorRAndFatalAttacksQuery()
         {
-            // TODO...
-            throw new NotImplementedException();
+            //fatal attacks
+            var fatalAttacksLatName = DataContext.SharkAttacks
+                .Where(x => x.AttackSeverenity == AttackSeverenity.Fatal)
+                .Join(DataContext.SharkSpecies,
+                    x => x.SharkSpeciesId,
+                    y => y.Id,
+                    (x, y) => new { Attacks = x, SpeciesNames = y.LatinName }
+                );
+
+            //countries starting with B or R
+            var BRCountries = DataContext.Countries
+                .Where(x => x.Name != null && (x.Name.StartsWith('B') || x.Name.StartsWith('R')));
+
+            return DataContext.AttackedPeople
+                .Where(x => x.Name != null && Char.IsUpper(x.Name[0]))                                              //valid names
+                .Join(fatalAttacksLatName,                                                                          //join everything by attacks
+                    x => x.Id,
+                    y => y.Attacks.AttackedPersonId,
+                    (x, y) => new { People = x, Attacks = y.Attacks, SpeciesName = y.SpeciesNames }
+                )
+                .Join(BRCountries,                                                                                  //join everything by attacks
+                    x => x.Attacks.CountryId,
+                    y => y.Id,
+                    (x, y) => new { PersonName = x.People.Name, SpeciesName = x.SpeciesName, CountryName = y.Name }
+                )
+                .Select(x => $"{x.PersonName} was attacked in {x.CountryName} by {x.SpeciesName}")                  //make the string
+                .OrderBy(x => x)                                                                                    //order it alphabetically
+                .Take(5)                                                                                            //only first 5
+                .ToList();                                                                                          //make it a list
         }
 
         /// <summary>
