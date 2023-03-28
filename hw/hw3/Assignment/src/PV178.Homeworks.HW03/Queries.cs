@@ -371,8 +371,27 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public List<string> InfoAboutFinesInEuropeQuery()
         {
-            // TODO...
-            throw new NotImplementedException();
+            //EU countries with name between A and L
+            var ALEuCountries = DataContext.Countries
+                .Where(x => x.Continent == "Europe" && x.Name != null && x.Name[0] >= 'A' && x.Name[0] <= 'L');
+
+            return DataContext.SharkAttacks
+            .Where(x => x.AttackSeverenity.HasValue && x.AttackSeverenity != AttackSeverenity.Unknown)          //known severenity only
+            .Join(ALEuCountries,                                                                                //get countrie
+                x => x.CountryId,
+                y => y.Id,
+                (x, y) => new { Country = y, Fine = x.AttackSeverenity == AttackSeverenity.Fatal ? 300 : 250 }  //convert severenity to fine 
+            )
+            .GroupBy(x => x.Country)                                                                            //get list of fines per country
+            .Select(x => new {                                                                                  //extract required data
+                CountryName = x.Key.Name,
+                CurrencyCode = x.Key.CurrencyCode,
+                Fine = x.Sum(y => y.Fine)
+            })
+            .OrderByDescending(x => x.Fine)                                                                     //order it by total fine
+            .Select (x => $"{x.CountryName}: {x.Fine} {x.CurrencyCode}")                                        //create the string
+            .Take(5)                                                                                            //get firt 5 items
+            .ToList();                                                                                          //convert it to list
         }
 
         /// <summary>
