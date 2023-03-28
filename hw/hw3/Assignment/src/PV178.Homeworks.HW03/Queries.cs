@@ -408,6 +408,7 @@ namespace PV178.Homeworks.HW03
         /// hodnotou je súhrnný počet obetí spôsobený daným druhom žraloka.
         /// </summary>
         /// <returns>The query result</returns>
+        // FIX
         public Dictionary<string, int> FiveSharkNamesWithMostFatalitiesQuery()
         {
             return DataContext.SharkAttacks
