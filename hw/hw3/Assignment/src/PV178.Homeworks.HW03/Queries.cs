@@ -418,11 +418,6 @@ namespace PV178.Homeworks.HW03
                     y => y.Id,
                     (x, y) => new { Attack = x, SpeciesName = y.Name! }
                 )
-                .Join(DataContext.AttackedPeople,                                   //get all people who were fatally attacked
-                    x => x.Attack.AttackedPersonId,
-                    y => y.Id,
-                    (x, y) => new { x.SpeciesName, Person = y }
-                )
                 .GroupBy(x => x.SpeciesName)                                        //group it by species name
                 .Select(x => new {SpeciesName = x.Key, AttackCount = x.Count()})    //create wanted data
                 .OrderByDescending(x => x.AttackCount)                              //order it by number of attacks per species
