@@ -410,8 +410,23 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public Dictionary<string, int> FiveSharkNamesWithMostFatalitiesQuery()
         {
-            // TODO...
-            throw new NotImplementedException();
+            return DataContext.SharkAttacks
+                .Where(x => x.AttackSeverenity == AttackSeverenity.Fatal)           //get fatal attacks
+                .Join(DataContext.SharkSpecies,                                     //get species name
+                    x => x.SharkSpeciesId,
+                    y => y.Id,
+                    (x, y) => new { Attack = x, SpeciesName = y.Name! }
+                )
+                .Join(DataContext.AttackedPeople,                                   //get all people who were fatally attacked
+                    x => x.Attack.AttackedPersonId,
+                    y => y.Id,
+                    (x, y) => new { x.SpeciesName, Person = y }
+                )
+                .GroupBy(x => x.SpeciesName)                                        //group it by species name
+                .Select(x => new {SpeciesName = x.Key, AttackCount = x.Count()})    //create wanted data
+                .OrderByDescending(x => x.AttackCount)                              //order it by number of attacks per species
+                .Take(5)                                                            //get top 5
+                .ToDictionary(x => x.SpeciesName, x => x.AttackCount);              //create dictionary
         }
 
         /// <summary>
