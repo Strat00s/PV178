@@ -283,23 +283,21 @@ namespace PV178.Homeworks.HW03
             var peopleAbove56 = DataContext.AttackedPeople
                 .Where(x => x.Age > 56);
 
-            var speedySpecies = DataContext.SharkSpecies
-                .Where(x => x.TopSpeed >= 56);
-
-            var query = DataContext.SharkAttacks
-                .Join(DataContext.AttackedPeople.Where(x => x.Age > 56),
-                    attacks => attacks.AttackedPersonId,
-                    people => people.Id,
-                    (attacks, people) => new { Attacks = attacks, People = people }
+            var query = DataContext.SharkSpecies
+                .Where(x => x.TopSpeed >= 56)                       //every shark with speed at least 56
+                .Join(DataContext.SharkAttacks,                     //use attacks for joining with attacked people
+                    x => x.Id,
+                    y => y.SharkSpeciesId,
+                    (x, y) => new { Species = x, Attacks = y }
                 )
-                .Join(DataContext.SharkSpecies,
-                    data => data.Attacks.SharkSpeciesId,
-                    species => species.Id,
-                    (data, species) => new { data, Species = species }
+                .Join(peopleAbove56,                                    //get all people with age > 56 for every shark species with speed >= 56
+                    x => x.Attacks.AttackedPersonId,
+                    y => y.Id,
+                    (x, y) => new { Species = x.Species, People = y }
                 )
-                .Where(x => x.Species.TopSpeed < 56);
+                .GroupBy(x => x.Species.Id);
 
-            return !query.Any();
+            return query.All(x => x.Any());
         }
 
         /// <summary>
