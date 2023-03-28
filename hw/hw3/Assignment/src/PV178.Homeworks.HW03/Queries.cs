@@ -2,6 +2,7 @@
 using PV178.Homeworks.HW03.DataLoading.Factory;
 using PV178.Homeworks.HW03.Model;
 using PV178.Homeworks.HW03.Model.Enums;
+using System.Security.Cryptography.X509Certificates;
 
 namespace PV178.Homeworks.HW03
 {
@@ -247,21 +248,19 @@ namespace PV178.Homeworks.HW03
                 .Join(DataContext.SharkAttacks,
                     species => species.Id,
                     attacks => attacks.SharkSpeciesId,
-                    (species, attacks) => attacks
+                    (species, attacks) => new { Attacks = attacks, Species = species }
                 );
 
-            var query = DataContext.Countries
+            return DataContext.Countries
                 .Where(c => c.Continent == "South America")
                 .GroupJoin(lightSharkAttacks,
                     countries => countries.Id,
-                    attacks => attacks.CountryId,
-                    (countries, attacks) => new { Countries = countries, Attacks = attacks }
+                    data => data.Attacks.CountryId,
+                    (countries, data) => new { Countries = countries, AttackSpecies = data.DistinctBy(x => x.Species.Id)}
                 )
-                .GroupBy(g => g.Countries.Name);
-
-
-            // TODO...
-            throw new NotImplementedException();
+                .GroupBy(g => g.Countries.Name)
+                .Select(g => Tuple.Create(g.Key, g.SelectMany(x => x.AttackSpecies.Select(y => y.Species)).ToList()))
+                .ToList();
         }
 
         /// <summary>
