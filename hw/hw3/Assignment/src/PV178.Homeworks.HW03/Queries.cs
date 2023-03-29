@@ -162,7 +162,6 @@ namespace PV178.Homeworks.HW03
         /// u ktorých nie je známa maximálná rýchlosť. Priemerné rýchlosti budú zaokrúhlené na dve desatinné miesta.
         /// </summary>
         /// <returns>The query result</returns>
-        //TODO refactor
         public Dictionary<string, double> SwimmerAttacksSharkAverageSpeedQuery()
         {
             //get attacks where the activity contained swimming
@@ -440,8 +439,17 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public string StatisticsAboutGovernmentsQuery()
         {
-            // TODO...
-            throw new NotImplementedException();
+            var result = DataContext.Countries
+                .GroupBy(c => c.GovernmentForm)                                                                     //group by government form to get a list of countries for each government
+                .Select(g => new                                                                                    //create new dataset with government and corresponsing representation
+                {
+                    GovernmentForm = g.Key,
+                    Representation = ((double)g.Count() / DataContext.Countries.Count()) * 100
+                })
+                .OrderByDescending(govRep => govRep.Representation)                                                 //order it by representation
+                .Aggregate("", (acc, govRep) => acc += $"{govRep.GovernmentForm}: {govRep.Representation:F1}%, ");  //create the required string by adding it to accumulator
+
+            return result.Substring(0, result.Length - 2);                                                          //remove traling comma and space
         }
 
         /// <summary>
