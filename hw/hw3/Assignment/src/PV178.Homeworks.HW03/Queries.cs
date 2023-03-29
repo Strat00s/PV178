@@ -530,8 +530,13 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public int SafeCountriesQuery()
         {
-            // TODO...
-            throw new NotImplementedException();
+            var fatalCountryCount = DataContext.SharkAttacks                
+                .Where(x => x.AttackSeverenity == AttackSeverenity.Fatal)   //get fatal attacks
+                .GroupBy(x => x.CountryId)                                  //group it by country id so that we have a list of all countries with fatalities
+                .Where(x => x.Key != null)                                  //remove any null items
+                .Count();                                                   //count the number of fatal countries
+
+            return DataContext.Countries.Count() - fatalCountryCount;       //get nonfatal country count
         }
     }
 }
