@@ -502,8 +502,21 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public string LongestVsShortestSharkQuery()
         {
-            // TODO...
-            throw new NotImplementedException();
+            //group and order all attacks by the species length
+            var query = DataContext.SharkAttacks
+                .Join(DataContext.SharkSpecies,
+                    attack => attack.SharkSpeciesId,
+                    species => species.Id,
+                    (attack, species) => new { Attacks = attack, Species = species }
+                )
+                .GroupBy(x => x.Species.Length)
+                .OrderBy(x => x.Key);
+
+            //get shart attack count
+            var attackCount = DataContext.SharkAttacks.Count();
+
+            //return the final string
+            return $"{((double)query.Last().Count() / attackCount) * 100 :F1}% vs {((double)query.First().Count() / attackCount) * 100:F1}%";
         }
 
         /// <summary>
