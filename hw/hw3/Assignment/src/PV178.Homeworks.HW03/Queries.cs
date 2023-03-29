@@ -2,6 +2,7 @@
 using PV178.Homeworks.HW03.DataLoading.Factory;
 using PV178.Homeworks.HW03.Model;
 using PV178.Homeworks.HW03.Model.Enums;
+using System;
 using System.Security.Cryptography.X509Certificates;
 
 namespace PV178.Homeworks.HW03
@@ -61,11 +62,11 @@ namespace PV178.Homeworks.HW03
                     (attack, species) => new { attack, SpeciesName = species.LatinName }
                 )
                 .Join(DataContext.AttackedPeople,                                       //join it with attacked people
-                    attSName => attSName.attack.AttackedPersonId,
+                    attName => attName.attack.AttackedPersonId,
                     person => person.Id,
-                    (attSName, person) => new { attSName.SpeciesName, person.Name }     //save latin name and person name
+                    (attName, person) => new { attName.SpeciesName, person.Name }       //save latin name and person name
                 )
-                .Select(sp => $"{sp.Name} was attacked in Bahamas by {sp.SpeciesName}") //create the string
+                .Select(sn => $"{sn.Name} was attacked in Bahamas by {sn.SpeciesName}") //create the string
                 .ToList();                                                              //convert it to list
         }
 
@@ -117,17 +118,17 @@ namespace PV178.Homeworks.HW03
                 );
 
             return DataContext.Countries
-                .Where(c => c.Continent == "South America")                                                     //get south america continents
-                .GroupJoin(attacksWithNicknames,                                                                //get nicknames for the attack at the continents
+                .Where(c => c.Continent == "South America")                                                 //get south america continents
+                .GroupJoin(attacksWithNicknames,                                                            //get nicknames for the attack at the continents
                     country => country.Id,
                     attackNick => attackNick.attack.CountryId,
-                    (country, attackNick) => new { CountryName = country.Name!, attackNick }
+                    (country, attackNick) => new { CountryName = country.Name!, Nicknames = attackNick }
                 )
-                .SelectMany(g => g.attackNick, (g, attackNick) => new { g.CountryName, attackNick.Nickname })   //flatten the attackNick to keep only nicknames
-                .GroupBy(g => new { g.CountryName, g.Nickname })                                                //group everything
-                .OrderByDescending(g => g.Count())                                                              //order it by group size
-                .DistinctBy(g => g.Key.CountryName)                                                             //remove everything but first occurance of each continent (leaving only biggest g)
-                .ToDictionary(g => g.Key.CountryName, g => g.Key.Nickname);                                     //make dictionary
+                .SelectMany(g => g.Nicknames, (g, Nicknames) => new { g.CountryName, Nicknames.Nickname })  //flatten the attackNick to keep only nicknames
+                .GroupBy(g => new { g.CountryName, g.Nickname })                                            //group everything
+                .OrderByDescending(g => g.Count())                                                          //order it by group size
+                .DistinctBy(g => g.Key.CountryName)                                                         //remove everything but first occurance of each continent (leaving only biggest g)
+                .ToDictionary(g => g.Key.CountryName, g => g.Key.Nickname);                                 //make dictionary
         }
 
         /// <summary>
@@ -192,10 +193,10 @@ namespace PV178.Homeworks.HW03
                 .Where(g => g.Species.Any())            //remove any empty species lists
                 .GroupBy(g => g.Continent)              //group it by continent
                 .ToDictionary(                          //create the dictionary
-                    x => x.Key!,
-                    x => Convert.ToDouble(              //convert to string and than back to double for 2 decimal places formating
-                        x.SelectMany(y => y.Species)    //select all species for each continent
-                        .Average(y => y.TopSpeed.Value) //average their speed
+                    g => g.Key!,
+                    g => Convert.ToDouble(              //convert to string and than back to double for 2 decimal places formating
+                        g.SelectMany(cs => cs.Species)  //select all species for each continent
+                        .Average(s => s.TopSpeed.Value) //average their speed
                         .ToString("0.00")
                     )
                 );
@@ -225,8 +226,8 @@ namespace PV178.Homeworks.HW03
                 )
                 .Join(DataContext.AttackedPeople,                                   //join attacks with people and keep only people
                     attack => attack.AttackedPersonId,
-                    people => people.Id,
-                    (attack, people) => people
+                    person => person.Id,
+                    (attack, person) => person
                 )
                 .Where(p => p.Name != null && p.Name[0] >= 'D' && p.Name[0] <= 'K') //keep only valid people
                 .Select(p => p.Name!)                                               //get only names
@@ -253,7 +254,7 @@ namespace PV178.Homeworks.HW03
                 .Join(DataContext.SharkAttacks,
                     species => species.Id,
                     attack => attack.SharkSpeciesId,
-                    (species, attack) => new { Attack = attack, Species = species }
+                    (species, attack) => new { Species = species, Attack = attack }
                 );
 
             return DataContext.Countries
@@ -265,12 +266,12 @@ namespace PV178.Homeworks.HW03
                     { 
                         Countries = countries,
                         Species = lightAttack
-                            .DistinctBy(la => la.Species.Id)
-                            .Select(la => la.Species)
+                            .DistinctBy(sa => sa.Species.Id)
+                            .Select(sa => sa.Species)
                     }
                 )
                 .GroupBy(g => g.Countries.Name!)                                            //group it by country name
-                .Select(g => Tuple.Create(g.Key, g.SelectMany(x => x.Species).ToList()))    //create the tuple
+                .Select(g => Tuple.Create(g.Key, g.SelectMany(cs => cs.Species).ToList()))  //create the tuple
                 .ToList();                                                                  //make it a list
         }
 
@@ -382,25 +383,25 @@ namespace PV178.Homeworks.HW03
         {
             //EU countries with name between A and L
             var ALEuCountries = DataContext.Countries
-                .Where(x => x.Continent == "Europe" && x.Name != null && x.Name[0] >= 'A' && x.Name[0] <= 'L');
+                .Where(c => c.Continent == "Europe" && c.Name != null && c.Name[0] >= 'A' && c.Name[0] <= 'L');
 
             return DataContext.SharkAttacks
-            .Where(x => x.AttackSeverenity.HasValue && x.AttackSeverenity != AttackSeverenity.Unknown)          //known severenity only
-            .Join(ALEuCountries,                                                                                //get countrie
-                x => x.CountryId,
-                y => y.Id,
-                (x, y) => new { Country = y, Fine = x.AttackSeverenity == AttackSeverenity.Fatal ? 300 : 250 }  //convert severenity to fine 
+            .Where(a => a.AttackSeverenity.HasValue && a.AttackSeverenity != AttackSeverenity.Unknown)  //known severenity only
+            .Join(ALEuCountries,                                                                        //get countries and convert severenity to fine 
+                attack => attack.CountryId,
+                country => country.Id,
+                (attack, country) => new { Country = country, Fine = attack.AttackSeverenity == AttackSeverenity.Fatal ? 300 : 250 }
             )
-            .GroupBy(x => x.Country)                                                                            //get list of fines per country
-            .Select(x => new {                                                                                  //extract required data
-                CountryName = x.Key.Name,
-                CurrencyCode = x.Key.CurrencyCode,
-                Fine = x.Sum(y => y.Fine)
+            .GroupBy(cf => cf.Country)                                                                  //get list of fines per country
+            .Select(g => new {                                                                          //extract required data
+                CountryName = g.Key.Name,
+                CurrencyCode = g.Key.CurrencyCode,
+                Fine = g.Sum(cf => cf.Fine)
             })
-            .OrderByDescending(x => x.Fine)                                                                     //order it by total fine
-            .Select (x => $"{x.CountryName}: {x.Fine} {x.CurrencyCode}")                                        //create the string
-            .Take(5)                                                                                            //get firt 5 items
-            .ToList();                                                                                          //convert it to list
+            .OrderByDescending(ccf => ccf.Fine)                                                         //order it by total fine
+            .Select (ccf => $"{ccf.CountryName}: {ccf.Fine} {ccf.CurrencyCode}")                        //create the string
+            .Take(5)                                                                                    //get firt 5 items
+            .ToList();                                                                                  //convert it to list
         }
 
         /// <summary>
