@@ -421,17 +421,17 @@ namespace PV178.Homeworks.HW03
         public Dictionary<string, int> FiveSharkNamesWithMostFatalitiesQuery()
         {
             return DataContext.SharkAttacks
-                .Where(x => x.AttackSeverenity == AttackSeverenity.Fatal)           //get fatal attacks
+                .Where(a => a.AttackSeverenity == AttackSeverenity.Fatal)           //get fatal attacks
                 .Join(DataContext.SharkSpecies,                                     //get species name
-                    x => x.SharkSpeciesId,
-                    y => y.Id,
-                    (x, y) => new { Attack = x, SpeciesName = y.Name! }
+                    attack => attack.SharkSpeciesId,
+                    species => species.Id,
+                    (attack, species) => new { Attack = attack, SpeciesName = species.Name! }
                 )
-                .GroupBy(x => x.SpeciesName)                                        //group it by species name
-                .Select(x => new {SpeciesName = x.Key, AttackCount = x.Count()})    //create wanted data
-                .OrderByDescending(x => x.AttackCount)                              //order it by number of attacks per species
+                .GroupBy(an => an.SpeciesName)                                      //group it by species name
+                .Select(g => new {SpeciesName = g.Key, AttackCount = g.Count()})    //create wanted data
+                .OrderByDescending(sa => sa.AttackCount)                            //order it by number of attacks per species
                 .Take(5)                                                            //get top 5
-                .ToDictionary(x => x.SpeciesName, x => x.AttackCount);              //create dictionary
+                .ToDictionary(sa => sa.SpeciesName, sa => sa.AttackCount);          //create dictionary
         }
 
         /// <summary>
@@ -451,17 +451,16 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public string StatisticsAboutGovernmentsQuery()
         {
-            var result = DataContext.Countries
-                .GroupBy(c => c.GovernmentForm)                                                                     //group by government form to get a list of countries for each government
-                .Select(g => new                                                                                    //create new dataset with government and corresponsing representation
+            return DataContext.Countries
+                .GroupBy(c => c.GovernmentForm)                                                         //group by government form to get a list of countries for each government
+                .Select(g => new                                                                        //create new dataset with government and corresponsing representation
                 {
                     GovernmentForm = g.Key,
                     Representation = ((double)g.Count() / DataContext.Countries.Count()) * 100
                 })
-                .OrderByDescending(govRep => govRep.Representation)                                                 //order it by representation
-                .Aggregate("", (acc, govRep) => acc += $"{govRep.GovernmentForm}: {govRep.Representation:F1}%, ");  //create the required string by adding it to accumulator
-
-            return result.Substring(0, result.Length - 2);                                                          //remove traling comma and space
+                .OrderByDescending(gr => gr.Representation)                                             //order it by representation
+                .Aggregate("", (acc, gr) => acc += $", {gr.GovernmentForm}: {gr.Representation:F1}%")   //create the required string by adding it to accumulator
+                .Substring(2);                                                                          //remove leading comma and space
         }
 
         /// <summary>
@@ -489,14 +488,14 @@ namespace PV178.Homeworks.HW03
                 .Where(a => a.AttackedPersonId.HasValue);                           //remove attacks without know person
 
             return Attacks2001
-                 .Select(a => DataContext.SharkSpecies.FirstOrDefault(s => s.Id == a.SharkSpeciesId))    //"replace" attacks with species with same id as in the attack
-                 .Zip(Attacks2001, (s, a) => new { Attack = a, Species = s?.Name })                      //"add back" the attack
-                 .Where(a => a.Species == "Tiger shark")                                                 //filter by species
-                 .Select(a =>                                                                            //create the string
-                     $"{DataContext.AttackedPeople.First(p => p.Id == a.Attack.AttackedPersonId).Name} was tiggered in " +
-                     $"{DataContext.Countries.FirstOrDefault(c => c.Id == a.Attack.CountryId)?.Name ?? "Unknown country"}"
+                 .Select(a => DataContext.SharkSpecies.FirstOrDefault(s => s.Id == a.SharkSpeciesId))   //"replace" attacks with species with same id as in the attack
+                 .Zip(Attacks2001, (s, a) => new { Species = s?.Name , Attack = a })                    //"add back" the attack
+                 .Where(sa => sa.Species == "Tiger shark")                                              //filter by species
+                 .Select(sa =>                                                                          //create the string
+                     $"{DataContext.AttackedPeople.First(p => p.Id == sa.Attack.AttackedPersonId).Name} was tiggered in " +
+                     $"{DataContext.Countries.FirstOrDefault(c => c.Id == sa.Attack.CountryId)?.Name ?? "Unknown country"}"
                  )
-                 .ToList();                                                                              //convert it to list
+                 .ToList();                                                                             //convert it to list
         }
 
         /// <summary>
