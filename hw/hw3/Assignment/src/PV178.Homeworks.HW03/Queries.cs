@@ -518,10 +518,10 @@ namespace PV178.Homeworks.HW03
                 .Join(DataContext.SharkSpecies,
                     attack => attack.SharkSpeciesId,
                     species => species.Id,
-                    (attack, species) => new { Attacks = attack, Species = species }
+                    (attack, species) => new { Species = species, Attack = attack }
                 )
-                .GroupBy(x => x.Species.Length)
-                .OrderBy(x => x.Key);
+                .GroupBy(sa => sa.Species.Length)
+                .OrderBy(sa => sa.Key);
 
             //get shart attack count
             var attackCount = DataContext.SharkAttacks.Count();
