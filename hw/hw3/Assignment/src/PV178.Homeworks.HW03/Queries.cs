@@ -48,20 +48,25 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public List<string> InfoAboutPeopleThatNamesStartsWithCAndWasInBahamasQuery()
         {
+            var bahamasId = DataContext.Countries.First(x => x.Name == "Bahamas").Id;
+
+            var INSpecies = DataContext.SharkSpecies
+                .Where(s => s.LatinName != null && (s.LatinName.StartsWith('I') || s.LatinName.StartsWith('N')));
+
             return DataContext.SharkAttacks
-                .Where(a => a.CountryId == DataContext.Countries.First(b => b.Name == "Bahamas").Id)                    //get shark attacks with bahamas id
-                .Join(DataContext.SharkSpecies.Where(s => s.LatinName.StartsWith("I") || s.LatinName.StartsWith("N")),  //join it by speciesid that is fillter for species with latin names starting with I or N
-                    shark => shark.SharkSpeciesId,
+                .Where(c => c.CountryId == bahamasId)                                   //get shark attacks in bahamas
+                .Join(INSpecies,                                                        //filter it by valid species and save species name
+                    attack => attack.SharkSpeciesId,
                     species => species.Id,
-                    (shark, species) => new { shark, species }                                                          //save shark and species
+                    (attack, species) => new { attack, SpeciesName = species.LatinName }
                 )
-                .Join(DataContext.AttackedPeople,                                                                       //join it with attacked people
-                    sharkInfo => sharkInfo.shark.AttackedPersonId,
+                .Join(DataContext.AttackedPeople,                                       //join it with attacked people
+                    attSName => attSName.attack.AttackedPersonId,
                     person => person.Id,
-                    (sharkInfo, person) => new { sharkInfo.species.LatinName, person.Name }                             //save latin name and person name
+                    (attSName, person) => new { attSName.SpeciesName, person.Name }     //save latin name and person name
                 )
-                .Select(a => $"{a.Name} was attacked in Bahamas by {a.LatinName}")                                      //create the string
-                .ToList();                                                                                              //convert it to list
+                .Select(sp => $"{sp.Name} was attacked in Bahamas by {sp.SpeciesName}") //create the string
+                .ToList();                                                              //convert it to list
         }
 
         /// <summary>
@@ -79,13 +84,13 @@ namespace PV178.Homeworks.HW03
         public int FortunateSharkAttacksSumWithinMonarchyOrTerritoryQuery()
         {
             return DataContext.Countries
-                .Where(a => a.GovernmentForm == GovernmentForm.Monarchy || a.GovernmentForm == GovernmentForm.Territory)
-                .Join(DataContext.SharkAttacks,
+                .Where(c => c.GovernmentForm == GovernmentForm.Monarchy || c.GovernmentForm == GovernmentForm.Territory)    //filter by government type
+                .Join(DataContext.SharkAttacks,                                                                             //get sharks from the countries
                     country => country.Id,
-                    shark => shark.CountryId,
-                    (country, shark) => new { shark }
+                    attack => attack.CountryId,
+                    (country, attack) => attack
                 )
-                .Count(a => a.shark.AttackSeverenity != AttackSeverenity.Fatal);
+                .Count(a => a.AttackSeverenity != AttackSeverenity.Fatal);                                                  //count nonfatal attacks
         }
 
         /// <summary>
@@ -102,26 +107,27 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public Dictionary<string, string> MostProlificNicknamesInCountriesQuery()
         {
+            //get attacks where species has a nickname
             var attacksWithNicknames = DataContext.SharkSpecies
                 .Where(s => s.AlsoKnownAs != null && s.AlsoKnownAs != "")
                 .Join(DataContext.SharkAttacks,
                     species => species.Id,
                     attack => attack.SharkSpeciesId,
-                    (species, attack) => new { attack, nickName = species.AlsoKnownAs! }
+                    (species, attack) => new { attack, Nickname = species.AlsoKnownAs! }
                 );
 
             return DataContext.Countries
-                .Where(a => a.Continent == "South America")                                                     //get south america continents
+                .Where(c => c.Continent == "South America")                                                     //get south america continents
                 .GroupJoin(attacksWithNicknames,                                                                //get nicknames for the attack at the continents
                     country => country.Id,
                     attackNick => attackNick.attack.CountryId,
-                    (country, attackNick) => new { countryName = country.Name!, attackNick }
+                    (country, attackNick) => new { CountryName = country.Name!, attackNick }
                 )
-                .SelectMany(e => e.attackNick, (e, attackNick) => new { e.countryName, attackNick.nickName })   //flatten the attackNick to keep only nicknames
-                .GroupBy(p => new { p.countryName, p.nickName })                                                //g everything
-                .OrderByDescending(g => g.Count())                                                              //order it by g size
-                .DistinctBy(g => g.Key.countryName)                                                             //remove everything but first occurance of each continent (leaving only biggest g)
-                .ToDictionary(g => g.Key.countryName, g => g.Key.nickName);                                     //make dictionary
+                .SelectMany(g => g.attackNick, (g, attackNick) => new { g.CountryName, attackNick.Nickname })   //flatten the attackNick to keep only nicknames
+                .GroupBy(g => new { g.CountryName, g.Nickname })                                                //group everything
+                .OrderByDescending(g => g.Count())                                                              //order it by group size
+                .DistinctBy(g => g.Key.CountryName)                                                             //remove everything but first occurance of each continent (leaving only biggest g)
+                .ToDictionary(g => g.Key.CountryName, g => g.Key.Nickname);                                     //make dictionary
         }
 
         /// <summary>
@@ -136,17 +142,17 @@ namespace PV178.Homeworks.HW03
         public List<int> ThreeSharksOrderedByNumberOfAttacksOnMenQuery()
         {
             return DataContext.AttackedPeople
-                .Where(p => p.Sex == Sex.Male)          //males only
-                .Join(DataContext.SharkAttacks,         //get attack that occured on males
+                .Where(p => p.Sex == Sex.Male)      //males only
+                .Join(DataContext.SharkAttacks,     //get attack that occured on males
                     person => person.Id,
                     attack => attack.AttackedPersonId,
                     (person, attack) => attack
                 )
-                .GroupBy(a => a.SharkSpeciesId)         //group it by sharkspecies
-                .OrderByDescending(g => g.Count())      //get the most occuring species id
-                .Select(g => g.Key)                     //select only keys (species id)
-                .Take(3)                                //we want first 3
-                .ToList();                              //make it a list
+                .GroupBy(a => a.SharkSpeciesId)     //group it by sharkspecies
+                .OrderByDescending(g => g.Count())  //order it by attacks per species
+                .Select(g => g.Key)                 //select only the keys (species id)
+                .Take(3)                            //we want first 3
+                .ToList();                          //make it a list
         }
 
         /// <summary>
@@ -166,30 +172,30 @@ namespace PV178.Homeworks.HW03
         {
             //get attacks where the activity contained swimming
             var swimmingAttacks = DataContext.SharkAttacks
-                .Where(x => x.Activity != null && x.Activity.ToLower().Contains("swimming"));
+                .Where(a => a.Activity != null && a.Activity.ToLower().Contains("swimming"));
 
             //get all species with valid speed
             var speciesWithSpeed = DataContext.SharkSpecies
-                .Where(x => x.TopSpeed.HasValue);
+                .Where(s => s.TopSpeed.HasValue);
 
             return DataContext.Countries
-                .Join(swimmingAttacks,                                                              //get shark species ids per continent
+                .Join(swimmingAttacks,                  //get shark species ids per continent
                     country => country.Id,
                     attack => attack.CountryId,
                     (country, attack) => new { country.Continent, attack.SharkSpeciesId }
                 )
-                .GroupJoin(speciesWithSpeed,                                                        //get all species specific to the continent
+                .GroupJoin(speciesWithSpeed,            //get all species specific to the continent
                     countryAttack => countryAttack.SharkSpeciesId,
                     species => species.Id,
                     (countryAttack, species) => new { countryAttack.Continent, Species = species }
                 )
-                .Where(x => x.Species.Any())                                                        //remove any empty species lists
-                .GroupBy(x => x.Continent)                                                          //group it by continent
-                .ToDictionary(                                                                      //create the dictionary
+                .Where(g => g.Species.Any())            //remove any empty species lists
+                .GroupBy(g => g.Continent)              //group it by continent
+                .ToDictionary(                          //create the dictionary
                     x => x.Key!,
-                    x => Convert.ToDouble(                                                          //convert to string and than back to double for 2 decimal places formating
-                        x.SelectMany(y => y.Species)                                                //select all species for each continent
-                        .Average(y => y.TopSpeed.Value)                                             //average their speed
+                    x => Convert.ToDouble(              //convert to string and than back to double for 2 decimal places formating
+                        x.SelectMany(y => y.Species)    //select all species for each continent
+                        .Average(y => y.TopSpeed.Value) //average their speed
                         .ToString("0.00")
                     )
                 );
@@ -218,11 +224,11 @@ namespace PV178.Homeworks.HW03
                     a.DateTime >= new DateTime(1960, 3, 3)                          //after 3.3.1960
                 )
                 .Join(DataContext.AttackedPeople,                                   //join attacks with people and keep only people
-                    attacks => attacks.AttackedPersonId,
+                    attack => attack.AttackedPersonId,
                     people => people.Id,
-                    (attacks, people) => people
+                    (attack, people) => people
                 )
-                .Where(p => p.Name != null && p.Name[0] >= 'D' && p.Name[0] <= 'K') //check names
+                .Where(p => p.Name != null && p.Name[0] >= 'D' && p.Name[0] <= 'K') //keep only valid people
                 .Select(p => p.Name!)                                               //get only names
                 .ToList();                                                          //return them as list
         }
@@ -240,30 +246,32 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public List<Tuple<string, List<SharkSpecies>>> LightestSharksInSouthAmericaQuery()
         {
+            //get attacks of the 10 lightest species
             var lightSharkAttacks = DataContext.SharkSpecies
                 .OrderBy(s => s.Weight)
                 .Take(10)
                 .Join(DataContext.SharkAttacks,
                     species => species.Id,
-                    attacks => attacks.SharkSpeciesId,
-                    (species, attacks) => new { Attacks = attacks, Species = species }
+                    attack => attack.SharkSpeciesId,
+                    (species, attack) => new { Attack = attack, Species = species }
                 );
 
             return DataContext.Countries
-                .Where(c => c.Continent == "South America")
-                .GroupJoin(lightSharkAttacks,
+                .Where(c => c.Continent == "South America")                                 //filter only south america countries
+                .GroupJoin(lightSharkAttacks,                                               //get countries with a list of distinct species
                     countries => countries.Id,
-                    data => data.Attacks.CountryId,
-                    (countries, data) => new { 
+                    lightAttack => lightAttack.Attack.CountryId,
+                    (countries, lightAttack) => new
+                    { 
                         Countries = countries,
-                        Species = data
-                            .DistinctBy(x => x.Species.Id)
-                            .Select(x => x.Species)
+                        Species = lightAttack
+                            .DistinctBy(la => la.Species.Id)
+                            .Select(la => la.Species)
                     }
                 )
-                .GroupBy(g => g.Countries.Name!)
-                .Select(g => Tuple.Create(g.Key, g.SelectMany(x => x.Species).ToList()))
-                .ToList();
+                .GroupBy(g => g.Countries.Name!)                                            //group it by country name
+                .Select(g => Tuple.Create(g.Key, g.SelectMany(x => x.Species).ToList()))    //create the tuple
+                .ToList();                                                                  //make it a list
         }
 
         /// <summary>
@@ -278,23 +286,26 @@ namespace PV178.Homeworks.HW03
         /// <returns>The query result</returns>
         public bool FiftySixMaxSpeedAndAgeQuery()
         {
-            var peopleAbove56 = DataContext.AttackedPeople
-                .Where(x => x.Age > 56);
-
+            //This should do what we need
             return DataContext.SharkSpecies
-                .Where(x => x.TopSpeed >= 56)                           //every shark with speed at least 56
-                .Join(DataContext.SharkAttacks,                         //use attacks for joining with attacked people
-                    x => x.Id,
-                    y => y.SharkSpeciesId,
-                    (x, y) => new { Species = x, Attacks = y }
+                .Where(s => s.TopSpeed >= 56)                               //every shark with speed at least 56
+                .Join(DataContext.SharkAttacks,                             //use attacks for joining with attacked people
+                    species => species.Id,
+                    attack => attack.SharkSpeciesId,
+                    (species, attack) => new { Species = species, Attacks = attack }
                 )
-                .Join(peopleAbove56,                                    //get all people with age > 56 for every shark species with speed >= 56
-                    x => x.Attacks.AttackedPersonId,
-                    y => y.Id,
-                    (x, y) => new { Species = x.Species, People = y }
+                .GroupJoin(DataContext.AttackedPeople,                      //get all people with age > 56 for every shark species with speed >= 56
+                    specAtt => specAtt.Attacks.AttackedPersonId,
+                    person => person.Id,
+                    (specAtt, people) => new { SpeciesId = specAtt.Species.Id, People = people }
                 )
-                .GroupBy(x => x.Species.Id)                             //group it by the id
-                .All(x => x.Any());                                     //check that every id has at least one person with age > 56 under it
+                .GroupBy(g => g.SpeciesId)                                  //group it by species
+                .Select(g => new
+                {
+                    SpciesId = g.Key,
+                    HasPeople = g.Any(sp => sp.People.Any(p => p.Age > 56)) //check if the species has any person of age > 56
+                })
+                .All(sp => sp.HasPeople == true);                           //check that all species have such person
         }
 
         /// <summary>
@@ -315,33 +326,33 @@ namespace PV178.Homeworks.HW03
         {
             //fatal attacks
             var fatalAttacksLatName = DataContext.SharkAttacks
-                .Where(x => x.AttackSeverenity == AttackSeverenity.Fatal)
+                .Where(a => a.AttackSeverenity == AttackSeverenity.Fatal)
                 .Join(DataContext.SharkSpecies,
-                    x => x.SharkSpeciesId,
-                    y => y.Id,
-                    (x, y) => new { Attacks = x, SpeciesNames = y.LatinName }
+                    attack => attack.SharkSpeciesId,
+                    species => species.Id,
+                    (attack, species) => new { Attack = attack, SpeciesNames = species.LatinName }
                 );
 
             //countries starting with B or R
             var BRCountries = DataContext.Countries
-                .Where(x => x.Name != null && (x.Name.StartsWith('B') || x.Name.StartsWith('R')));
+                .Where(c => c.Name != null && (c.Name.StartsWith('B') || c.Name.StartsWith('R')));
 
             return DataContext.AttackedPeople
-                .Where(x => x.Name != null && Char.IsUpper(x.Name[0]))                                              //valid names
-                .Join(fatalAttacksLatName,                                                                          //join everything by attacks
-                    x => x.Id,
-                    y => y.Attacks.AttackedPersonId,
-                    (x, y) => new { People = x, Attacks = y.Attacks, SpeciesName = y.SpeciesNames }
+                .Where(p => p.Name != null && Char.IsUpper(p.Name[0]))                                      //valid names
+                .Join(fatalAttacksLatName,                                                                  //join everything by attacks
+                    person => person.Id,
+                    fatalAtt => fatalAtt.Attack.AttackedPersonId,
+                    (person, fatalAtt) => new { Person = person, Attack = fatalAtt.Attack, SpeciesName = fatalAtt.SpeciesNames }
                 )
-                .Join(BRCountries,                                                                                  //join everything by attacks
-                    x => x.Attacks.CountryId,
-                    y => y.Id,
-                    (x, y) => new { PersonName = x.People.Name, SpeciesName = x.SpeciesName, CountryName = y.Name }
+                .Join(BRCountries,                                                                          //join everything by attacks
+                    pas => pas.Attack.CountryId,
+                    country => country.Id,
+                    (pas, country) => new { PersonName = pas.Person.Name, SpeciesName = pas.SpeciesName, CountryName = country.Name }
                 )
-                .Select(x => $"{x.PersonName} was attacked in {x.CountryName} by {x.SpeciesName}")                  //make the string
-                .OrderBy(x => x)                                                                                    //order it alphabetically
-                .Take(5)                                                                                            //only first 5
-                .ToList();                                                                                          //make it a list
+                .Select(psc => $"{psc.PersonName} was attacked in {psc.CountryName} by {psc.SpeciesName}")  //make the string
+                .OrderBy(str => str)                                                                        //order it alphabetically
+                .Take(5)                                                                                    //only first 5
+                .ToList();                                                                                  //make it a list
         }
 
         /// <summary>
@@ -531,10 +542,9 @@ namespace PV178.Homeworks.HW03
         public int SafeCountriesQuery()
         {
             var fatalCountryCount = DataContext.SharkAttacks                
-                .Where(x => x.AttackSeverenity == AttackSeverenity.Fatal)   //get fatal attacks
-                .GroupBy(x => x.CountryId)                                  //group it by country id so that we have a list of all countries with fatalities
-                .Where(x => x.Key != null)                                  //remove any null items
-                .Count();                                                   //count the number of fatal countries
+                .Where(a => a.AttackSeverenity == AttackSeverenity.Fatal)   //get fatal attacks
+                .GroupBy(a => a.CountryId)                                  //group it by country id so that we have a list of all countries with fatalities
+                .Count(g => g.Key != null);                                 //count all valid fatal countries
 
             return DataContext.Countries.Count() - fatalCountryCount;       //get nonfatal country count
         }
