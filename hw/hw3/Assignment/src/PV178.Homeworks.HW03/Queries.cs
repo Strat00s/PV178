@@ -343,12 +343,12 @@ namespace PV178.Homeworks.HW03
                 .Join(fatalAttacksLatName,                                                                  //join everything by attacks
                     person => person.Id,
                     fatalAtt => fatalAtt.Attack.AttackedPersonId,
-                    (person, fatalAtt) => new { Person = person, Attack = fatalAtt.Attack, SpeciesName = fatalAtt.SpeciesNames }
+                    (person, fatalAtt) => new { Person = person, fatalAtt.Attack, SpeciesName = fatalAtt.SpeciesNames }
                 )
                 .Join(BRCountries,                                                                          //join everything by attacks
                     pas => pas.Attack.CountryId,
                     country => country.Id,
-                    (pas, country) => new { PersonName = pas.Person.Name, SpeciesName = pas.SpeciesName, CountryName = country.Name }
+                    (pas, country) => new { PersonName = pas.Person.Name, pas.SpeciesName, CountryName = country.Name }
                 )
                 .Select(psc => $"{psc.PersonName} was attacked in {psc.CountryName} by {psc.SpeciesName}")  //make the string
                 .OrderBy(str => str)                                                                        //order it alphabetically
@@ -395,7 +395,7 @@ namespace PV178.Homeworks.HW03
             .GroupBy(cf => cf.Country)                                                                  //get list of fines per country
             .Select(g => new {                                                                          //extract required data
                 CountryName = g.Key.Name,
-                CurrencyCode = g.Key.CurrencyCode,
+                g.Key.CurrencyCode,
                 Fine = g.Sum(cf => cf.Fine)
             })
             .OrderByDescending(ccf => ccf.Fine)                                                         //order it by total fine
@@ -452,15 +452,14 @@ namespace PV178.Homeworks.HW03
         public string StatisticsAboutGovernmentsQuery()
         {
             return DataContext.Countries
-                .GroupBy(c => c.GovernmentForm)                                                         //group by government form to get a list of countries for each government
-                .Select(g => new                                                                        //create new dataset with government and corresponsing representation
+                .GroupBy(c => c.GovernmentForm)                                                             //group by government form to get a list of countries for each government
+                .Select(g => new                                                                            //create new dataset with government and corresponsing representation
                 {
                     GovernmentForm = g.Key,
-                    Representation = ((double)g.Count() / DataContext.Countries.Count()) * 100
+                    Representation = ((double)g.Count() / DataContext.Countries.Count) * 100
                 })
-                .OrderByDescending(gr => gr.Representation)                                             //order it by representation
-                .Aggregate("", (acc, gr) => acc += $", {gr.GovernmentForm}: {gr.Representation:F1}%")   //create the required string by adding it to accumulator
-                .Substring(2);                                                                          //remove leading comma and space
+                .OrderByDescending(gr => gr.Representation)                                                 //order it by representation
+                .Aggregate("", (acc, gr) => acc += $", {gr.GovernmentForm}: {gr.Representation:F1}%")[2..]; //create the required string by adding it to accumulator and remove leading comma and space
         }
 
         /// <summary>
@@ -524,7 +523,7 @@ namespace PV178.Homeworks.HW03
                 .OrderBy(sa => sa.Key);
 
             //get shart attack count
-            var attackCount = DataContext.SharkAttacks.Count();
+            var attackCount = DataContext.SharkAttacks.Count;
 
             //return the final string
             return $"{((double)query.Last().Count() / attackCount) * 100 :F1}% vs {((double)query.First().Count() / attackCount) * 100:F1}%";
@@ -546,7 +545,7 @@ namespace PV178.Homeworks.HW03
                 .GroupBy(a => a.CountryId)                                  //group it by country id so that we have a list of all countries with fatalities
                 .Count(g => g.Key != null);                                 //count all valid fatal countries
 
-            return DataContext.Countries.Count() - fatalCountryCount;       //get nonfatal country count
+            return DataContext.Countries.Count - fatalCountryCount;       //get nonfatal country count
         }
     }
 }
