@@ -1,0 +1,15 @@
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\bin\Debug\net7.0\hw04.exe
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\bin\Debug\net7.0\hw04.deps.json
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\bin\Debug\net7.0\hw04.runtimeconfig.json
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\bin\Debug\net7.0\hw04.dll
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\bin\Debug\net7.0\hw04.pdb
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\obj\Debug\net7.0\hw04.csproj.AssemblyReference.cache
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\obj\Debug\net7.0\hw04.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\obj\Debug\net7.0\hw04.AssemblyInfoInputs.cache
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\obj\Debug\net7.0\hw04.AssemblyInfo.cs
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\obj\Debug\net7.0\hw04.csproj.CoreCompileInputs.cache
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\obj\Debug\net7.0\hw04.dll
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\obj\Debug\net7.0\refint\hw04.dll
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\obj\Debug\net7.0\hw04.pdb
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\obj\Debug\net7.0\hw04.genruntimeconfig.cache
+C:\Users\Stratos\Documents\0_Projects\PV178\hw\hw4\hw04\obj\Debug\net7.0\ref\hw04.dll
