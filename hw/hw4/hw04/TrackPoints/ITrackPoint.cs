@@ -6,5 +6,5 @@ namespace hw04.TrackPoints;
 public interface ITrackPoint
 {
     public string Description { get; set; }
-    public Task<TrackPointPass> PassAsync (RaceCar car);
+    public async Task<TrackPointPass> PassAsync (RaceCar car);
 }

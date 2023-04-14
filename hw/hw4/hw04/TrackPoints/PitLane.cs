@@ -13,7 +13,7 @@ public class PitLane : ITrackPoint
     }
 
 
-    public Task<TrackPointPass> PassAsync(RaceCar car)
+    public async Task<TrackPointPass> PassAsync(RaceCar car)
     {
         throw new NotImplementedException();
     }

@@ -5,17 +5,17 @@ namespace hw04.Car;
 
 public class RaceCar
 {
-    int _finishedLap;
-    String _driver;
-    Team _team;
-    double _turnSpeed;
-    double _straigtSpeed;
-    TimeSpan _raceTime;
-    List<ITrackPoint> _track;
-
+    public String Driver { get; }
+    public Team Team { get; }
+    public double TurnSpeed { get; }
+    public double StraigtSpeed { get; }
+    private Tire CurrentTire;
 
     public ManualResetEventSlim StartEvent;
 
+
+    int _finishedLap;
+    TimeSpan _raceTime;
 
 
     /// <summary>
@@ -28,50 +28,48 @@ public class RaceCar
     /// <param name="team">Tým, pod který formule patří</param>
     /// <param name="turnSpeed">Rychlost auta v zatáčce</param>
     /// <param name="straightSpeed">Rychlost auta na rovince</param>
-    public RaceCar(string driver, Team team, double turnSpeed, double straightSpeed, List<ITrackPoint> track)
+    public RaceCar(string driver, Team team, double turnSpeed, double straightSpeed)
     {
-        _driver = driver;
-        _team = team;
-        _turnSpeed = turnSpeed;
-        _straigtSpeed = straightSpeed;
+        Driver = driver;
+        Team = team;
+        TurnSpeed = turnSpeed;
+        StraigtSpeed = straightSpeed;
 
-        _finishedLap = 0;
         _raceTime = TimeSpan.Zero;
     }
 
-    public async Task StartAsync(int lapCount)
-    {
 
-        int trackIndex = 0;
-        bool tireChangeRequired = false;
+    public async Task StartAsync(int lapCount, Track track)
+    {
+        CurrentTire = TireStrategy.First();
 
         //wait for the start of the race
         StartEvent.Wait();
 
-        while (true)
+        //driving the number of laps
+        for (int lapNum = 0; lapNum < lapCount; lapNum++)
         {
-            //keep removing time from tires
-            if (tireChangeRequired && trackIndex > 10)
+            var lapPoints = track.GetLap(this).ToList();
+            for (int i = 0; i < lapPoints.Count(); i++)
             {
-                //go to pit
-                //check if it is empty, otherwise wait
-                //change the tires
-                //continue and skip some parts of the track
-                trackIndex = 5;
-                continue;
+                var passData = await lapPoints[i].PassAsync(this);  //wait for the car to enter the track piece
+                await Task.Delay(((int)passData.DrivingTime.TotalMilliseconds));  //drive through the track piece
+                _raceTime += passData.WaitingTime + passData.DrivingTime;
+
+                //if in pit, change tires
+                //if in finish, add age to tires
             }
 
-            if (_track[trackIndex] is Straight)
-            {
-                Straight trackPart = (Straight)_track[trackIndex];
-                trackPart.AvetageTime
-            }
-
-            //race is done, exit
-            if (_finishedLap == lapCount)
-            {
-                break;
-            }
+            //if race is over
+            //break;
         }
+
+        //inform race that you won
+        //if someone already won, skip informing tha race
+    }
+
+    public Tire getTire()
+    {
+        return CurrentTire;
     }
 }
