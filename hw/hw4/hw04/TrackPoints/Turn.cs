@@ -30,6 +30,6 @@ public class Turn : ITrackPoint
         _semaphore.Release();
         sw.Stop();
 
-        return new TrackPointPass(this, sw.Elapsed, AverageTime * car.TurnSpeed * car.getTire().GetSpeed());
+        return new TrackPointPass(this, sw.Elapsed, AverageTime * car.TurnSpeed * car.GetTire().GetSpeed() + DriveInTime);
     }
 }

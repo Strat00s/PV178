@@ -9,7 +9,7 @@ public class RaceCar
     public Team Team { get; }
     public double TurnSpeed { get; }
     public double StraigtSpeed { get; }
-    private Tire CurrentTire;
+    private Tire _currentTire;
 
     public ManualResetEventSlim StartEvent;
 
@@ -39,9 +39,13 @@ public class RaceCar
     }
 
 
+    //TODO tirestrategy firstordefault when empty fix!
     public async Task StartAsync(int lapCount, Track track)
     {
-        CurrentTire = TireStrategy.First();
+        _currentTire = TireStrategy.First();
+        TireStrategy.RemoveAt(0);
+        var lap = track.GetLap(this).ToList();
+        int nextPoint = 0;
 
         //wait for the start of the race
         StartEvent.Wait();
@@ -49,27 +53,41 @@ public class RaceCar
         //driving the number of laps
         for (int lapNum = 0; lapNum < lapCount; lapNum++)
         {
-            var lapPoints = track.GetLap(this).ToList();
-            for (int i = 0; i < lapPoints.Count(); i++)
+            for (int i = 0; i < lap.Count(); i++)
             {
-                var passData = await lapPoints[i].PassAsync(this);  //wait for the car to enter the track piece
+                var passData = await lap[i].PassAsync(this);  //wait for the car to enter the track piece
                 await Task.Delay(((int)passData.DrivingTime.TotalMilliseconds));  //drive through the track piece
                 _raceTime += passData.WaitingTime + passData.DrivingTime;
 
-                //if in pit, change tires
-                //if in finish, add age to tires
+                //change the tires
+                //save next starting piece when going through pitlane
+                if (lap[i] is PitLane)
+                {
+                    _currentTire = TireStrategy.First();    //if the tires run out, fix your strategy!
+                    TireStrategy.RemoveAt(0);
+                    nextPoint = ((PitLane)lap[i]).NextPoint;
+                }
             }
+
 
             //if race is over
             //break;
+
+            //add lap if we were not in pit
+            if (nextPoint == 0)
+                _currentTire.AddLap();
+            
+            lap = track.GetLap(this, nextPoint).ToList();
+            
+            nextPoint = 0;
         }
 
         //inform race that you won
         //if someone already won, skip informing tha race
     }
 
-    public Tire getTire()
+    public Tire GetTire()
     {
-        return CurrentTire;
+        return _currentTire;
     }
 }

@@ -1,4 +1,5 @@
 using hw04.Car;
+using System.Numerics;
 
 namespace hw04.TrackPoints;
 
@@ -29,7 +30,7 @@ public class Track
     public Track AddPitLane(TimeSpan entryTime, TimeSpan exitTime, List<Team> teams,
         int nextPoint)
     {
-        _pitLane = new PitLane("PitLane", teams);
+        _pitLane = new PitLane("PitLane", teams, nextPoint);
         _pitLaneEntry = new Turn("PitLane Entry", entryTime, 1);
         _pitLaneExit = new Turn("PitLane Exit", exitTime, 1);
         return this;
@@ -41,9 +42,21 @@ public class Track
     /// </summary>
     /// <param name="car"></param>
     /// <returns></returns>
-    public IEnumerable<ITrackPoint> GetLap(RaceCar car)
+    public IEnumerable<ITrackPoint> GetLap(RaceCar car, int startIndex = 0)
     {
-        throw new NotImplementedException();
+        //copy track
+        var newLap = new List<ITrackPoint>();
+
+        //just return entire track if tire change is not required
+        if (!car.GetTire().NeedsChange())
+            return _trackPoints
+                .Skip(startIndex)
+                .TakeWhile(p => p.Description != "22 / No name Straight")
+                .Append(_pitLaneEntry!) //if any of these are null, fix your track!
+                .Append(_pitLane!)
+                .Append(_pitLaneExit!);
+
+        return _trackPoints.Skip(startIndex);
     }
 
 }

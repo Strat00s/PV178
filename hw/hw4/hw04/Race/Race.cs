@@ -33,7 +33,7 @@ public class Race
         foreach (RaceCar car in _cars)
         {
             car.StartEvent = startEvent;
-            carTasks.Add(car.StartAsync(_numberOfLaps));
+            carTasks.Add(car.StartAsync(_numberOfLaps, _track));
         }
 
         //prepare everything
