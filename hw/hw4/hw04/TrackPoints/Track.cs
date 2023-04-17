@@ -44,19 +44,16 @@ public class Track
     /// <returns></returns>
     public IEnumerable<ITrackPoint> GetLap(RaceCar car, int startIndex = 0)
     {
-        //copy track
-        var newLap = new List<ITrackPoint>();
-
-        //just return entire track if tire change is not required
+        //return normal track from index
         if (!car.GetTire().NeedsChange())
-            return _trackPoints
-                .Skip(startIndex)
-                .TakeWhile(p => p.Description != "22 / No name Straight")
-                .Append(_pitLaneEntry!) //if any of these are null, fix your track!
-                .Append(_pitLane!)
-                .Append(_pitLaneExit!);
-
-        return _trackPoints.Skip(startIndex);
+            return _trackPoints.Skip(startIndex);   //linq creates copy
+        
+        return _trackPoints
+            .Skip(startIndex)
+            .TakeWhile(p => p.Description != "22 / No name Straight")
+            .Append(_pitLaneEntry!) //if any of these are null, fix your track!
+            .Append(_pitLane!)
+            .Append(_pitLaneExit!);
     }
 
 }

@@ -1,5 +1,7 @@
 using hw04.Car.Tires;
+using hw04.Race;
 using hw04.TrackPoints;
+using System.Collections.Concurrent;
 
 namespace hw04.Car;
 
@@ -9,13 +11,12 @@ public class RaceCar
     public Team Team { get; }
     public double TurnSpeed { get; }
     public double StraigtSpeed { get; }
-    private Tire _currentTire;
+    private int _currentTire;
 
-    public ManualResetEventSlim StartEvent;
+    public SemaphoreSlim StartEvent;
 
 
     int _finishedLap;
-    TimeSpan _raceTime;
 
 
     /// <summary>
@@ -34,21 +35,21 @@ public class RaceCar
         Team = team;
         TurnSpeed = turnSpeed;
         StraigtSpeed = straightSpeed;
-
-        _raceTime = TimeSpan.Zero;
     }
 
 
     //TODO tirestrategy firstordefault when empty fix!
-    public async Task StartAsync(int lapCount, Track track)
+    public async Task StartAsync(int lapCount, Track track, ConcurrentQueue<LapStats> lapStats)
     {
-        _currentTire = TireStrategy.First();
-        TireStrategy.RemoveAt(0);
+        _currentTire = 0;
         var lap = track.GetLap(this).ToList();
         int nextPoint = 0;
 
+        TimeSpan lapTime = TimeSpan.Zero;
+        TimeSpan raceTime = TimeSpan.Zero;
+
         //wait for the start of the race
-        StartEvent.Wait();
+        await StartEvent.WaitAsync();
 
         //driving the number of laps
         for (int lapNum = 0; lapNum < lapCount; lapNum++)
@@ -56,30 +57,37 @@ public class RaceCar
             for (int i = 0; i < lap.Count(); i++)
             {
                 var passData = await lap[i].PassAsync(this);  //wait for the car to enter the track piece
-                await Task.Delay(((int)passData.DrivingTime.TotalMilliseconds));  //drive through the track piece
-                _raceTime += passData.WaitingTime + passData.DrivingTime;
+                await Task.Delay((int)passData.DrivingTime.TotalMilliseconds);  //drive through the track piece
+                lapTime += passData.WaitingTime + passData.DrivingTime;
+                //Console.WriteLine($"{lapTime}: {passData.WaitingTime} + {passData.DrivingTime}");
 
                 //change the tires
                 //save next starting piece when going through pitlane
                 if (lap[i] is PitLane)
                 {
-                    _currentTire = TireStrategy.First();    //if the tires run out, fix your strategy!
-                    TireStrategy.RemoveAt(0);
+                    _currentTire++; //if tires run out, fix your strategy
                     nextPoint = ((PitLane)lap[i]).NextPoint;
                 }
             }
 
+            //TODO change for race time
+            //Log the race
+            lapStats.Enqueue(new(this, lapNum + 1, lapTime));
 
             //if race is over
             //break;
 
-            //add lap if we were not in pit
+            //add lap to tires if we were not in pit
             if (nextPoint == 0)
-                _currentTire.AddLap();
+                TireStrategy[_currentTire].AddLap();
             
+            //get new lap
             lap = track.GetLap(this, nextPoint).ToList();
             
+            //"reset" everything
             nextPoint = 0;
+            raceTime += lapTime;
+            lapTime = TimeSpan.Zero;
         }
 
         //inform race that you won
@@ -88,6 +96,6 @@ public class RaceCar
 
     public Tire GetTire()
     {
-        return _currentTire;
+        return TireStrategy[_currentTire];
     }
 }

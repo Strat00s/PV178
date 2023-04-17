@@ -1,16 +1,17 @@
 ﻿using hw04;
 
+Console.WriteLine("Start");
 var simulationSilverstone = new Simulation(CurrentF1.Tracks.Silverstone);
 
 // Testování nejlepší strategie
 CurrentF1.Cars.All.First().SetMediumHardStrategy();
-var lapsMediumHard = simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
+//var lapsMediumHard = simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
 
 CurrentF1.Cars.All.First().SetMediumHardSoftStrategy();
-var lapsMediumHardSoft = simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
+//var lapsMediumHardSoft = simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
 
 CurrentF1.Cars.All.First().SetMediumMediumSoftStrategy();
-var lapsMediumMediumSoft = simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
+//var lapsMediumMediumSoft = simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
 
 // Tady můžete vyhodnotit na základě jednotlivých simulací, která je nejlepší
 // a zvolit ji pro všechny nebo některé formule.

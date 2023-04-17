@@ -17,6 +17,7 @@ public class PitLane : ITrackPoint
     {
         Description = description;
         NextPoint = nextPoint;
+        _boxSemaphores = new(); 
 
         foreach(Team team in teams)
         {
@@ -25,22 +26,26 @@ public class PitLane : ITrackPoint
     }
 
 
-    public async Task<TrackPointPass> PassAsync(RaceCar car)
+    public Task<TrackPointPass> PassAsync(RaceCar car)
     {
-        var random = new Random();
-        var sw = new Stopwatch();
+        return Task.Run(async () =>
+        {
+            var random = new Random();
+            var sw = new Stopwatch();
 
-        //wait to enter
-        sw.Start();
-        await _boxSemaphores[car.Team.Name].WaitAsync();
-        _boxSemaphores[car.Team.Name].Release();
+            //wait to enter
+            sw.Start();
+            await _boxSemaphores[car.Team.Name].WaitAsync();
+            _boxSemaphores[car.Team.Name].Release();
 
-        //start tire change
-        Parallel.For(0, 4, async _ => {
-            await Task.Delay(random.Next(50, 1000));
+            //start tire change
+            Parallel.For(0, 4, async _ =>
+            {
+                await Task.Delay(random.Next(50, 1000));
+            });
+            sw.Stop();
+
+            return new TrackPointPass(this, sw.Elapsed, TimeSpan.Zero);
         });
-        sw.Stop();
-
-        return new TrackPointPass(this, sw.Elapsed, TimeSpan.Zero);
     }
 }

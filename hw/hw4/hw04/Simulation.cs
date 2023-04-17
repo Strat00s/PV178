@@ -30,6 +30,7 @@ public class Simulation
     //simulate single car - strategy
     public List<Lap> SimulateLapsAsync(RaceCar car, int numberOfLaps)
     {
-        throw new NotImplementedException();
+        Race.Race race = new Race.Race(new() { car }, _track, numberOfLaps);
+        return race.StartRace();
     }
 }

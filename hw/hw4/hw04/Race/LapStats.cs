@@ -1,12 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using hw04.Car;
 
 namespace hw04.Race
 {
-    internal class LapStats
+    public class LapStats
     {
+        public RaceCar Car{ get; }
+        public int LapNum { get; }
+        public TimeSpan LapTime { get; }
+
+        public LapStats(RaceCar car, int lapNum, TimeSpan lapTime)
+        {
+            Car = car;
+            LapNum = lapNum;
+            LapTime = lapTime;
+        }
     }
 }
