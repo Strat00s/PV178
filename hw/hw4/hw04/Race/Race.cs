@@ -44,7 +44,7 @@ public class Race
 
 
         //start the race
-        startEvent.Release(999);
+        startEvent.Release(_cars.Count());
 
         //TODO what if second lap starts before all other laps are done?
         while (!raceDone.IsCompleted)
@@ -74,6 +74,8 @@ public class Race
                 Console.WriteLine($"{lapStats.Car.Driver}: +{diff}");
             }
         }
+
+        //Console.WriteLine("Race done");
 
         return fastestLaps;
     }

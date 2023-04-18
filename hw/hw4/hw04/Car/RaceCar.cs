@@ -45,7 +45,7 @@ public class RaceCar
         var lap = track.GetLap(this).ToList();
         int nextPoint = 0;
 
-        TimeSpan lapTime = TimeSpan.Zero;
+        //TimeSpan lapTime = TimeSpan.Zero;
         TimeSpan raceTime = TimeSpan.Zero;
 
         //wait for the start of the race
@@ -58,8 +58,7 @@ public class RaceCar
             {
                 var passData = await lap[i].PassAsync(this);  //wait for the car to enter the track piece
                 await Task.Delay((int)passData.DrivingTime.TotalMilliseconds);  //drive through the track piece
-                lapTime += passData.WaitingTime + passData.DrivingTime;
-                //Console.WriteLine($"{lapTime}: {passData.WaitingTime} + {passData.DrivingTime}");
+                raceTime += passData.WaitingTime + passData.DrivingTime;
 
                 //change the tires
                 //save next starting piece when going through pitlane
@@ -69,13 +68,16 @@ public class RaceCar
                     nextPoint = ((PitLane)lap[i]).NextPoint;
                 }
             }
-
-            //TODO change for race time
+            //Console.WriteLine($"{Driver}: {raceTime}");
             //Log the race
-            lapStats.Enqueue(new(this, lapNum + 1, lapTime));
+            lapStats.Enqueue(new(this, lapNum + 1, raceTime));
 
             //if race is over
             //break;
+            if (lapNum + 1 == lapCount) 
+            {
+                break;
+            }
 
             //add lap to tires if we were not in pit
             if (nextPoint == 0)
@@ -83,15 +85,16 @@ public class RaceCar
             
             //get new lap
             lap = track.GetLap(this, nextPoint).ToList();
-            
+
             //"reset" everything
             nextPoint = 0;
-            raceTime += lapTime;
-            lapTime = TimeSpan.Zero;
+            //lapTime = TimeSpan.Zero;
         }
 
         //inform race that you won
         //if someone already won, skip informing tha race
+
+        _currentTire = 0;
     }
 
     public Tire GetTire()

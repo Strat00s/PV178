@@ -4,6 +4,12 @@ Console.WriteLine("Start");
 var simulationSilverstone = new Simulation(CurrentF1.Tracks.Silverstone);
 
 // Testování nejlepší strategie
+foreach(var car in CurrentF1.Cars.All)
+{
+    //Console.WriteLine("new car test");
+    CurrentF1.Cars.All.ForEach(c => c.SetMediumHardStrategy());
+    var lapsMediumHard = simulationSilverstone.SimulateLapsAsync(car, 1);
+}
 CurrentF1.Cars.All.First().SetMediumHardStrategy();
 //var lapsMediumHard = simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
 
@@ -21,7 +27,7 @@ CurrentF1.Cars.All.First().SetMediumMediumSoftStrategy();
 
 // Závod
 CurrentF1.Cars.All.ForEach(c => c.SetMediumHardStrategy());
-var race = new Simulation(CurrentF1.Tracks.Silverstone).SimulateRaceAsync(CurrentF1.Cars.All, 52);
+var race = new Simulation(CurrentF1.Tracks.Silverstone).SimulateRaceAsync(CurrentF1.Cars.All, 1);
 
 // foreach (var (car, totalTime) in race.GetOrder())
 // {
