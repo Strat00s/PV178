@@ -8,19 +8,19 @@
     "net7.0": []
   },
   "packageFolders": {
-    "C:\\Users\\lbast\\.nuget\\packages\\": {}
+    "C:\\Users\\Stratos\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\lbast\\Documents\\0_Projects\\PV178\\hw\\hw4\\hw04\\hw04.csproj",
+      "projectUniqueName": "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\hw\\hw4\\hw04\\hw04.csproj",
       "projectName": "hw04",
-      "projectPath": "C:\\Users\\lbast\\Documents\\0_Projects\\PV178\\hw\\hw4\\hw04\\hw04.csproj",
-      "packagesPath": "C:\\Users\\lbast\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\lbast\\Documents\\0_Projects\\PV178\\hw\\hw4\\hw04\\obj\\",
+      "projectPath": "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\hw\\hw4\\hw04\\hw04.csproj",
+      "packagesPath": "C:\\Users\\Stratos\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\hw\\hw4\\hw04\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\lbast\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Stratos\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -61,7 +61,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.200\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.202\\RuntimeIdentifierGraph.json"
       }
     }
   }
