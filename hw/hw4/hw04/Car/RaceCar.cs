@@ -2,6 +2,7 @@ using hw04.Car.Tires;
 using hw04.Race;
 using hw04.TrackPoints;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace hw04.Car;
 
@@ -39,14 +40,13 @@ public class RaceCar
 
 
     //TODO tirestrategy firstordefault when empty fix!
-    public async Task StartAsync(int lapCount, Track track, ConcurrentQueue<LapStats> lapStats)
+    public async Task StartAsync(int lapCount, Track track, ConcurrentQueue<LapStats> lapStats, Stopwatch raceTimer)
     {
         _currentTire = 0;
         var lap = track.GetLap(this).ToList();
         int nextPoint = 0;
 
-        //TimeSpan lapTime = TimeSpan.Zero;
-        TimeSpan raceTime = TimeSpan.Zero;
+        //TimeSpan raceTime = TimeSpan.Zero;
 
         //wait for the start of the race
         await StartEvent.WaitAsync();
@@ -58,7 +58,7 @@ public class RaceCar
             {
                 var passData = await lap[i].PassAsync(this);  //wait for the car to enter the track piece
                 await Task.Delay((int)passData.DrivingTime.TotalMilliseconds);  //drive through the track piece
-                raceTime += passData.WaitingTime + passData.DrivingTime;
+                //raceTime += passData.WaitingTime + passData.DrivingTime;
 
                 //change the tires
                 //save next starting piece when going through pitlane
@@ -70,7 +70,7 @@ public class RaceCar
             }
             //Console.WriteLine($"{Driver}: {raceTime}");
             //Log the race
-            lapStats.Enqueue(new(this, lapNum + 1, raceTime));
+            lapStats.Enqueue(new(this, lapNum + 1, raceTimer.Elapsed));
 
             //if race is over
             //break;
@@ -93,8 +93,6 @@ public class RaceCar
 
         //inform race that you won
         //if someone already won, skip informing tha race
-
-        _currentTire = 0;
     }
 
     public Tire GetTire()

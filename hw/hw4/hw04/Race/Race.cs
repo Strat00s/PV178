@@ -1,6 +1,7 @@
 using hw04.Car;
 using hw04.TrackPoints;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace hw04.Race;
 
@@ -20,16 +21,19 @@ public class Race
     public List<Lap> StartRace()
     {
         var startEvent = new SemaphoreSlim(0);   //starting "semaphore"
-        var carTasks   = new List<Task>();                  //list of car tasks to wait for once the race ends
+        var carTasks   = new List<Task>();  //list of car tasks to wait for once the race ends
+        var lapStatsQ = new ConcurrentQueue<LapStats>();    //queue for cars to report back their lap times
 
-        //queue for cars to report back their lap times
-        ConcurrentQueue<LapStats> lapStatsQ = new();
+        //"global" timer to fix the fact that some cars have better times but due to overhead arrive later
+        //https://discord.com/channels/1063366519255470100/1097849859337355354/1097849863686848565
+        //this take overhead into account, but that a possible sollution too
+        var raceTimer = new Stopwatch();
 
         //start car threads and let them wait for start of the race
         foreach (RaceCar car in _cars)
         {
             car.StartEvent = startEvent;
-            carTasks.Add(car.StartAsync(_numberOfLaps, _track, lapStatsQ));
+            carTasks.Add(car.StartAsync(_numberOfLaps, _track, lapStatsQ, raceTimer));
         }
 
         //prepare everything
@@ -44,6 +48,7 @@ public class Race
 
 
         //start the race
+        raceTimer.Start();
         startEvent.Release(_cars.Count());
 
         //TODO what if second lap starts before all other laps are done?
@@ -63,17 +68,19 @@ public class Race
                 if (prevLap < lapStats.LapNum)
                 {
                     prevLap = lapStats.LapNum;
-                    lapTime = lapStats.LapTime;
+                    lapTime = lapStats.RaceTime;
                     Console.WriteLine($"Lap: {prevLap}");
                     Console.WriteLine($"{lapStats.Car.Driver}: {lapTime}");
                     fastestLaps.Add(new(lapStats.Car, lapStats.LapNum));
                     continue;
                 }
 
-                var diff = lapStats.LapTime - lapTime;
+                var diff = lapStats.RaceTime - lapTime;
                 Console.WriteLine($"{lapStats.Car.Driver}: +{diff}");
             }
         }
+
+        raceTimer.Stop();
 
         //Console.WriteLine("Race done");
 
