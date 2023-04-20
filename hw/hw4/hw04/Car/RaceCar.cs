@@ -8,16 +8,11 @@ namespace hw04.Car;
 
 public class RaceCar
 {
-    public String Driver { get; }
+    public string Driver { get; }
     public Team Team { get; }
     public double TurnSpeed { get; }
     public double StraigtSpeed { get; }
     private int _currentTire;
-
-    public SemaphoreSlim StartEvent;
-
-
-    int _finishedLap;
 
 
     /// <summary>
@@ -40,59 +35,58 @@ public class RaceCar
 
 
     //TODO tirestrategy firstordefault when empty fix!
-    public async Task StartAsync(int lapCount, Track track, ConcurrentQueue<LapStats> lapStats, Stopwatch raceTimer)
+    public async Task StartAsync(int lapCount, Track track, SemaphoreSlim startEvent, ConcurrentQueue<LapStats> lapStats,
+                                 Stopwatch raceTimer, ThreadSafeBool finishRace)
     {
-        _currentTire = 0;
-        var lap = track.GetLap(this).ToList();
-        int nextPoint = 0;
+        _currentTire = 0;   //set current tire index
+        var lapTrackPoints = track.GetLap(this).ToList();   //get current lap
+        int nextPoint = 0;  //next track piece from which next lap track should start
+        List<(ITrackPoint, TimeSpan, TimeSpan)> lapTrackPointStats = new();
 
-        //TimeSpan raceTime = TimeSpan.Zero;
+        TimeSpan tmp = TimeSpan.Zero;
 
         //wait for the start of the race
-        await StartEvent.WaitAsync();
+        await startEvent.WaitAsync();
 
         //driving the number of laps
         for (int lapNum = 0; lapNum < lapCount; lapNum++)
         {
-            for (int i = 0; i < lap.Count(); i++)
+            for (int i = 0; i < lapTrackPoints.Count(); i++)
             {
-                var passData = await lap[i].PassAsync(this);  //wait for the car to enter the track piece
+                var passData = await lapTrackPoints[i].PassAsync(this);  //wait for the car to enter the track piece
                 await Task.Delay((int)passData.DrivingTime.TotalMilliseconds);  //drive through the track piece
-                //raceTime += passData.WaitingTime + passData.DrivingTime;
-
+                lapTrackPointStats.Add((lapTrackPoints[i], passData.DrivingTime, passData.WaitingTime));
+                
                 //change the tires
                 //save next starting piece when going through pitlane
-                if (lap[i] is PitLane)
+                if (lapTrackPoints[i] is PitLane)
                 {
                     _currentTire++; //if tires run out, fix your strategy
-                    nextPoint = ((PitLane)lap[i]).NextPoint;
+                    nextPoint = ((PitLane)lapTrackPoints[i]).NextPoint;
                 }
             }
-            //Console.WriteLine($"{Driver}: {raceTime}");
-            //Log the race
-            lapStats.Enqueue(new(this, lapNum + 1, raceTimer.Elapsed));
+            //Log the lap
+            lapStats.Enqueue(new(this, lapNum + 1, raceTimer.Elapsed, lapTrackPointStats.ToList()));
 
-            //if race is over
-            //break;
-            if (lapNum + 1 == lapCount) 
+            //exit if race is over or tell everyone that you finished first and they shoudl finish their current lap
+            if (lapNum + 1 == lapCount || finishRace.Value)
             {
+                //if this is the first car to finish the race, signal everyone that the race is done
+                if (!finishRace.Value)
+                    finishRace.Value = true;
                 break;
             }
 
             //add lap to tires if we were not in pit
             if (nextPoint == 0)
                 TireStrategy[_currentTire].AddLap();
-            
-            //get new lap
-            lap = track.GetLap(this, nextPoint).ToList();
 
-            //"reset" everything
+            lapTrackPoints = track.GetLap(this, nextPoint).ToList();    //get new track for new lap
+
+            //reset everything and go for another lap
             nextPoint = 0;
-            //lapTime = TimeSpan.Zero;
+            lapTrackPointStats.Clear();
         }
-
-        //inform race that you won
-        //if someone already won, skip informing tha race
     }
 
     public Tire GetTire()

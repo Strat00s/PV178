@@ -1,3 +1,5 @@
+//This class seems pretty useless
+
 using hw04.Car;
 using hw04.Race;
 using hw04.TrackPoints;
@@ -15,22 +17,17 @@ public class Simulation
     }
 
     //simulate the race
-    public Race.Race SimulateRaceAsync(List<RaceCar> cars, int numberOfLaps)
+    public async Task<Race.Race> SimulateRaceAsync(List<RaceCar> cars, int numberOfLaps)
     {
-        //TODO ready the track
-        //create list of track parts, pit is the last (easy to index)
-        //TODO ready the cars
-        //give them tires, track and so on
-
         Race.Race race = new Race.Race(cars, _track, numberOfLaps);
-        race.StartRace();
+        await race.StartRaceAsync();
         return race;
     }
 
     //simulate single car - strategy
-    public List<Lap> SimulateLapsAsync(RaceCar car, int numberOfLaps)
+    public Task<List<Lap>> SimulateLapsAsync(RaceCar car, int numberOfLaps)
     {
         Race.Race race = new Race.Race(new() { car }, _track, numberOfLaps);
-        return race.StartRace();
+        return race.StartRaceAsync();
     }
 }
