@@ -17,14 +17,14 @@ public class Race
         _cars = cars;
         _track = track;
         _numberOfLaps = numberOfLaps;
-        _raceStats = new RaceStats();
+        _raceStats = new RaceStats(numberOfLaps);
     }
     
     public async Task<List<Lap>> StartRaceAsync()
     {
         //"global" variables for synchronizing data between tasks
-        var startEvent = new SemaphoreSlim(0);   //starting 
-        var lapStatsQ = new ConcurrentQueue<LapStats>();    //queue for cars to report back their lap times
+        var startEvent = new SemaphoreSlim(0);   //starting semaphore
+        var lapStatsQ = new ConcurrentQueue<(LapStats, List<TrackPointStats>)>();    //queue for cars to report back their lap statistics
         var finishRace = new ThreadSafeBool(false);
 
         //"global" timer to fix the fact that some cars have better times but due to overhead arrive later
@@ -41,11 +41,11 @@ public class Race
         }
 
         //prepare everything else 
-        LapStats lapStats;  //var for storing lap statistics from cars
-        TimeSpan currentRaceTime = TimeSpan.Zero;  //how long the race is taking
+        (LapStats, List<TrackPointStats>) lapStats;  //var for storing lap statistics from cars
+        var currentRaceTime = TimeSpan.Zero;  //how long the race is taking
         int prevLap = 0;
         var fastestLaps = new List<Lap>();  //no idea data is the List<Lap>() suppose to contain
-        Task raceDone = Task.WhenAll(carTasks); //task for checking if all cars ended
+        var raceDone = Task.WhenAll(carTasks); //task for checking if all cars ended
 
         //start the race
         raceTimer.Start();
@@ -55,22 +55,22 @@ public class Race
             if (lapStatsQ.TryDequeue(out lapStats!))
             {
                 //save data for later analytics
-                _raceStats.AddDriverStats(lapStats.Car, lapStats.CurrentRaceTime);
-                foreach (var trackPointStat in lapStats.TrackPointTimes)
-                    _raceStats.AddTrackPointStats(trackPointStat.Item1, trackPointStat.Item2, trackPointStat.Item3);
+                _raceStats.AddDriverStats(lapStats.Item1.Car.Driver, lapStats.Item1.LapNum, lapStats.Item1.CurrentRaceTime);
+                foreach (var trackPointStat in lapStats.Item2)
+                    _raceStats.AddTrackPointStats(trackPointStat, lapStats.Item1.Car.Driver, lapStats.Item1.LapNum);
 
-                if (prevLap < lapStats.LapNum)
+                if (prevLap < lapStats.Item1.LapNum)
                 {
-                    prevLap = lapStats.LapNum;
-                    currentRaceTime = lapStats.CurrentRaceTime;
+                    prevLap = lapStats.Item1.LapNum;
+                    currentRaceTime = lapStats.Item1.CurrentRaceTime;
                     Console.WriteLine($"Lap: {prevLap}");
-                    Console.WriteLine($"{lapStats.Car.Driver}: {currentRaceTime}");
-                    fastestLaps.Add(new(lapStats.Car, lapStats.LapNum));
+                    Console.WriteLine($"{lapStats.Item1.Car.Driver}: {currentRaceTime}");
+                    fastestLaps.Add(new(lapStats.Item1.Car, lapStats.Item1.LapNum));
                     continue;
                 }
 
-                var diff = lapStats.CurrentRaceTime - currentRaceTime;
-                Console.WriteLine($"{lapStats.Car.Driver}: +{diff}");
+                var diff = lapStats.Item1.CurrentRaceTime - currentRaceTime;
+                Console.WriteLine($"{lapStats.Item1.Car.Driver}: +{diff}");
             }
             //yield control back and wait some time when there are no new data
             else

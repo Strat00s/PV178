@@ -35,13 +35,13 @@ public class RaceCar
 
 
     //TODO tirestrategy firstordefault when empty fix!
-    public async Task StartAsync(int lapCount, Track track, SemaphoreSlim startEvent, ConcurrentQueue<LapStats> lapStats,
+    public async Task StartAsync(int lapCount, Track track, SemaphoreSlim startEvent, ConcurrentQueue<(LapStats, List<TrackPointStats>)> lapStats,
                                  Stopwatch raceTimer, ThreadSafeBool finishRace)
     {
         _currentTire = 0;   //set current tire index
         var lapTrackPoints = track.GetLap(this).ToList();   //get current lap
         int nextPoint = 0;  //next track piece from which next lap track should start
-        List<(ITrackPoint, TimeSpan, TimeSpan)> lapTrackPointStats = new();
+        var lapTrackPointStats = new List<TrackPointStats>();
 
         TimeSpan tmp = TimeSpan.Zero;
 
@@ -49,13 +49,13 @@ public class RaceCar
         await startEvent.WaitAsync();
 
         //driving the number of laps
-        for (int lapNum = 0; lapNum < lapCount; lapNum++)
+        for (int lapNum = 1; lapNum < lapCount + 1; lapNum++)
         {
             for (int i = 0; i < lapTrackPoints.Count(); i++)
             {
                 var passData = await lapTrackPoints[i].PassAsync(this);  //wait for the car to enter the track piece
                 await Task.Delay((int)passData.DrivingTime.TotalMilliseconds);  //drive through the track piece
-                lapTrackPointStats.Add((lapTrackPoints[i], passData.DrivingTime, passData.WaitingTime));
+                lapTrackPointStats.Add(new (lapTrackPoints[i], passData.DrivingTime, passData.WaitingTime));    //generate track point data
                 
                 //change the tires
                 //save next starting piece when going through pitlane
@@ -66,10 +66,10 @@ public class RaceCar
                 }
             }
             //Log the lap
-            lapStats.Enqueue(new(this, lapNum + 1, raceTimer.Elapsed, lapTrackPointStats.ToList()));
+            lapStats.Enqueue( (new(this, lapNum, raceTimer.Elapsed), lapTrackPointStats.ToList()) );
 
             //exit if race is over or tell everyone that you finished first and they shoudl finish their current lap
-            if (lapNum + 1 == lapCount || finishRace.Value)
+            if (lapNum == lapCount || finishRace.Value)
             {
                 //if this is the first car to finish the race, signal everyone that the race is done
                 if (!finishRace.Value)

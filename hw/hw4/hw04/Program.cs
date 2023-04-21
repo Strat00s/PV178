@@ -23,8 +23,14 @@ var simulationSilverstone = new Simulation(CurrentF1.Tracks.Silverstone);
 CurrentF1.Cars.All.ForEach(c => c.SetMediumHardStrategy());
 var race = await new Simulation(CurrentF1.Tracks.Silverstone).SimulateRaceAsync(CurrentF1.Cars.All, 10);
 
-Console.WriteLine("Race stats:");
-foreach (var (car, totalTime) in race.GetOrder())
+Console.WriteLine("Final order:");
+foreach (var (driver, totalTime) in race.GetOrder())
 {
-    Console.WriteLine($"{car.Driver}: {totalTime.Minutes} min {totalTime.Seconds} s {totalTime.Milliseconds} ms");
+    Console.WriteLine($"{driver}: {totalTime.Minutes} min {totalTime.Seconds} s {totalTime.Milliseconds} ms");
+}
+
+Console.WriteLine("Fastest laps:");
+foreach (var (driver, lapNum) in race.GetFastestLaps())
+{
+    Console.WriteLine($"{driver}: {lapNum}");
 }

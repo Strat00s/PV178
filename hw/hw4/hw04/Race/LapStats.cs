@@ -5,17 +5,15 @@ namespace hw04.Race
 {
     public class LapStats
     {
-        public RaceCar Car{ get; }
+        public RaceCar Car { get; }
         public int LapNum { get; }
         public TimeSpan CurrentRaceTime { get; }
-        public List<(ITrackPoint, TimeSpan, TimeSpan)> TrackPointTimes { get; }
 
-        public LapStats(RaceCar car, int lapNum, TimeSpan lapTime, List<(ITrackPoint, TimeSpan, TimeSpan)> trackPointTimes)
+        public LapStats(RaceCar car, int lapNum, TimeSpan currentRaceTime)
         {
             Car = car;
             LapNum = lapNum;
-            CurrentRaceTime = lapTime;
-            TrackPointTimes = trackPointTimes;
+            CurrentRaceTime = currentRaceTime;
         }
     }
 }
