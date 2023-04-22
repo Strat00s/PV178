@@ -1,20 +1,7 @@
-﻿using hw04.Car;
+﻿//class for passign lap reports between tasks
 
-namespace hw04.Race
-{
-    public class LapReport
-    {
-        public RaceCar Car { get; }
-        public int LapNum { get; }
-        public TimeSpan CurrentRaceTime { get; }
-        public List<TrackPointReport> TrackPointReports { get; }
+using hw04.Car;
 
-        public LapReport(RaceCar car, int lapNum, TimeSpan currentRaceTime, List<TrackPointReport> trackPointStats)
-        {
-            Car = car;
-            LapNum = lapNum;
-            CurrentRaceTime = currentRaceTime;
-            TrackPointReports = trackPointStats;
-        }
-    }
-}
+namespace hw04.Race;
+
+public record LapReport(RaceCar Car, int LapNumber, TimeSpan CurrentRaceTime, List<TrackPointPass> TrackPointStats);

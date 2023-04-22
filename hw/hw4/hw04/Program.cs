@@ -1,7 +1,5 @@
 ﻿using hw04;
-using hw04.Race;
 
-Console.WriteLine("Start");
 var simulationSilverstone = new Simulation(CurrentF1.Tracks.Silverstone);
 
 // Testování nejlepší strategie
@@ -24,6 +22,7 @@ var simulationSilverstone = new Simulation(CurrentF1.Tracks.Silverstone);
 CurrentF1.Cars.All.ForEach(c => c.SetMediumHardStrategy());
 var race = await new Simulation(CurrentF1.Tracks.Silverstone).SimulateRaceAsync(CurrentF1.Cars.All, 52);
 
+//Analytics
 Console.WriteLine("Final order:");
 foreach (var (driver, totalTime) in race.GetOrder())
 {

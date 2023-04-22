@@ -1,5 +1,4 @@
 ﻿//Thread safe bool used for informing the cars that the race is over
-//Just because I did not want to mess with semaphores
 
 namespace hw04
 {
@@ -14,14 +13,8 @@ namespace hw04
 
         public bool Value
         {
-            get 
-            {
-                return _value != 0;
-            }
-            set
-            {
-                Interlocked.Exchange(ref _value, value ? 1 : 0);
-            }
+            get {return _value != 0;}
+            set {Interlocked.Exchange(ref _value, value ? 1 : 0);}
         }
     }
 }

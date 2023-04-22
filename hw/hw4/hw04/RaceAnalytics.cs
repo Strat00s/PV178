@@ -1,15 +1,9 @@
-//This is awful. Don't look at it. I didn't want to deal with it so I just started adding stuff up into everything to get the data I need
-//Analytics bad...
-
-using hw04.Car;
-using hw04.TrackPoints;
-using System.IO.Pipes;
+//get and return analytics data
 
 namespace hw04;
 
 public static class RaceAnalytics
 {
-    //Finishing order
     public static List<(string, TimeSpan)> GetOrder(this Race.Race race)
     {
         var data = race.GetRaceStats().GetLapsData();
@@ -19,7 +13,6 @@ public static class RaceAnalytics
             .ToList();
     }
 
-    //Fastest lap
     public static List<(string, TimeSpan)> GetFastestLaps(this Race.Race race)
     {
         var data = race.GetRaceStats().GetLapsData();
@@ -31,7 +24,6 @@ public static class RaceAnalytics
             .ToList();
     }
 
-    //Order at specific lap
     public static List<(string, TimeSpan)> GetOrderAt(this Race.Race race, int lapNum)
     {
         var data = race.GetRaceStats().GetLapsData();
@@ -43,8 +35,7 @@ public static class RaceAnalytics
             .OrderBy(driverTime => driverTime.RaceTime)
             .ToList();
     }
-    
-    //Fastest driver at a trackpoint
+
     public static List<(string, string, int, TimeSpan, string, int, TimeSpan)> GetTrackPointTimes(this Race.Race race)
     {
         var data = race.GetRaceStats().GetTrackPointsData();
@@ -65,5 +56,4 @@ public static class RaceAnalytics
             ))
             .ToList();
     }
-
 }

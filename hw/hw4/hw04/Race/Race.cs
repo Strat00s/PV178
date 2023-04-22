@@ -22,26 +22,23 @@ public class Race
     
     public async Task<List<Lap>> StartRaceAsync()
     {
-        //"global" variables for synchronizing data between tasks
-        var startEvent = new SemaphoreSlim(0);   //starting semaphore
-        var lapStatsQ = new ConcurrentQueue<LapReport>();    //queue for cars to report back their lap statistics
+        //"global" and important variables
+        var startEvent = new SemaphoreSlim(0);
+        var lapStatsQ = new ConcurrentQueue<LapReport>();
         var finishRace = new ThreadSafeBool(false);
-        var raceTimer = new Stopwatch();    //global timer for lap tracking
+        var raceTimer = new Stopwatch();
+        var carTasks = new List<Task>();
 
-        var carTasks = new List<Task>();  //list of car tasks to wait for once the race ends
-
-        //start car threads and let them wait for start of the race
+        //start cars and let them wait for start of the race
         foreach (RaceCar car in _cars)
-        {
             carTasks.Add(car.StartAsync(_numberOfLaps, _track, startEvent, lapStatsQ, raceTimer, finishRace));
-        }
 
         //prepare everything else 
-        LapReport lapReport;  //var for storing lap statistics from cars
-        var currentRaceTime = TimeSpan.Zero;  //how long the race is taking
+        LapReport lapReport;
+        var currentRaceTime = TimeSpan.Zero;
         int prevLap = 0;
-        var fastestLaps = new List<Lap>();  //no idea data is the List<Lap>() suppose to contain
-        var raceDone = Task.WhenAll(carTasks); //task for checking if all cars ended
+        var fastestLaps = new List<Lap>();
+        var raceDone = Task.WhenAll(carTasks);
 
         //start the race
         raceTimer.Start();
@@ -53,18 +50,18 @@ public class Race
                 //save data for later
                 _raceStats.AddStats(lapReport);
 
-                if (prevLap < lapReport.LapNum)
+                if (prevLap < lapReport.LapNumber)
                 {
-                    prevLap = lapReport.LapNum;
+                    prevLap = lapReport.LapNumber;
                     currentRaceTime = lapReport.CurrentRaceTime;
                     Console.WriteLine($"Lap: {prevLap}");
-                    Console.WriteLine($"{lapReport.Car.Driver}: {currentRaceTime}");
-                    fastestLaps.Add(new(lapReport.Car, lapReport.LapNum));
+                    Console.WriteLine($"{lapReport.Car.Driver}: {currentRaceTime:mm\\:ss\\:fff}");
+                    fastestLaps.Add(new(lapReport.Car, lapReport.LapNumber));
                     continue;
                 }
 
                 var diff = lapReport.CurrentRaceTime - currentRaceTime;
-                Console.WriteLine($"{lapReport.Car.Driver}: +{diff}");
+                Console.WriteLine($"{lapReport.Car.Driver}: +{diff:mm\\:ss\\:fff}");
             }
             //yield control back and wait some time when there are no new data
             else
