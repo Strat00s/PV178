@@ -11,7 +11,7 @@ public class PitLane : ITrackPoint
 
     public int NextPoint { get; }
 
-    private ConcurrentDictionary<string, SemaphoreSlim> _boxSemaphores;
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> _boxSemaphores;
 
     public PitLane(string description, List<Team> teams, int nextPoint)
     {

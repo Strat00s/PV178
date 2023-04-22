@@ -7,17 +7,17 @@ namespace hw04.Race;
 
 public class Race
 {
-    private RaceStats _raceStats;
-    private List<RaceCar> _cars;
-    private Track _track;
-    private int _numberOfLaps;
+    private readonly RaceStats _raceStats;
+    private readonly List<RaceCar> _cars;
+    private readonly Track _track;
+    private readonly int _numberOfLaps;
 
     public Race(List<RaceCar> cars, Track track, int numberOfLaps)
     {
         _cars = cars;
         _track = track;
         _numberOfLaps = numberOfLaps;
-        _raceStats = new RaceStats(numberOfLaps);
+        _raceStats = new RaceStats();
     }
     
     public async Task<List<Lap>> StartRaceAsync()
@@ -45,7 +45,7 @@ public class Race
 
         //start the race
         raceTimer.Start();
-        startEvent.Release(_cars.Count());
+        startEvent.Release(_cars.Count);
         while (!raceDone.IsCompleted || !lapStatsQ.IsEmpty)
         {
             if (lapStatsQ.TryDequeue(out lapReport!))

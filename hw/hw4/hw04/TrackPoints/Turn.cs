@@ -11,7 +11,7 @@ public class Turn : ITrackPoint
     public string Description { get; set; }
 
 
-    private SemaphoreSlim _semaphore;
+    private readonly SemaphoreSlim _semaphore;
 
 
     public Turn(string description, TimeSpan averageTime, int carsAllowed)

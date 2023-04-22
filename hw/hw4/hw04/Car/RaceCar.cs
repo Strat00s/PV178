@@ -36,14 +36,12 @@ public class RaceCar
 
     //TODO tirestrategy firstordefault when empty fix!
     public async Task StartAsync(int lapCount, Track track, SemaphoreSlim startEvent, ConcurrentQueue<LapReport> lapStats,
-                                 Stopwatch raceTimer, ThreadSafeBool finishRace)
+        Stopwatch raceTimer, ThreadSafeBool finishRace)
     {
         _currentTireIndex = 0;   //set current tire index
         var lapTrackPoints = track.GetLap(this).ToList();   //get current lap
         int nextPoint = 0;  //next track piece from which next lap track should start
         var tackPointReports = new List<TrackPointReport>();
-
-        TimeSpan tmp = TimeSpan.Zero;
 
         //wait for the start of the race
         await startEvent.WaitAsync();
@@ -51,18 +49,18 @@ public class RaceCar
         //driving the number of laps
         for (int lapNum = 1; lapNum < lapCount + 1; lapNum++)
         {
-            for (int i = 0; i < lapTrackPoints.Count(); i++)
+            for (int i = 0; i < lapTrackPoints.Count; i++)
             {
                 var passData = await lapTrackPoints[i].PassAsync(this);  //drive through track point
                 tackPointReports.Add(new(lapTrackPoints[i], passData.DrivingTime, passData.WaitingTime));  //save trackpoint data
                 
                 //change the tires
                 //save next starting piece when going through pitlane
-                if (lapTrackPoints[i] is PitLane)
+                if (lapTrackPoints[i] is PitLane lane)
                 {
                     if (_currentTireIndex < TireStrategy.Count - 1)
                         _currentTireIndex++;
-                    nextPoint = ((PitLane)lapTrackPoints[i]).NextPoint;
+                    nextPoint = lane.NextPoint;
                 }
             }
             //Log the lap result
@@ -97,6 +95,6 @@ public class RaceCar
     public bool NeedsChange()
     {
         //dont change tires on last set
-        return _currentTireIndex == TireStrategy.Count - 1 ? false : TireStrategy[_currentTireIndex].NeedsChange();
+        return _currentTireIndex != TireStrategy.Count - 1 && TireStrategy[_currentTireIndex].NeedsChange();
     }
 }

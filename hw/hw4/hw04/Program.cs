@@ -22,7 +22,7 @@ var simulationSilverstone = new Simulation(CurrentF1.Tracks.Silverstone);
 
 // Závod
 CurrentF1.Cars.All.ForEach(c => c.SetMediumHardStrategy());
-var race = await new Simulation(CurrentF1.Tracks.Silverstone).SimulateRaceAsync(CurrentF1.Cars.All, 10);
+var race = await new Simulation(CurrentF1.Tracks.Silverstone).SimulateRaceAsync(CurrentF1.Cars.All, 52);
 
 Console.WriteLine("Final order:");
 foreach (var (driver, totalTime) in race.GetOrder())
@@ -44,7 +44,7 @@ foreach (var (driver, lapTime) in race.GetOrderAt(orderAt))
     Console.WriteLine($"  {driver}: {lapTime.Minutes} min {lapTime.Seconds} s {lapTime.Milliseconds} ms");
 }
 
-Console.WriteLine($"Track point times: {orderAt}");
+Console.WriteLine($"Track point times:");
 foreach (var (trackPoint, driver1, lapNum1, drivingTime, driver2, lapNum2, waitingTime) in race.GetTrackPointTimes())
 {
     Console.WriteLine($"{trackPoint}:");

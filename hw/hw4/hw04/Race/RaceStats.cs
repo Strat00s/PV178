@@ -9,12 +9,12 @@ namespace hw04.Race
     {
         public class LapData
         {
-            public TimeSpan lapTime { get; }
-            public TimeSpan raceTime { get; }
+            public TimeSpan LapTime { get; }
+            public TimeSpan RaceTime { get; }
             public LapData(TimeSpan lapTime, TimeSpan raceTime)
             {
-                this.lapTime = lapTime;
-                this.raceTime = raceTime;
+                LapTime = lapTime;
+                RaceTime = raceTime;
             }
         }
         public class TrackPointData
@@ -33,11 +33,11 @@ namespace hw04.Race
             }
         }
         //list of laps: driver: lap time and race time
-        private List<Dictionary<string, LapData>> _lapsData;    //lap statistics
-        private Dictionary<ITrackPoint, List<TrackPointData>> _trackPointsData;   //trackpoint statistics
+        private readonly List<Dictionary<string, LapData>> _lapsData;    //lap statistics
+        private readonly Dictionary<ITrackPoint, List<TrackPointData>> _trackPointsData;   //trackpoint statistics
 
         //all racecars that we care about, all trackpoints that we care about and number of laps that will be driven
-        public RaceStats(int numberOfLaps) 
+        public RaceStats() 
         {
             _trackPointsData = new();
             _lapsData = new();
@@ -52,7 +52,7 @@ namespace hw04.Race
 
             var driver = lapReport.Car.Driver;
             var raceTime = lapReport.CurrentRaceTime;
-            var lapTime = lapNum - 2 < 0 ? raceTime : raceTime - _lapsData[lapNum - 2][driver].raceTime;
+            var lapTime = lapNum - 2 < 0 ? raceTime : raceTime - _lapsData[lapNum - 2][driver].RaceTime;
             _lapsData[lapNum - 1][driver] = new(lapTime, raceTime);
 
             //add trackpoint data

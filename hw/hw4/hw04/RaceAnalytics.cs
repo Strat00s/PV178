@@ -14,7 +14,7 @@ public static class RaceAnalytics
     {
         var data = race.GetRaceStats().GetLapsData();
         return data.Last()
-            .Select(pair => (pair.Key,pair.Value.raceTime))
+            .Select(pair => (pair.Key,pair.Value.RaceTime))
             .OrderBy(pair => pair.Item2)
             .ToList();
     }
@@ -24,26 +24,11 @@ public static class RaceAnalytics
     {
         var data = race.GetRaceStats().GetLapsData();
         return data.Select(dict => dict
-                .Select(pair => (pair.Key, pair.Value.lapTime))
-                .OrderBy(pair => pair.lapTime)
+                .Select(pair => (pair.Key, pair.Value.LapTime))
+                .OrderBy(pair => pair.LapTime)
                 .First()
             )
             .ToList();
-
-        var tmp = new List<(string, TimeSpan)>();
-        foreach ( var dict in data)
-        {
-            var lapStat = dict
-                .Select(pair => (
-                    pair.Key,
-                    pair.Value.lapTime
-                    )
-                )
-                .OrderBy(pair => pair.lapTime)
-                .First();
-            tmp.Add((lapStat.Key, lapStat.lapTime));
-        }
-        return tmp;
     }
 
     //Order at specific lap
@@ -53,9 +38,9 @@ public static class RaceAnalytics
         return data.ElementAt(lapNum - 1)
             .Select(lapData => (
                 lapData.Key,
-                lapData.Value.raceTime
+                lapData.Value.RaceTime
             ))
-            .OrderBy(driverTime => driverTime.raceTime)
+            .OrderBy(driverTime => driverTime.RaceTime)
             .ToList();
     }
     
