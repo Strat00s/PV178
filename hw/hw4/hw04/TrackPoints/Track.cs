@@ -42,17 +42,28 @@ public class Track
     /// </summary>
     /// <param name="car"></param>
     /// <returns></returns>
-    public IEnumerable<ITrackPoint> GetLap(RaceCar car, int startIndex = 0)
+    public List<ITrackPoint> GetLap(RaceCar car, bool inPit)
     {
-        if (!car.NeedsChange())
-            return _trackPoints.Skip(startIndex);
-        
-        return _trackPoints
-            .Skip(startIndex)
-            .TakeWhile(p => p.Description != "22 / No name Straight")
-            .Append(_pitLaneEntry!) //if any of these are null, fix your track!
-            .Append(_pitLane!)
-            .Append(_pitLaneExit!);
+        var trackPoints = _trackPoints.ToList();
+        if (inPit)
+        {
+            return trackPoints
+                .Skip(_pitLane!.NextPoint)
+                .Prepend(_pitLaneExit!)
+                .Prepend(_pitLane)
+                .ToList();
+        }
+
+        //I expect tires to last at least a single lap
+        if (car.NeedsChange() && !inPit)
+        {
+            return trackPoints
+                .TakeWhile(p => p.Description != "22 / No name Straight")
+                .Append(_pitLaneEntry!)
+                .ToList();
+        }
+
+        return trackPoints;
     }
 
 }

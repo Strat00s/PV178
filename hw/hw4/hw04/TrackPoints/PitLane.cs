@@ -30,18 +30,26 @@ public class PitLane : ITrackPoint
     {
         return Task.Run(async () =>
         {
-            var random = new Random();
             var sw = new Stopwatch();
 
             //wait to enter
             sw.Start();
             await _boxSemaphores[car.Team.Name].WaitAsync();
 
-            //start tire change
-            Parallel.For(0, 4, async _ =>
+            //start tire change (parallel.for blocks)
+            var tireTasks = new List<Task>();
+
+            for (int i = 0; i < 4; i++)
             {
-                await Task.Delay(random.Next(50, 1000));
-            });
+                tireTasks.Add(Task.Run(async () =>
+                {
+                    var rand = new Random();
+                    await Task.Delay(rand.Next(50, 1000));
+                }));
+            }
+
+            await Task.WhenAll(tireTasks);
+
             _boxSemaphores[car.Team.Name].Release();
             sw.Stop();
 

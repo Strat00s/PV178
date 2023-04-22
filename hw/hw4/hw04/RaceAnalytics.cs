@@ -1,16 +1,33 @@
 //get and return analytics data
 
+using System.Runtime.CompilerServices;
+using static hw04.Race.RaceStats;
+
 namespace hw04;
 
 public static class RaceAnalytics
 {
-    public static List<(string, TimeSpan)> GetOrder(this Race.Race race)
+    public static List<(string, TimeSpan)> GetOrder(this Race.Race race, int lapNum = 0)
     {
         var data = race.GetRaceStats().GetLapsData();
-        return data.Last()
-            .Select(pair => (pair.Key,pair.Value.RaceTime))
-            .OrderBy(pair => pair.Item2)
+        if (lapNum < 1)
+            lapNum = data.Count;
+
+        var finishers = data.ElementAt(lapNum - 1)
+            .Select(pair => (pair.Key, pair.Value.RaceTime))
+            .OrderBy(pair => pair.RaceTime)
             .ToList();
+
+        var dnf = data.Take(lapNum)
+            .SelectMany(lap => lap)
+            .Where(driverTime => !finishers.Any(fin => fin.Key == driverTime.Key))
+            .OrderByDescending(pair => pair.Value.RaceTime)
+            .GroupBy(driverTime => driverTime.Key)
+            .Select(group => (group.Key, TimeSpan.MinValue))
+            .Reverse()
+            .ToList();
+
+        return finishers.Concat(dnf).ToList();
     }
 
     public static List<(string, TimeSpan)> GetFastestLaps(this Race.Race race)
@@ -26,14 +43,7 @@ public static class RaceAnalytics
 
     public static List<(string, TimeSpan)> GetOrderAt(this Race.Race race, int lapNum)
     {
-        var data = race.GetRaceStats().GetLapsData();
-        return data.ElementAt(lapNum - 1)
-            .Select(lapData => (
-                lapData.Key,
-                lapData.Value.RaceTime
-            ))
-            .OrderBy(driverTime => driverTime.RaceTime)
-            .ToList();
+        return GetOrder(race, lapNum);
     }
 
     public static List<(string, string, int, TimeSpan, string, int, TimeSpan)> GetTrackPointTimes(this Race.Race race)

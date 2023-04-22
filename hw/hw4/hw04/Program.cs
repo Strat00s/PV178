@@ -20,13 +20,16 @@ var simulationSilverstone = new Simulation(CurrentF1.Tracks.Silverstone);
 
 // Závod
 CurrentF1.Cars.All.ForEach(c => c.SetMediumHardStrategy());
-var race = await new Simulation(CurrentF1.Tracks.Silverstone).SimulateRaceAsync(CurrentF1.Cars.All, 52);
+var race = await new Simulation(CurrentF1.Tracks.Silverstone).SimulateRaceAsync(CurrentF1.Cars.All, 100);
 
 //Analytics
 Console.WriteLine("Final order:");
 foreach (var (driver, totalTime) in race.GetOrder())
 {
-    Console.WriteLine($"  {driver}: {totalTime.Minutes} min {totalTime.Seconds} s {totalTime.Milliseconds} ms");
+    if (totalTime == TimeSpan.MinValue)
+        Console.WriteLine($"  {driver}: DNF");
+    else
+        Console.WriteLine($"  {driver}: {totalTime.Minutes} min {totalTime.Seconds} s {totalTime.Milliseconds} ms");
 }
 
 Console.WriteLine("Fastest laps:");
