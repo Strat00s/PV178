@@ -18,6 +18,11 @@ public class Straight : ITrackPoint
     
     public Task<TrackPointPass> PassAsync(RaceCar car)
     {
-        return Task.FromResult(new TrackPointPass(this, TimeSpan.Zero, AverageTime * car.StraigtSpeed * car.GetTire().GetSpeed()));
+        return Task.Run(async () =>
+        {
+            var drivingTime = AverageTime * car.StraigtSpeed * car.GetTire().GetSpeed();
+            await Task.Delay(drivingTime);  //drive through
+            return (new TrackPointPass(this, TimeSpan.Zero, drivingTime));
+        });
     }
 }

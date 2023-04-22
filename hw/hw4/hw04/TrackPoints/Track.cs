@@ -44,9 +44,8 @@ public class Track
     /// <returns></returns>
     public IEnumerable<ITrackPoint> GetLap(RaceCar car, int startIndex = 0)
     {
-        //return normal track from index
-        if (!car.GetTire().NeedsChange())
-            return _trackPoints.Skip(startIndex);   //linq creates copy
+        if (!car.NeedsChange())
+            return _trackPoints.Skip(startIndex);
         
         return _trackPoints
             .Skip(startIndex)

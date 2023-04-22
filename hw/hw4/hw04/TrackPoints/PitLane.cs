@@ -36,13 +36,13 @@ public class PitLane : ITrackPoint
             //wait to enter
             sw.Start();
             await _boxSemaphores[car.Team.Name].WaitAsync();
-            _boxSemaphores[car.Team.Name].Release();
 
             //start tire change
             Parallel.For(0, 4, async _ =>
             {
                 await Task.Delay(random.Next(50, 1000));
             });
+            _boxSemaphores[car.Team.Name].Release();
             sw.Stop();
 
             return new TrackPointPass(this, sw.Elapsed, TimeSpan.Zero);

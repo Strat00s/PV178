@@ -2,13 +2,13 @@
 
 namespace hw04.Race
 {
-    public class TrackPointStats
+    public class TrackPointReport
     {
         public ITrackPoint TrackPoint { get; }
         public TimeSpan WaitingTime { get; }
         public TimeSpan DrivingTime { get; }
 
-        public TrackPointStats(ITrackPoint trackPoint, TimeSpan waitingTime, TimeSpan drivingTime)
+        public TrackPointReport(ITrackPoint trackPoint, TimeSpan drivingTime, TimeSpan waitingTime)
         {
             TrackPoint = trackPoint;
             WaitingTime = waitingTime;

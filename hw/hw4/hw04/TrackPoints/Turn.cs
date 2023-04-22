@@ -28,14 +28,17 @@ public class Turn : ITrackPoint
             //wait to enter the turn
             var sw = new Stopwatch();
             sw.Start();
-            await _semaphore.WaitAsync();   //wait for space
+            await _semaphore.WaitAsync();
             sw.Stop();
-            await Task.Delay((int)DriveInTime.TotalMilliseconds);   //drive through
-            _semaphore.Release();
-            //sw.Stop();
-            return new TrackPointPass(this, sw.Elapsed, AverageTime * car.TurnSpeed * car.GetTire().GetSpeed());
-        });
 
-        //return new TrackPointPass(this, sw.Elapsed, AverageTime * car.TurnSpeed * car.GetTire().GetSpeed() + DriveInTime);
+            //drive into it
+            await Task.Delay(DriveInTime);
+            _semaphore.Release();
+
+            //drive through
+            var drivingTime = AverageTime * car.TurnSpeed * car.GetTire().GetSpeed();
+            await Task.Delay(drivingTime);
+            return new TrackPointPass(this, sw.Elapsed, drivingTime + DriveInTime);
+        });
     }
 }

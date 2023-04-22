@@ -8,8 +8,6 @@ namespace hw04;
 
 public class Simulation
 {
-    public event EventHandler RaceDone;
-
     Track _track;
     public Simulation(Track track)
     {

@@ -7,47 +7,78 @@ namespace hw04.Race
 {
     public class RaceStats
     {
-        private Dictionary<string, List<(int, TimeSpan)>> _driverStats;  //driver statistics
-        private Dictionary<ITrackPoint, List<(string, int, TimeSpan, TimeSpan)>> _trackPointStats;   //trackpoint statistics
-        //private List<LapStats> _lapStats;
+        public class LapData
+        {
+            public TimeSpan lapTime { get; }
+            public TimeSpan raceTime { get; }
+            public LapData(TimeSpan lapTime, TimeSpan raceTime)
+            {
+                this.lapTime = lapTime;
+                this.raceTime = raceTime;
+            }
+        }
+        public class TrackPointData
+        {
+            public string Driver { get; }
+            public int LapNumber { get; }
+            public TimeSpan DrivintTime { get; }
+            public TimeSpan WaitingTime { get; }
+
+            public TrackPointData(string driver, int lapNumber, TimeSpan drivintTime, TimeSpan waitingTime)
+            {
+                Driver = driver;
+                LapNumber = lapNumber;
+                DrivintTime = drivintTime;
+                WaitingTime = waitingTime;
+            }
+        }
+        //list of laps: driver: lap time and race time
+        private List<Dictionary<string, LapData>> _lapsData;    //lap statistics
+        private Dictionary<ITrackPoint, List<TrackPointData>> _trackPointsData;   //trackpoint statistics
 
         //all racecars that we care about, all trackpoints that we care about and number of laps that will be driven
-        public RaceStats(int lapNum) 
+        public RaceStats(int numberOfLaps) 
         {
-            _driverStats = new();
-            _trackPointStats = new();
-            //_lapStats = new List<LapStats>(lapNum);
+            _trackPointsData = new();
+            _lapsData = new();
         }
 
-        public void AddDriverStats(string driver, int lapNum, TimeSpan currentRaceTime)
+        public void AddStats(LapReport lapReport)
         {
-            if (!_driverStats.ContainsKey(driver))
-                _driverStats[driver] = new List<(int, TimeSpan)>();
+            //add lap data
+            var lapNum = lapReport.LapNum;
+            if (lapNum > _lapsData.Count)
+                _lapsData.Add(new());
 
-            var currentLapTime = currentRaceTime - _driverStats[driver].Aggregate(TimeSpan.Zero, (sum, time) => sum + time.Item2);
-            _driverStats[driver].Add((lapNum, currentLapTime));
-        }
-        public void AddTrackPointStats(TrackPointStats trackPointStats, string driver, int lapNum)
-        {
-            if (!_trackPointStats.ContainsKey(trackPointStats.TrackPoint))
-                _trackPointStats[trackPointStats.TrackPoint] = new List<(string, int, TimeSpan, TimeSpan)>();
-            
-            _trackPointStats[trackPointStats.TrackPoint].Add((driver, lapNum, trackPointStats.DrivingTime, trackPointStats.WaitingTime));
-        }
-        public Dictionary<string, List<(int, TimeSpan)>> GetDriverStats()
-        {
-            return _driverStats;
+            var driver = lapReport.Car.Driver;
+            var raceTime = lapReport.CurrentRaceTime;
+            var lapTime = lapNum - 2 < 0 ? raceTime : raceTime - _lapsData[lapNum - 2][driver].raceTime;
+            _lapsData[lapNum - 1][driver] = new(lapTime, raceTime);
+
+            //add trackpoint data
+            foreach (var trackPointStat in lapReport.TrackPointReports)
+            {
+                if (!_trackPointsData.ContainsKey(trackPointStat.TrackPoint))
+                    _trackPointsData[trackPointStat.TrackPoint] = new();
+
+                _trackPointsData[trackPointStat.TrackPoint].Add(new(driver, lapNum, trackPointStat.DrivingTime, trackPointStat.WaitingTime));
+            }
         }
 
-        public Dictionary<ITrackPoint, List<(string, int, TimeSpan, TimeSpan)>> GetTrackPointStats()
+        public List<Dictionary<string, LapData>> GetLapsData()
         {
-            return _trackPointStats;
+            return _lapsData;
+        }
+
+        public Dictionary<ITrackPoint, List<TrackPointData>> GetTrackPointsData()
+        {
+            return _trackPointsData;
         }
 
         public void Clear()
         {
-            _driverStats.Clear();
-            _trackPointStats.Clear();
+            _lapsData.Clear();
+            _trackPointsData.Clear();
         }
     }
 }

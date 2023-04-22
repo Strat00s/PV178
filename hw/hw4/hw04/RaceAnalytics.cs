@@ -3,6 +3,7 @@
 
 using hw04.Car;
 using hw04.TrackPoints;
+using System.IO.Pipes;
 
 namespace hw04;
 
@@ -11,64 +12,73 @@ public static class RaceAnalytics
     //Finishing order
     public static List<(string, TimeSpan)> GetOrder(this Race.Race race)
     {
-        var raceStats = race.GetRaceStats().GetDriverStats();
-        return raceStats
-            .Select(pair => (
-                pair.Key,
-                pair.Value.Aggregate(TimeSpan.Zero, (sum, pair) => sum + pair.Item2)
-                )
-            )
+        var data = race.GetRaceStats().GetLapsData();
+        return data.Last()
+            .Select(pair => (pair.Key,pair.Value.raceTime))
             .OrderBy(pair => pair.Item2)
             .ToList();
     }
 
     //Fastest lap
-    public static List<(string, int)> GetFastestLaps(this Race.Race race)
+    public static List<(string, TimeSpan)> GetFastestLaps(this Race.Race race)
     {
-        var raceStats = race.GetRaceStats().GetDriverStats();
-        return raceStats
-            .Select(pair => (
-                pair.Key,
-                pair.Value.MinBy(lapTs => lapTs.Item2).Item1
-                )
+        var data = race.GetRaceStats().GetLapsData();
+        return data.Select(dict => dict
+                .Select(pair => (pair.Key, pair.Value.lapTime))
+                .OrderBy(pair => pair.lapTime)
+                .First()
             )
             .ToList();
-    }
-    
-    //Order at specific lap
-    public static List<(String, TimeSpan)> GetOrderAt(this Race.Race race, int lapNum)
-    {
-        var raceStats = race.GetRaceStats().GetDriverStats();
-        return raceStats
-            .Select(pair => (
-                pair.Key,
-                pair.Value
-                    .Take(lapNum)
-                    .Aggregate(TimeSpan.Zero, (sum, ts) => sum + ts.Item2)
+
+        var tmp = new List<(string, TimeSpan)>();
+        foreach ( var dict in data)
+        {
+            var lapStat = dict
+                .Select(pair => (
+                    pair.Key,
+                    pair.Value.lapTime
+                    )
                 )
-            )
-            .OrderBy(pair => pair.Item2)
+                .OrderBy(pair => pair.lapTime)
+                .First();
+            tmp.Add((lapStat.Key, lapStat.lapTime));
+        }
+        return tmp;
+    }
+
+    //Order at specific lap
+    public static List<(string, TimeSpan)> GetOrderAt(this Race.Race race, int lapNum)
+    {
+        var data = race.GetRaceStats().GetLapsData();
+        return data.ElementAt(lapNum - 1)
+            .Select(lapData => (
+                lapData.Key,
+                lapData.Value.raceTime
+            ))
+            .OrderBy(driverTime => driverTime.raceTime)
             .ToList();
     }
     
     //Fastest driver at a trackpoint
-    public static List<(ITrackPoint, string, TimeSpan, string, TimeSpan)> GetTrackPointTimes(this Race.Race race)
+    public static List<(string, string, int, TimeSpan, string, int, TimeSpan)> GetTrackPointTimes(this Race.Race race)
     {
-        var data = race.GetRaceStats().GetTrackPointStats();
+        var data = race.GetRaceStats().GetTrackPointsData();
 
-        List<(ITrackPoint, string, TimeSpan, string, TimeSpan)> result = data.Select(kv => {
-            ITrackPoint key = kv.Key;
-            List<(string, int, TimeSpan, TimeSpan)> valueList = kv.Value;
-
-            TimeSpan minTimeSpan1 = valueList.Min(item => item.Item3);
-            (string, int, TimeSpan, TimeSpan) minTuple = valueList.First(item => item.Item3 == minTimeSpan1);
-
-            TimeSpan maxTimeSpan2 = valueList.Max(item => item.Item4);
-            (string, int, TimeSpan, TimeSpan) maxTuple = valueList.First(item => item.Item4 == maxTimeSpan2);
-
-            return (key, minTuple.Item1, minTuple.Item3, maxTuple.Item1, maxTuple.Item4);
-        }).ToList();
-        return result;
+        return data.Select(dict => (
+                dict.Key.Description,
+                dict.Value.OrderBy(stats => stats.DrivintTime).First(),    //shortest drive time
+                dict.Value.OrderBy(stats => stats.WaitingTime).Last()    //longest wait time
+            ))
+            .Select(tup => (
+                tup.Description,
+                tup.Item2.Driver,
+                tup.Item2.LapNumber,
+                tup.Item2.DrivintTime,
+                tup.Item3.Driver,
+                tup.Item3.LapNumber,
+                tup.Item3.WaitingTime
+            ))
+            .ToList();
     }
 
 }

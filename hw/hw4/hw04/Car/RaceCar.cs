@@ -12,7 +12,7 @@ public class RaceCar
     public Team Team { get; }
     public double TurnSpeed { get; }
     public double StraigtSpeed { get; }
-    private int _currentTire;
+    private int _currentTireIndex;
 
 
     /// <summary>
@@ -35,13 +35,13 @@ public class RaceCar
 
 
     //TODO tirestrategy firstordefault when empty fix!
-    public async Task StartAsync(int lapCount, Track track, SemaphoreSlim startEvent, ConcurrentQueue<(LapStats, List<TrackPointStats>)> lapStats,
+    public async Task StartAsync(int lapCount, Track track, SemaphoreSlim startEvent, ConcurrentQueue<LapReport> lapStats,
                                  Stopwatch raceTimer, ThreadSafeBool finishRace)
     {
-        _currentTire = 0;   //set current tire index
+        _currentTireIndex = 0;   //set current tire index
         var lapTrackPoints = track.GetLap(this).ToList();   //get current lap
         int nextPoint = 0;  //next track piece from which next lap track should start
-        var lapTrackPointStats = new List<TrackPointStats>();
+        var tackPointReports = new List<TrackPointReport>();
 
         TimeSpan tmp = TimeSpan.Zero;
 
@@ -53,25 +53,25 @@ public class RaceCar
         {
             for (int i = 0; i < lapTrackPoints.Count(); i++)
             {
-                var passData = await lapTrackPoints[i].PassAsync(this);  //wait for the car to enter the track piece
-                await Task.Delay((int)passData.DrivingTime.TotalMilliseconds);  //drive through the track piece
-                lapTrackPointStats.Add(new (lapTrackPoints[i], passData.DrivingTime, passData.WaitingTime));    //generate track point data
+                var passData = await lapTrackPoints[i].PassAsync(this);  //drive through track point
+                tackPointReports.Add(new(lapTrackPoints[i], passData.DrivingTime, passData.WaitingTime));  //save trackpoint data
                 
                 //change the tires
                 //save next starting piece when going through pitlane
                 if (lapTrackPoints[i] is PitLane)
                 {
-                    _currentTire++; //if tires run out, fix your strategy
+                    if (_currentTireIndex < TireStrategy.Count - 1)
+                        _currentTireIndex++;
                     nextPoint = ((PitLane)lapTrackPoints[i]).NextPoint;
                 }
             }
-            //Log the lap
-            lapStats.Enqueue( (new(this, lapNum, raceTimer.Elapsed), lapTrackPointStats.ToList()) );
+            //Log the lap result
+            lapStats.Enqueue(new(this, lapNum, raceTimer.Elapsed, tackPointReports.ToList()));
 
-            //exit if race is over or tell everyone that you finished first and they shoudl finish their current lap
+            //exit on last lap or if race is done
             if (lapNum == lapCount || finishRace.Value)
             {
-                //if this is the first car to finish the race, signal everyone that the race is done
+                //inform everyone that race is done
                 if (!finishRace.Value)
                     finishRace.Value = true;
                 break;
@@ -79,18 +79,24 @@ public class RaceCar
 
             //add lap to tires if we were not in pit
             if (nextPoint == 0)
-                TireStrategy[_currentTire].AddLap();
+                TireStrategy[_currentTireIndex].AddLap();
 
             lapTrackPoints = track.GetLap(this, nextPoint).ToList();    //get new track for new lap
 
             //reset everything and go for another lap
             nextPoint = 0;
-            lapTrackPointStats.Clear();
+            tackPointReports.Clear();
         }
     }
 
     public Tire GetTire()
     {
-        return TireStrategy[_currentTire];
+        return TireStrategy[_currentTireIndex];
+    }
+
+    public bool NeedsChange()
+    {
+        //dont change tires on last set
+        return _currentTireIndex == TireStrategy.Count - 1 ? false : TireStrategy[_currentTireIndex].NeedsChange();
     }
 }
