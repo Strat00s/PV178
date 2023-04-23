@@ -87,7 +87,7 @@ public class Race
                 }
             }
             else
-                await lapReportsCh.Reader.WaitToReadAsync();
+                await Task.WhenAny(lapReportsCh.Reader.WaitToReadAsync().AsTask(), carsDone);
         }
 
         raceTimer.Stop();
