@@ -38,13 +38,10 @@ public class PitLane : ITrackPoint
 
             //start tire change (parallel.for blocks)
             var tireTasks = new List<Task>();
+            var random = new ThreadLocal<Random>(() => new Random());
             for (int i = 0; i < 4; i++)
             {
-                tireTasks.Add(Task.Run(async () =>
-                {
-                    var rand = new Random();
-                    await Task.Delay(rand.Next(50, 100));
-                }));
+                tireTasks.Add(Task.Delay(random.Value!.Next(50, 100)));
             }
 
             await Task.WhenAll(tireTasks);
