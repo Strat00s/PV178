@@ -3,14 +3,14 @@
 var simulationSilverstone = new Simulation(CurrentF1.Tracks.Silverstone);
 
 // Testování nejlepší strategie
-//CurrentF1.Cars.All.First().SetMediumHardStrategy();
-//var lapsMediumHard = await simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
+CurrentF1.Cars.All.First().SetMediumHardStrategy();
+var lapsMediumHard = await simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
 
-//CurrentF1.Cars.All.First().SetMediumHardSoftStrategy();
-//var lapsMediumHardSoft = await simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
+CurrentF1.Cars.All.First().SetMediumHardSoftStrategy();
+var lapsMediumHardSoft = await simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
 
-//CurrentF1.Cars.All.First().SetMediumMediumSoftStrategy();
-//var lapsMediumMediumSoft = await simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
+CurrentF1.Cars.All.First().SetMediumMediumSoftStrategy();
+var lapsMediumMediumSoft = await simulationSilverstone.SimulateLapsAsync(CurrentF1.Cars.All.First(), 52);
 
 // Tady můžete vyhodnotit na základě jednotlivých simulací, která je nejlepší
 // a zvolit ji pro všechny nebo některé formule.
@@ -20,7 +20,7 @@ var simulationSilverstone = new Simulation(CurrentF1.Tracks.Silverstone);
 
 // Závod
 CurrentF1.Cars.All.ForEach(c => c.SetMediumHardStrategy());
-var race = await new Simulation(CurrentF1.Tracks.Silverstone).SimulateRaceAsync(CurrentF1.Cars.All, 100);
+var race = await new Simulation(CurrentF1.Tracks.Silverstone).SimulateRaceAsync(CurrentF1.Cars.All, 52);
 
 //Analytics
 Console.WriteLine("Final order:");

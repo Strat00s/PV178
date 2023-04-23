@@ -1,7 +1,6 @@
 using hw04.Car.Tires;
 using hw04.Race;
 using hw04.TrackPoints;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Channels;
 
@@ -36,8 +35,8 @@ public class RaceCar
     }
 
 
-    public async Task StartAsync(int lapCount, Track track, SemaphoreSlim startEvent, Channel<LapReport> lapStats,
-        Stopwatch raceTimer, ThreadSafeBool finishRace)
+    public async Task StartAsync(int numberOfLaps, Track track, SemaphoreSlim startSemaphore, Channel<LapReport> lapReportsCh,
+        Stopwatch raceTimer, ThreadSafeBool raceIsDone)
     {
         //set starting values
         _currentTireIndex = 0;
@@ -46,10 +45,10 @@ public class RaceCar
         bool inPit = false;
 
         //wait for the start of the race
-        await startEvent.WaitAsync();
+        await startSemaphore.WaitAsync();
 
         //driving the number of laps
-        for (int lapNum = 1; lapNum < lapCount + 1; lapNum++)
+        for (int lapNum = 1; lapNum < numberOfLaps + 1; lapNum++)
         {
             for (int i = 0; i < lapTrackPoints.Count; i++)
             {
@@ -65,13 +64,13 @@ public class RaceCar
                 }
             }
 
-            lapStats.Writer.TryWrite(new(this, lapNum, raceTimer.Elapsed, tackPointReports.ToList()));  //report back the lap results
+            lapReportsCh.Writer.TryWrite(new(this, lapNum, raceTimer.Elapsed, tackPointReports.ToList()));
 
             //exit on last lap or if race is done
-            if (lapNum == lapCount || finishRace.Value)
+            if (lapNum == numberOfLaps || raceIsDone.Value)
             {
-                if (!finishRace.Value)
-                    finishRace.Value = true;
+                if (!raceIsDone.Value)
+                    raceIsDone.Value = true;
 
                 break;
             }

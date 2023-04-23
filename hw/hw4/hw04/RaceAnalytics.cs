@@ -1,8 +1,5 @@
 //get and return analytics data
 
-using System.Runtime.CompilerServices;
-using static hw04.Race.RaceStats;
-
 namespace hw04;
 
 public static class RaceAnalytics

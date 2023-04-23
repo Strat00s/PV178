@@ -38,7 +38,6 @@ public class PitLane : ITrackPoint
 
             //start tire change (parallel.for blocks)
             var tireTasks = new List<Task>();
-
             for (int i = 0; i < 4; i++)
             {
                 tireTasks.Add(Task.Run(async () =>

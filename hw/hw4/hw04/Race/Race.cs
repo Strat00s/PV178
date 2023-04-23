@@ -22,7 +22,7 @@ public class Race
     }
 
     //added as an afterthought
-    private void PrintOrder(List<LapReport> reports, ref TimeSpan currentRaceTime)
+    private static void PrintOrder(List<LapReport> reports, ref TimeSpan currentRaceTime)
     {
         bool firstCar = true;
         foreach (var report in reports)
@@ -37,37 +37,36 @@ public class Race
             }
             var diff = report.CurrentRaceTime - currentRaceTime;
             Console.WriteLine($"{report.Car.Driver}: +{diff:mm\\:ss\\.fff}");
-
         }
     }
     
     public async Task<List<Lap>> StartRaceAsync()
     {
         //"global" and important variables
-        var startEvent = new SemaphoreSlim(0);
-        var lapStatsCh = Channel.CreateUnbounded<LapReport>();
-        var finishRace = new ThreadSafeBool(false);
+        var startSemaphore = new SemaphoreSlim(0);
+        var lapReportsCh = Channel.CreateUnbounded<LapReport>();
+        var raceIsDone = new ThreadSafeBool(false);
         var raceTimer = new Stopwatch();
         var carTasks = new List<Task>();
-        var lapResults = new Dictionary<int, List<LapReport>>();
 
         //start cars and let them wait for start of the race
         foreach (RaceCar car in _cars)
-            carTasks.Add(car.StartAsync(_numberOfLaps, _track, startEvent, lapStatsCh, raceTimer, finishRace));
+            carTasks.Add(car.StartAsync(_numberOfLaps, _track, startSemaphore, lapReportsCh, raceTimer, raceIsDone));
 
         //prepare everything else 
         LapReport lapReport;
         var currentRaceTime = TimeSpan.Zero;
-        var fastestLaps = new List<Lap>();
-        var raceDone = Task.WhenAll(carTasks);
+        var lapList = new List<Lap>();
+        var carsDone = Task.WhenAll(carTasks);
         int lastPrintedLap = 0;
+        var lapResults = new Dictionary<int, List<LapReport>>();
 
         //start the race
         raceTimer.Start();
-        startEvent.Release(_cars.Count);
-        while (!raceDone.IsCompleted || lapStatsCh.Reader.Count > 0)
+        startSemaphore.Release(_cars.Count);    //maybe barrier would be better?
+        while (!carsDone.IsCompleted || lapReportsCh.Reader.Count > 0)
         {
-            if (lapStatsCh.Reader.TryRead(out lapReport!))
+            if (lapReportsCh.Reader.TryRead(out lapReport!))
             {
                 //save data for later
                 _raceStats.AddStats(lapReport);
@@ -80,23 +79,24 @@ public class Race
                 //print them once all cars finish the lap
                 if (lapResults[lapReport.LapNumber].Count == _cars.Count)
                 {
+                    lapList.Add(new(lapReport.Car, lapReport.LapNumber));
                     lastPrintedLap = lapReport.LapNumber;
                     PrintOrder(lapResults[lapReport.LapNumber], ref currentRaceTime);
                 }
             }
-            //yield control back and wait some time when there are no new data
             else
-                await lapStatsCh.Reader.WaitToReadAsync();
+                await lapReportsCh.Reader.WaitToReadAsync();
         }
+
         raceTimer.Stop();
-        
+
         //print the rest of the laps
         for (lastPrintedLap++; lastPrintedLap < lapResults.Count + 1; lastPrintedLap++)
         {
             PrintOrder(lapResults[lastPrintedLap], ref currentRaceTime);
         }
 
-        return fastestLaps;
+        return lapList;
     }
 
     public RaceStats GetRaceStats()
