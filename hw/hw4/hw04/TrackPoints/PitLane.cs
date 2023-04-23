@@ -43,7 +43,7 @@ public class PitLane : ITrackPoint
                 tireTasks.Add(Task.Run(async () =>
                 {
                     var rand = new Random();
-                    await Task.Delay(rand.Next(50, 1000));
+                    await Task.Delay(rand.Next(50, 100));
                 }));
             }
 

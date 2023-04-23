@@ -61,6 +61,8 @@ public class Race
         int lastPrintedLap = 0;
         var lapResults = new Dictionary<int, List<LapReport>>();
 
+        await Task.Delay(10);   //this should be more than enough for all cars to get ready
+
         //start the race
         raceTimer.Start();
         startSemaphore.Release(_cars.Count);    //maybe barrier would be better?

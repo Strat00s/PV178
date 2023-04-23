@@ -4,27 +4,9 @@ namespace hw04;
 
 public static class RaceAnalytics
 {
-    public static List<(string, TimeSpan)> GetOrder(this Race.Race race, int lapNum = 0)
+    public static List<(string, TimeSpan, bool)> GetOrder(this Race.Race race)
     {
-        var data = race.GetRaceStats().GetLapsData();
-        if (lapNum < 1)
-            lapNum = data.Count;
-
-        var finishers = data.ElementAt(lapNum - 1)
-            .Select(pair => (pair.Key, pair.Value.RaceTime))
-            .OrderBy(pair => pair.RaceTime)
-            .ToList();
-
-        var dnf = data.Take(lapNum)
-            .SelectMany(lap => lap)
-            .Where(driverTime => !finishers.Any(fin => fin.Key == driverTime.Key))
-            .OrderByDescending(pair => pair.Value.RaceTime)
-            .GroupBy(driverTime => driverTime.Key)
-            .Select(group => (group.Key, TimeSpan.MinValue))
-            .Reverse()
-            .ToList();
-
-        return finishers.Concat(dnf).ToList();
+        return race.GetOrderAt(0);
     }
 
     public static List<(string, TimeSpan)> GetFastestLaps(this Race.Race race)
@@ -38,9 +20,27 @@ public static class RaceAnalytics
             .ToList();
     }
 
-    public static List<(string, TimeSpan)> GetOrderAt(this Race.Race race, int lapNum)
+    public static List<(string, TimeSpan, bool)> GetOrderAt(this Race.Race race, int lapNum)
     {
-        return GetOrder(race, lapNum);
+        var data = race.GetRaceStats().GetLapsData();
+        if (lapNum < 1)
+            lapNum = data.Count;
+
+        var finishers = data.ElementAt(lapNum - 1)
+            .Select(pair => (pair.Key, pair.Value.RaceTime, true))
+            .OrderBy(pair => pair.RaceTime)
+            .ToList();
+
+        var dnf = data.Take(lapNum)
+            .SelectMany(lap => lap)
+            .Where(driverTime => !finishers.Any(fin => fin.Key == driverTime.Key))
+            .OrderByDescending(pair => pair.Value.RaceTime)
+            .GroupBy(driverTime => driverTime.Key)
+            .Select(group => (group.Key, group.First().Value.RaceTime, false))
+            .Reverse()
+            .ToList();
+
+        return finishers.Concat(dnf).ToList();
     }
 
     public static List<(string, string, int, TimeSpan, string, int, TimeSpan)> GetTrackPointTimes(this Race.Race race)
