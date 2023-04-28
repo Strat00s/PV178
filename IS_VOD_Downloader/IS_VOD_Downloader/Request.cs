@@ -14,17 +14,17 @@ namespace ISVOD
         private HttpClient _client;
 
 
-        private static string CombineCookies(Dictionary<string, string> cookies)
-        {
-            return string.Join("; ", cookies.Select(cookie => $"{cookie.Key}={cookie.Value}"));
-        }
-
-
         public Request(Dictionary<string, string>? cookies = null)
         {
             _client = new HttpClient();
             if (cookies != null)
                 SetCookies(cookies);
+        }
+
+
+        private static string CombineCookies(Dictionary<string, string> cookies)
+        {
+            return string.Join("; ", cookies.Select(cookie => $"{cookie.Key}={cookie.Value}"));
         }
 
         //public void AddCookie(string name, string value)
@@ -43,6 +43,7 @@ namespace ISVOD
         {
             _client.DefaultRequestHeaders.Remove("Cookie");
         }
+
         public void SetCookies(Dictionary<string, string> cookies)
         {
             ClearCookies();
@@ -86,7 +87,8 @@ namespace ISVOD
             return SendAsync(request);
         }
 
-        public async Task<HttpContent> SendHttpRequestAsync(HttpMethod method, string url, HttpContent requestBody = null, Dictionary<string, string> headers = null)
+
+        public async Task<HttpContent> SendRequestAsync(HttpMethod method, string url, HttpContent? requestBody = null, Dictionary<string, string>? headers = null)
         {
             using var request = new HttpRequestMessage(method, url);
 
@@ -108,24 +110,6 @@ namespace ISVOD
 
             var content = await response.Content.ReadAsStreamAsync();
             return new StreamContent(content);
-        }
-
-
-        public async Task<string> SearchForCourse(string courseCode)
-        {
-            var content = new FormUrlEncodedContent(new[]
-            {
-                new KeyValuePair<string, string>("type", "result"),
-                new KeyValuePair<string, string>("operace", "get_courses"),
-                new KeyValuePair<string, string>("filters", "{\"offered\":[\"1\"]}"),
-                new KeyValuePair<string, string>("pvysl", "18002909"),
-                new KeyValuePair<string, string>("search_text", courseCode),
-                new KeyValuePair<string, string>("search_text_specify", "codes"),
-                new KeyValuePair<string, string>("records_per_page", "50"),
-            });
-
-            var response = await PostAsync("https://is.muni.cz/predmety/predmety_ajax.pl", content);
-            return await response.ReadAsStringAsync();
         }
     }
 }

@@ -12,6 +12,8 @@
  * 7. Call external program to convert it
  */
 
+using IS_VOD_Downloader;
+
 namespace ISVOD
 {
     public class Program
@@ -20,24 +22,8 @@ namespace ISVOD
         {
             //setup everyting
             //call ConsoleApp
-            var cookies = new Dictionary<string, string>{
-                { "iscreds", "eX-2hwXUi9W4Q_Kf8E4dRM8q" },
-                { "issession", "ckzMyXb-7ONBhawLFWrEj9Z6"}
-            };
-            //Console.WriteLine("iscreds: eX-2hwXUi9W4Q_Kf8E4dRM8q");
-            //Console.WriteLine("issession: ckzMyXb-7ONBhawLFWrEj9Z6");
-            //Console.Write("Course: ");
-            //var course = Console.ReadLine();
-            var request = new Request();
-
-            //search for course
-            var html = await request.SearchForCourse("IA174");
-            //get raw site
-            //var html = await request.GetRawString("https://is.muni.cz/auth/el/fi/podzim2021/IA174/index.qwarp");
-            Console.WriteLine(html);
-
-            var tmp = await request.GetAsync("https://is.muni.cz/?lang=cs");
-            Console.WriteLine(await tmp.ReadAsStringAsync());
+            var app = new ConsoleApp();
+            await app.RunAsync();
         }
     }
 }
