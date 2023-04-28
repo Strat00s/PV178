@@ -1,0 +1,17 @@
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\bin\Debug\net6.0\IS_VOD_Downloader.exe
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\bin\Debug\net6.0\IS_VOD_Downloader.deps.json
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\bin\Debug\net6.0\IS_VOD_Downloader.runtimeconfig.json
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\bin\Debug\net6.0\IS_VOD_Downloader.dll
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\bin\Debug\net6.0\IS_VOD_Downloader.pdb
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\IS_VOD_Downloader.csproj.AssemblyReference.cache
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\IS_VOD_Downloader.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\IS_VOD_Downloader.AssemblyInfoInputs.cache
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\IS_VOD_Downloader.AssemblyInfo.cs
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\IS_VOD_Downloader.csproj.CoreCompileInputs.cache
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\IS_VOD_Downloader.dll
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\refint\IS_VOD_Downloader.dll
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\IS_VOD_Downloader.pdb
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\IS_VOD_Downloader.genruntimeconfig.cache
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\ref\IS_VOD_Downloader.dll
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\bin\Debug\net6.0\HtmlAgilityPack.dll
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\IS_VOD_Downloader.csproj.CopyComplete

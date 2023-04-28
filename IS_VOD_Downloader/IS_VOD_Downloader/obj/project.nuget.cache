@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "HT5OXfXa8Hf01adJC48PFGXnAWPXDILlUzeDjAeRtp1mrbDnVAoFieegM+1f24LMe5ZYLSopwka6NfQfQI43fw==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\IS_VOD_Downloader\\IS_VOD_Downloader\\IS_VOD_Downloader.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Stratos\\.nuget\\packages\\htmlagilitypack\\1.11.46\\htmlagilitypack.1.11.46.nupkg.sha512"
+  ],
+  "logs": []
+}
