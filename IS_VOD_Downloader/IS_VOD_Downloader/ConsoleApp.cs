@@ -8,6 +8,7 @@ using HtmlAgilityPack;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using IS_VOD_Downloader.Structures;
 
 
 //TODO custom course class
@@ -19,7 +20,9 @@ namespace IS_VOD_Downloader
     public class ConsoleApp
     {
         private Request _request;
-        private string _baseUri;
+        private string _baseUrl;
+        private bool _hasCookies;   //TODO implement cookie check
+
 
         private static string CombineUri(string uri1, string uri2)
         {
@@ -74,7 +77,7 @@ namespace IS_VOD_Downloader
 
         private async Task<List<(string, string)>> GetTermsForCourse(string courseUri)
         {
-            var response = await _request.GetAsync(CombineUri(_baseUri, courseUri));
+            var response = await _request.GetAsync(CombineUri(_baseUrl, courseUri));
             var result = await response.ReadAsStringAsync();
             var htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(Regex.Unescape(result));
@@ -88,30 +91,23 @@ namespace IS_VOD_Downloader
                 ))
                 .Where(pair => pair.Item2 != String.Empty)
                 .Append((FormatTerm(courseUri.Split("/")[^2]), courseUri))
+                .Reverse()
                 .ToList();
         }
 
+        //private async Task<List<(string, string)>> GetChaptersWithVODs(string )
+
         public ConsoleApp() 
         {
-            _baseUri = "https://is.muni.cz";
-            //_baseNoAuthUri = new("https://is.muni.cz/");
+            _baseUrl = "https://is.muni.cz";
+            //"https://is.muni.cz/" "auth" "/el/ped/" "podzim2022/ONLINE_A" "/index.qwarp"
+            _hasCookies = false;
         }
         public async Task RunAsync()
         {
-            var cookies = new Dictionary<string, string>{
-                { "iscreds", "wh-ah5WfS7VGaR8KA3qChLNe" },
-                { "issession", "HneacmmjmZgrsL4z_zFAIfJT"}
-            };
-            //Console.WriteLine("iscreds: eX-2hwXUi9W4Q_Kf8E4dRM8q");
-            //Console.WriteLine("issession: ckzMyXb-7ONBhawLFWrEj9Z6");
-            //Console.Write("Course: ");
-
             _request = new Request();
 
-            //var tmp = await _request.GetAsync("https://is.muni.cz/auth/el/fi/podzim2022/IA174/index.qwarp");
-            //Console.WriteLine(await tmp.ReadAsStringAsync());
-            //_request.ClearCookies();
-
+            //TODO save faculty
             //search for course
             var courses = await SearchForCourse("IA174");
             Console.WriteLine(courses.Count);
@@ -119,7 +115,7 @@ namespace IS_VOD_Downloader
             //repeat search
             if (courses.Count == 0)
             {
-                Console.WriteLine($"No course with name 'TODO' found!");
+                Console.WriteLine($"No course with code 'TODO' found!");
                 return;
             }
 
@@ -153,6 +149,59 @@ namespace IS_VOD_Downloader
             }
             else
                 term = terms.First();
+
+            Console.WriteLine(term.Item1);
+            Console.WriteLine(term.Item2);
+
+
+            //Ask for cookies
+            var cookies = new Dictionary<string, string>{
+                { "iscreds", "41VQrpku_lgHcW6-UzYhbf_b" },
+                { "issession", "HneacmmjmZgrsL4z_zFAIfJT"}
+            };
+            _request.SetCookies(cookies);
+            _baseUrl = CombineUri(_baseUrl, "auth");
+            _hasCookies = true;
+
+            //TODO build this url
+            //https://is.muni.cz/auth/el/fi/podzim2022/IA174/index.qwarp
+            var syllabusUrl = CombineUri(_baseUrl, "el");
+            syllabusUrl = CombineUri(syllabusUrl, term.Item2.Replace("/predmet/", String.Empty));
+            
+            //TODO get all videos
+            //TODO check if has access
+            var response = await _request.GetAsync(CombineUri(syllabusUrl, "index.qwarp"));
+            var result = await response.ReadAsStringAsync();
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(Regex.Unescape(result));
+
+            //get lecture names and redirect code
+            var videoNodes = htmlDoc.DocumentNode.Descendants()
+                .Where(node => 
+                    node.HasClass("io-kapitola-box") &&
+                    node.Descendants()
+                        .Any(subnode => subnode.HasClass("io-obsahuje-prvek") && subnode.InnerText.Contains("Video"))
+                )
+                .Select(node => (
+                    node.Descendants("a")
+                        .First()
+                        .GetAttributeValue("data-warp-id", String.Empty),
+                    node.Descendants()
+                        .Where(subnode => subnode.HasClass("io-kapitola-nazev"))
+                        .First()
+                        .InnerText
+                        .Trim()
+                ))
+                .ToList();
+
+            Console.WriteLine(videoNodes.Count);
+
+            foreach ( var videoNode in videoNodes )
+            {
+                Console.WriteLine($"{videoNode.Item2}: {videoNode.Item1}");
+            }
+
+            //?prejit=9564869
         }
     }
 }

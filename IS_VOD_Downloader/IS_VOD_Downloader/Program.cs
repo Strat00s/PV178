@@ -1,9 +1,9 @@
 ﻿
 /*
- * 1. Get cookies
- * 2. Get course and term
+ * 1. Get course and term
  *      a. Search for course and check that it exists
  *      b. Write possible course terms
+ * 2. Get cookies or login
  * 3. Search for all videos
  * 4. Download specific video(s), download all
  * 5. If downloading single, ask for specific quality
