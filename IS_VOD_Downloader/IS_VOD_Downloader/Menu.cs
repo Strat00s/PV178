@@ -8,7 +8,7 @@ namespace IS_VOD_Downloader
 {
     public static class Menu
     {
-        public static int Draw(List<string> options, string prompt)
+        public static int DrawSelect(List<string> options, string prompt)
         {
             int i;
             while (true)
