@@ -26,7 +26,7 @@ namespace IS_VOD_Downloader
                 new KeyValuePair<string, string>("filters", "{\"offered\":[\"1\"]}"),
                 new KeyValuePair<string, string>("pvysl", "18002909"),
                 new KeyValuePair<string, string>("search_text", courseCode),
-                new KeyValuePair<string, string>("search_text_specify", "codes"),
+                //new KeyValuePair<string, string>("search_text_specify", "codes"),
                 new KeyValuePair<string, string>("records_per_page", "50")
             });
 
@@ -49,8 +49,8 @@ namespace IS_VOD_Downloader
         public async Task RunAsync()
         {
             var cookies = new Dictionary<string, string>{
-                { "iscreds", "qnfwgIGEaOLQx7djfRoRdRxp" },
-                { "issession", "ckzMyXb-7ONBhawLFWrEj9Z6"}
+                { "iscreds", "wh-ah5WfS7VGaR8KA3qChLNe" },
+                { "issession", "HneacmmjmZgrsL4z_zFAIfJT"}
             };
             //Console.WriteLine("iscreds: eX-2hwXUi9W4Q_Kf8E4dRM8q");
             //Console.WriteLine("issession: ckzMyXb-7ONBhawLFWrEj9Z6");
@@ -66,12 +66,25 @@ namespace IS_VOD_Downloader
             var courses = await SearchForCourse("IA174");
             Console.WriteLine(courses.Count);
 
-            foreach ( var course in courses)
+            //repeat search
+            if (courses.Count == 0)
             {
-                Console.WriteLine(course.Item1);
-                Console.WriteLine(course.Item2);
+                Console.WriteLine($"No course with name 'TODO' found!");
+                return;
             }
-            //Console.WriteLine(html);
+
+            (string, string)  course;
+            if (courses.Count > 1)
+            {
+                var i = Menu.Draw(courses.Select(c => c.Item1).ToList(), "Please select course");
+                course = courses[i];
+            }
+            else
+                course = courses.First();
+
+            Console.WriteLine(course.Item1);
+            Console.WriteLine(course.Item2);
+
         }
     }
 }
