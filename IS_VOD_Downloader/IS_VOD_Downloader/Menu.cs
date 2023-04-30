@@ -21,6 +21,7 @@ namespace IS_VOD_Downloader
             }
             Console.Write($"{prompt} (1-{options.Count}): ");
         }
+
         public static int Select(List<string> options, string prompt)
         {
             while (true)
@@ -36,11 +37,6 @@ namespace IS_VOD_Downloader
                 }
                 Console.WriteLine($"Invalid option '{selection}'");
             }
-
-            //return await Task.Run(() => 
-            //    {
-            //        return 0;
-            //    });
         }
 
         //return list of selected items
@@ -51,7 +47,7 @@ namespace IS_VOD_Downloader
                 DrawOptions(options, prompt);
                 var selection = Console.ReadLine();
 
-                //Valid input: number, numbers seperated by commas, range using dash, any combination of those
+                //Valid input: number, numbers seperated by commas, numbers seperated by dash (range), any combination of those
                 if (selection == null || !Regex.IsMatch(selection, "^\\s*\\d+(\\s*-\\s*\\d+)?(\\s*,\\s*\\d+(\\s*-\\s*\\d+)?)*\\s*$"))
                 {
                     Console.WriteLine($"Invalid option '{selection}'");
@@ -90,8 +86,9 @@ namespace IS_VOD_Downloader
                         }
                     }
                 }
-                return result;
-
+                return result.Distinct()
+                    .OrderBy(x => x)
+                    .ToList();
             }
         }
     }
