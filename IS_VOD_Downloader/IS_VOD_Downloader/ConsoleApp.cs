@@ -31,6 +31,33 @@ namespace IS_VOD_Downloader
             return string.Format($"{uri1}/{uri2}");
         }
 
+        private async Task<List<(string, string)>> GetVideoNodes(string syllabusUrl)
+        {
+            var response = await _request.GetAsync(CombineUri(syllabusUrl, "index.qwarp"));
+            var result = await response.ReadAsStringAsync();
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(Regex.Unescape(result));
+
+            //get lecture names and redirect code
+            return htmlDoc.DocumentNode.Descendants()
+                .Where(node =>
+                    node.HasClass("io-kapitola-box") &&
+                    node.Descendants()
+                        .Any(subnode => subnode.HasClass("io-obsahuje-prvek") && subnode.InnerText.Contains("Video"))
+                )
+                .Select(node => (
+                    node.Descendants("a")
+                        .First()
+                        .GetAttributeValue("data-warp-id", String.Empty),
+                    node.Descendants()
+                        .Where(subnode => subnode.HasClass("io-kapitola-nazev"))
+                        .First()
+                        .InnerText
+                        .Trim()
+                ))
+                .ToList();
+        }
+
         private async Task<List<(string, string)>> SearchForCourse(string courseCode)
         {
             var requestBody = new FormUrlEncodedContent(new[]
@@ -122,7 +149,7 @@ namespace IS_VOD_Downloader
             (string, string)  course;
             if (courses.Count > 1)
             {
-                var i = Menu.DrawSelect(courses.Select(c => c.Item1).ToList(), "Please select course");
+                var i = Menu.Select(courses.Select(c => c.Item1).ToList(), "Please select course");
                 course = courses[i];
             }
             else
@@ -144,7 +171,7 @@ namespace IS_VOD_Downloader
             (string, string) term;
             if (terms.Count > 1)
             {
-                var i = Menu.DrawSelect(terms.Select(c => c.Item1).ToList(), "Please select term");
+                var i = Menu.Select(terms.Select(c => c.Item1).ToList(), "Please select term");
                 term = terms[i];
             }
             else
@@ -167,38 +194,20 @@ namespace IS_VOD_Downloader
             //https://is.muni.cz/auth/el/fi/podzim2022/IA174/index.qwarp
             var syllabusUrl = CombineUri(_baseUrl, "el");
             syllabusUrl = CombineUri(syllabusUrl, term.Item2.Replace("/predmet/", String.Empty));
-            
+
             //TODO get all videos
             //TODO check if has access
-            var response = await _request.GetAsync(CombineUri(syllabusUrl, "index.qwarp"));
-            var result = await response.ReadAsStringAsync();
-            var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(Regex.Unescape(result));
-
-            //get lecture names and redirect code
-            var videoNodes = htmlDoc.DocumentNode.Descendants()
-                .Where(node => 
-                    node.HasClass("io-kapitola-box") &&
-                    node.Descendants()
-                        .Any(subnode => subnode.HasClass("io-obsahuje-prvek") && subnode.InnerText.Contains("Video"))
-                )
-                .Select(node => (
-                    node.Descendants("a")
-                        .First()
-                        .GetAttributeValue("data-warp-id", String.Empty),
-                    node.Descendants()
-                        .Where(subnode => subnode.HasClass("io-kapitola-nazev"))
-                        .First()
-                        .InnerText
-                        .Trim()
-                ))
-                .ToList();
+            var videoNodes = await GetVideoNodes(CombineUri(syllabusUrl, "index.qwarp"));
 
             Console.WriteLine(videoNodes.Count);
 
-            foreach ( var videoNode in videoNodes )
+            Console.WriteLine(terms.Count);
+
+            var nodeIds = Menu.MultiSelect(videoNodes.Select(v => v.Item2).ToList(), "Please select leacture(s)");
+            //repeat search
+            foreach (var nodeId in nodeIds) 
             {
-                Console.WriteLine($"{videoNode.Item2}: {videoNode.Item1}");
+                Console.WriteLine(nodeId);
             }
 
             //?prejit=9564869
