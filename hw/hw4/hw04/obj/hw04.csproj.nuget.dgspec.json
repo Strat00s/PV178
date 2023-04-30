@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\hw\\hw4\\hw04\\hw04.csproj": {}
+    "C:\\Users\\Stratos\\Documents\\0_Projects\\PV178\\hw\\hw4\\hw04\\hw04.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\hw\\hw4\\hw04\\hw04.csproj": {
+    "C:\\Users\\Stratos\\Documents\\0_Projects\\PV178\\hw\\hw4\\hw04\\hw04.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\hw\\hw4\\hw04\\hw04.csproj",
+        "projectUniqueName": "C:\\Users\\Stratos\\Documents\\0_Projects\\PV178\\hw\\hw4\\hw04\\hw04.csproj",
         "projectName": "hw04",
-        "projectPath": "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\hw\\hw4\\hw04\\hw04.csproj",
+        "projectPath": "C:\\Users\\Stratos\\Documents\\0_Projects\\PV178\\hw\\hw4\\hw04\\hw04.csproj",
         "packagesPath": "C:\\Users\\Stratos\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\hw\\hw4\\hw04\\obj\\",
+        "outputPath": "C:\\Users\\Stratos\\Documents\\0_Projects\\PV178\\hw\\hw4\\hw04\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Stratos\\AppData\\Roaming\\NuGet\\NuGet.Config",

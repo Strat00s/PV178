@@ -78,7 +78,7 @@ namespace IS_VOD_Downloader
                         var end = int.Parse(range[1]);
                         if (start < end && start > 0 && end <= options.Count) 
                         {
-                            result.AddRange(new[] {start - 1, end - 1});
+                            result.AddRange(Enumerable.Range(start - 1, end - 1));
                         }
                         else
                         {

@@ -46,14 +46,14 @@ namespace IS_VOD_Downloader
                         .Any(subnode => subnode.HasClass("io-obsahuje-prvek") && subnode.InnerText.Contains("Video"))
                 )
                 .Select(node => (
-                    node.Descendants("a")
-                        .First()
-                        .GetAttributeValue("data-warp-id", String.Empty),
                     node.Descendants()
                         .Where(subnode => subnode.HasClass("io-kapitola-nazev"))
                         .First()
                         .InnerText
-                        .Trim()
+                        .Trim(),
+                    node.Descendants("a")
+                        .First()
+                        .GetAttributeValue("data-warp-id", String.Empty)
                 ))
                 .ToList();
         }
@@ -194,23 +194,37 @@ namespace IS_VOD_Downloader
             //https://is.muni.cz/auth/el/fi/podzim2022/IA174/index.qwarp
             var syllabusUrl = CombineUri(_baseUrl, "el");
             syllabusUrl = CombineUri(syllabusUrl, term.Item2.Replace("/predmet/", String.Empty));
+            syllabusUrl = CombineUri(syllabusUrl, "index.qwarp");
 
             //TODO get all videos
             //TODO check if has access
-            var videoNodes = await GetVideoNodes(CombineUri(syllabusUrl, "index.qwarp"));
+            var videoNodes = await GetVideoNodes(syllabusUrl);
 
             Console.WriteLine(videoNodes.Count);
 
             Console.WriteLine(terms.Count);
 
-            var nodeIds = Menu.MultiSelect(videoNodes.Select(v => v.Item2).ToList(), "Please select leacture(s)");
+            var nodeIds = Menu.MultiSelect(videoNodes.Select(v => v.Item1).ToList(), "Please select leacture(s)");
             //repeat search
             foreach (var nodeId in nodeIds) 
             {
                 Console.WriteLine(nodeId);
+                Console.WriteLine(videoNodes[nodeId].Item1);
+                Console.WriteLine(videoNodes[nodeId].Item2);
             }
 
             //?prejit=9564869
+            //TODO ask for this
+            bool preferQuality = true;
+
+            foreach (var nodeId in nodeIds)
+            {
+                var chapter = syllabusUrl + $"?prejit={videoNodes[nodeId].Item2}";
+                Console.WriteLine(chapter);
+                var response = await _request.GetAsync(chapter);
+                var result = await response.ReadAsStringAsync();
+                Console.WriteLine(result);
+            }
         }
     }
 }
