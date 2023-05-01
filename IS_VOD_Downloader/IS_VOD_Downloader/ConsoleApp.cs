@@ -222,17 +222,13 @@ namespace IS_VOD_Downloader
             bool preferQuality = true;
 
 
-            //go through each lecture and find all videos. If some has multiple, as which ones to download
+            //go through each lecture and find all videos. If some has multiple, ask which ones to download
             foreach (var nodeId in nodeIds)
             {
                 var chapter = syllabusUrl + $"?prejit={videoNodes[nodeId].Item2}";
                 Console.WriteLine(chapter);
                 var response = await _request.GetAsync(chapter);
                 var result = await response.ReadAsStringAsync();
-                //encodeKey is in a json in a script function -> regex is easiest to use here
-                //var encodeKey = Regex.Match(result, "\"encode_key\":\".+\"");
-                //Console.WriteLine(encodeKey.);
-                //Console.WriteLine(result);
 
                 var htmlDoc = new HtmlDocument();
                 htmlDoc.LoadHtml(Regex.Unescape(result));
@@ -248,7 +244,10 @@ namespace IS_VOD_Downloader
                 var keyItemPairs = new List<(string, string)>();
                 for (int i = 0; i < matches.Count; i += 2)
                 {
-                    keyItemPairs.Add((matches[i].Value, matches[i + 1].Value));
+                    if (matches[i].Value.Contains("id"))
+                        keyItemPairs.Add((matches[i + 1].Value, matches[i].Value));
+                    else
+                        keyItemPairs.Add((matches[i].Value, matches[i + 1].Value));
                 }
 
                 foreach (var pair in keyItemPairs)
@@ -256,18 +255,19 @@ namespace IS_VOD_Downloader
                     Console.WriteLine($"{pair.Item1} {pair.Item2}");
                 }
 
-                return;
-
                 var videos = htmlDoc.DocumentNode
                     .Descendants()
                     .Where(node => node.HasClass("io-ramecek"))
                     .Select(node => (
                         node.Descendants("a")
                             .First()
-                            .InnerText,
+                            .InnerText, //video title
                         node.Descendants()
                             .Where(subnode => subnode.HasClass("vidis"))
-                            .Select(subnode => subnode.GetAttributeValue("src", String.Empty))
+                            .Select(subnode => (
+                                subnode.GetAttributeValue("src", String.Empty),
+                                subnode.GetAttributeValue("id", String.Empty)
+                            ))
                     ))
                     .ToList();
 
@@ -276,6 +276,10 @@ namespace IS_VOD_Downloader
                     //foreach (var cls in video.GetClasses())
                     //    Console.WriteLine(cls);
                     Console.WriteLine(video.InnerText);
+                    foreach (var subitem in video.Item2)
+                    {
+                        Console.WriteLine($"{subitem.Item1} {subitem.Item2}");
+                    }
                 }
             }
         }
