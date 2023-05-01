@@ -14,40 +14,20 @@ namespace ISVOD
         private HttpClient _client;
 
 
-        public Request(Dictionary<string, string>? cookies = null)
+        public Request()
         {
             _client = new HttpClient();
-            if (cookies != null)
-                SetCookies(cookies);
         }
-
-
-        private static string CombineCookies(Dictionary<string, string> cookies)
-        {
-            return string.Join("; ", cookies.Select(cookie => $"{cookie.Key}={cookie.Value}"));
-        }
-
-        //public void AddCookie(string name, string value)
-        //{
-        //    if (_client.DefaultRequestHeaders.TryGetValues("Cookies", out IEnumerable<string>? cookiesRaw))
-        //    {
-        //        cookiesRaw += $"; {name}={value}";
-        //    }
-        //    else
-        //    {
-        //
-        //    }
-        //}
 
         public void ClearCookies()
         {
             _client.DefaultRequestHeaders.Remove("Cookie");
         }
 
-        public void SetCookies(Dictionary<string, string> cookies)
+        public void SetCookies(string iscreds, string issession)
         {
             ClearCookies();
-            _client.DefaultRequestHeaders.Add("Cookie", CombineCookies(cookies));
+            _client.DefaultRequestHeaders.Add("Cookie", $"iscreds={iscreds}; issession={issession}");
         }
 
 

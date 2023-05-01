@@ -38,6 +38,7 @@ namespace IS_VOD_Downloader
         //get chapter (lecture) with VoDs and redirect links to them
         private async Task<List<(string, string)>> GetChaptersWithVoDs(string syllabusUrl)
         {
+            Console.WriteLine(syllabusUrl);
             var response = await _request.GetAsync(syllabusUrl);
             var result = await response.ReadAsStringAsync();
             var htmlDoc = new HtmlDocument();
@@ -128,7 +129,7 @@ namespace IS_VOD_Downloader
                 .ToList();
         }
 
-        //get video name, key and path
+        //get video name, src and key
         private async Task<List<(string, string, string)>> GetVoDsData(string chapterUrl)
         {
             Console.WriteLine(chapterUrl);
@@ -154,38 +155,41 @@ namespace IS_VOD_Downloader
                 if (matches[i].Value.Contains("id"))
                 {
                     keyIdPairs.Add((
-                        matches[i + 1].Value.Replace(" ", String.Empty).Replace("\"encode_key\":", String.Empty),
-                        matches[i].Value.Replace(" ", String.Empty).Replace("\"id\":", String.Empty)
+                        matches[i + 1].Value.Split(":").Last().Replace("\"", String.Empty).Trim(),
+                        matches[i].Value.Split(":").Last().Replace("\"", String.Empty).Trim()
                     ));
                 }
                 else
                 {
                     keyIdPairs.Add((
-                        matches[i].Value.Replace(" ", String.Empty).Replace("\"id\":", String.Empty),
-                        matches[i + 1].Value.Replace(" ", String.Empty).Replace("\"encode_key\":", String.Empty)
+                        matches[i].Value.Split(":").Last().Replace("\"", String.Empty).Trim(),
+                        matches[i + 1].Value.Split(":").Last().Replace("\"", String.Empty).Trim()
                     ));
                 }
-
-                Console.WriteLine(keyIdPairs.Last().Item1);
-                Console.WriteLine(keyIdPairs.Last().Item2);
             }
 
-            return new List<(string, string, string)>() { (String.Empty, String.Empty, String.Empty)};
-            //return htmlDoc.DocumentNode
-            //    .Descendants()
-            //    .Where(node => node.HasClass("io-ramecek"))
-            //    .Select(node => (
-            //        node.Descendants("a")
-            //            .First()
-            //            .InnerText, //video title
-            //        node.Descendants()
-            //            .Where(subnode => 
-            //                subnode.HasClass("vidis") &&
-            //                keyIdPairs.Any(kip => kip.Item2 == subnode.GetAttributeValue("id", String.Empty))
-            //            )
-            //            .Select(subnode => subnode.GetAttributeValue("src", String.Empty))
-            //    ))
-            //    .ToList();
+            //get possible vods
+            return htmlDoc.DocumentNode
+                .Descendants()
+                .Where(node => node.HasClass("io-ramecek"))
+                .Select(node => (
+                    node.Descendants("a")
+                        .First()
+                        .InnerText, //video title
+                    node.Descendants()
+                        .Where(subnode => subnode.HasClass("vidis"))
+                        .Select(subnode => (
+                            subnode.GetAttributeValue("src", String.Empty),
+                            subnode.GetAttributeValue("id", String.Empty).Replace("\"", String.Empty).Trim()
+                        ))
+                        .First()
+                ))
+                .Join(keyIdPairs,
+                    vodData => vodData.Item2.Item2,
+                    kip => kip.Item2,
+                    (vodData, kip) => (vodData.InnerText, vodData.Item2.Item1, kip.Item1)
+                )
+                .ToList();
         }
 
         public ConsoleApp() 
@@ -218,7 +222,9 @@ namespace IS_VOD_Downloader
             queryData.AddCourse(new(courseFac[1], paths[4]));
             queryData.AddTerm(new(String.Empty, paths[3]));
 
+
             queryData.DataReport();
+
 
             //Get terms
             var terms = await GetTermsForCourse(queryData.GetCourseUrl());
@@ -235,6 +241,7 @@ namespace IS_VOD_Downloader
             //save selected term
             queryData.AddTerm(new(terms[selIndex].Item1, terms[selIndex].Item2));
 
+
             //We need authorization for anything else
             var cookies = new Dictionary<string, string>{
                 { "iscreds", "41VQrpku_lgHcW6-UzYhbf_b" },
@@ -242,6 +249,7 @@ namespace IS_VOD_Downloader
             };
 
             queryData.SetCookies("41VQrpku_lgHcW6-UzYhbf_b", "HneacmmjmZgrsL4z_zFAIfJT");
+            _request.SetCookies("41VQrpku_lgHcW6-UzYhbf_b", "HneacmmjmZgrsL4z_zFAIfJT");
 
             //TODO check if has access
             var chapters = await GetChaptersWithVoDs(queryData.GetSyllabusUrl());
@@ -263,8 +271,13 @@ namespace IS_VOD_Downloader
                 //query.Add((chapters[nodeId].Item1, String.Empty, String.Empty, String.Empty, String.Empty));
 
                 var chapterUrl = queryData.GetSyllabusUrl() + $"?prejit={chapters[index].Item2}";
-                await GetVoDsData(chapterUrl);
+                var tmp = await GetVoDsData(chapterUrl);
                 
+                foreach(var item in tmp)
+                {
+                    Console.WriteLine($"{item.Item1} {item.Item2} {item.Item3}");
+                }
+
                 //var response = await _request.GetAsync(chapterUrl);
                 //var result = await response.ReadAsStringAsync();
                 //

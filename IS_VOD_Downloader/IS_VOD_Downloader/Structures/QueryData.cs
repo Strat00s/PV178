@@ -39,9 +39,9 @@ namespace IS_VOD_Downloader.Structures
         }
 
         //add cookies
-        public void SetCookies(string iscred, string issession)
+        public void SetCookies(string iscreds, string issession)
         {
-            Cookies.Add(new Cookie("iscred", iscred));
+            Cookies.Add(new Cookie("iscreds", iscreds));
             Cookies.Add(new Cookie("issession", issession));
             _auth = "auth/";
         }
