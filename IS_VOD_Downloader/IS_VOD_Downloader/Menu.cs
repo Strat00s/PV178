@@ -45,7 +45,10 @@ namespace IS_VOD_Downloader
         //return list of selected items
         public static List<int> MultiSelect(List<string> options, string prompt)
         {
-            while(true)
+            if (options.Count == 1)
+                return new List<int>() {0};
+
+            while (true)
             {
                 DrawOptions(options, prompt);
                 var selection = Console.ReadLine();

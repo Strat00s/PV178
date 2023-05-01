@@ -1,18 +1,10 @@
 ﻿using ISVOD;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using HtmlAgilityPack;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using IS_VOD_Downloader.Structures;
-using System.Diagnostics;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-using System.Dynamic;
+using System.Security.Cryptography;
+using System.Text;
+using System.Reflection.PortableExecutable;
 
 
 //TODO custom course class
@@ -132,7 +124,6 @@ namespace IS_VOD_Downloader
         //get video name, key and path
         private async Task<List<(string, string, string)>> GetVoDsData(string chapterUrl)
         {
-            Console.WriteLine(chapterUrl);
             var response = await _request.GetAsync(chapterUrl);
             var result = await response.ReadAsStringAsync();
             var htmlDoc = new HtmlDocument();
@@ -192,12 +183,28 @@ namespace IS_VOD_Downloader
                 .ToList();
         }
 
+        //start, range
+        private async Task<List<(int, int)>> GetStreamSegments(string streamUrl)
+        {
+            var response = await _request.GetAsync(streamUrl);
+            var result = await response.ReadAsStringAsync();
+            var matches = Regex.Matches(result, @"#EXT-X-BYTERANGE:\d+@\d+");
+
+            return matches.Select(m => m.Value.Replace("#EXT-X-BYTERANGE:", String.Empty).Split("@"))
+                .Select(m => (
+                    int.Parse(m[1]),
+                    int.Parse(m[0])
+                ))
+                .ToList();
+        }
+
         public ConsoleApp() 
         {
             _baseUrl = "https://is.muni.cz";
             //"https://is.muni.cz/" "auth" "/el/ped/" "podzim2022/ONLINE_A" "/chapterIndex.qwarp"
             _hasCookies = false;
         }
+
         public async Task RunAsync()
         {
             QueryData queryData = new(_baseUrl);
@@ -267,23 +274,69 @@ namespace IS_VOD_Downloader
             {
                 var chapterUrl = queryData.GetSyllabusUrl() + $"?prejit={chapters[chapterIndex].Item2}";
                 var vodsData = await GetVoDsData(chapterUrl);
+
+                if (vodsData.Count > 1)
+                    Console.WriteLine($"Multiple streams found in lecture '{chapters[chapterIndex].Item1}':");
                 
-                if (vodsData.Count == 1) 
-                {
-                    queryData.AddStream(new(chapters[chapterIndex].Item1, vodsData.First().Item1, vodsData.First().Item2, vodsData.First().Item3));
-                    continue;
-                }
-
-                Console.WriteLine($"Multiple streams found in lecture '{chapters[chapterIndex].Item1}':");
                 var vodIndexes = Menu.MultiSelect(vodsData.Select(v => v.Item1).ToList(), "Please select stream(s)");
-
                 foreach (var vodIndex in vodIndexes)
                 {
-                    queryData.AddStream(new(chapters[chapterIndex].Item1, vodsData[vodIndex].Item1, vodsData[vodIndex].Item2, vodsData[vodIndex].Item3));
+                    var streamPathSplits = vodsData[vodIndex].Item3.Split("/");
+                    var streamPath = streamPathSplits[6] + "/" + streamPathSplits[7];
+                    queryData.AddStream(chapters[chapterIndex].Item1, vodsData[vodIndex].Item1, vodsData[vodIndex].Item2, streamPath);
                 }
             }
 
             queryData.DataReport();
+
+            //TODO select quality
+            queryData.SetHighQuality(true);
+
+            //media-1/stream.m3u8 -> segment information
+            //media-1/media.ts -> high quality stream
+
+            //Start downloading
+            foreach (var stream in queryData.Streams)
+            {
+                //1. get segments
+                var segments = await GetStreamSegments(queryData.GetFileUrl() + stream.StreamPath + queryData.Quality + "stream.m3u8");
+
+                //2. start downloading
+                //TODO bar with progress
+                var data = new List<byte>();
+                using (Aes aes = Aes.Create())
+                {
+                    //configre aes
+                    aes.Key = Convert.FromHexString(stream.Key);
+                    aes.Mode = CipherMode.CBC;
+
+
+                    foreach (var segment in segments) 
+                    {
+                        //https://is.muni.cz/auth/el/fi/podzim2022/IA174/index.qwarp?prejit=9564900
+                        //var referer = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality + "media.ts";
+                        var headers = new Dictionary<string, string>() {
+                            { "user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"},
+                            { "range", $"bytes={segment.Item1}-{segment.Item1 + segment.Item2 - 1}"},
+                            //{ "referer", referer}
+                        };
+                        var requestUrl = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality + "media.ts?ts=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+                        Console.WriteLine(requestUrl);
+                        var response = await _request.GetAsync(requestUrl, headers);
+                        var result = await response.ReadAsByteArrayAsync();
+                        
+                        Console.WriteLine(result.Length);
+                        var resultBlock = result.Take(16).ToArray();
+                        foreach (var ch in resultBlock)
+                        {
+                            Console.WriteLine(ch.ToString("X"));
+                        }
+                        var tmp = aes.DecryptCbc(resultBlock, new byte[16]);
+                        return;
+                    }
+                }
+                Console.WriteLine("Data length: " + data.Count);
+            }
         }
     }
 }
