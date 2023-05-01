@@ -35,29 +35,29 @@ namespace IS_VOD_Downloader
             return string.Format($"{uri1}/{uri2}");
         }
 
-        private async Task<List<(string, string)>> GetVideoNodes(string syllabusUrl)
+        //get chapter (lecture) with VoDs and redirect links to them
+        private async Task<List<(string, string)>> GetChaptersWithVoDs(string syllabusUrl)
         {
-            var response = await _request.GetAsync(CombineUri(syllabusUrl, "index.qwarp"));
+            var response = await _request.GetAsync(syllabusUrl);
             var result = await response.ReadAsStringAsync();
             var htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(Regex.Unescape(result));
 
-            //get lecture names and redirect code
             return htmlDoc.DocumentNode.Descendants()
                 .Where(node =>
                     node.HasClass("io-kapitola-box") &&
                     node.Descendants()
-                        .Any(subnode => subnode.HasClass("io-obsahuje-prvek") && subnode.InnerText.Contains("Video"))
+                        .Any(subnode => subnode.HasClass("io-obsahuje-prvek") && subnode.InnerText.Contains("Video"))   //get all chapters with some video(s)
                 )
                 .Select(node => (
                     node.Descendants()
                         .Where(subnode => subnode.HasClass("io-kapitola-nazev"))
                         .First()
-                        .InnerText
+                        .InnerText  //chapter name
                         .Trim(),
                     node.Descendants("a")
                         .First()
-                        .GetAttributeValue("data-warp-id", String.Empty)
+                        .GetAttributeValue("data-warp-id", String.Empty)    //redirect link
                 ))
                 .ToList();
         }
@@ -71,17 +71,17 @@ namespace IS_VOD_Downloader
                 new KeyValuePair<string, string>("filters", "{\"offered\":[\"1\"]}"),
                 new KeyValuePair<string, string>("pvysl", "18002909"),
                 new KeyValuePair<string, string>("search_text", courseCode),
-                //new KeyValuePair<string, string>("search_text_specify", "codes"),
+                new KeyValuePair<string, string>("search_text_specify", "codes"),
                 new KeyValuePair<string, string>("records_per_page", "50")
             });
 
             var response = await _request.PostAsync("https://is.muni.cz/predmety/predmety_ajax.pl", requestBody);
-            //return await response.ReadAsStringAsync();
             var result = await response.ReadAsStringAsync();
             var htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(Regex.Unescape(result));
+
             return htmlDoc.DocumentNode
-                .Descendants(0)
+                .Descendants()
                 .Where(node => node.HasClass("course_link"))
                 .Select(node => (
                     node.GetDirectInnerText(),
@@ -94,7 +94,7 @@ namespace IS_VOD_Downloader
         //Format (and "translate") the term string
         private string FormatTerm(string termUri)
         {
-            termUri = termUri.Replace(" ", String.Empty);
+            termUri = termUri.Replace(" ", String.Empty).ToLower();
             if (termUri.Contains("jaro") || termUri.Contains("spring"))
             {
                 return "Spring " + termUri.Substring(termUri.Length - 4);
@@ -106,27 +106,87 @@ namespace IS_VOD_Downloader
             return termUri;
         }
 
-        private async Task<List<(string, string)>> GetTermsForCourse(string courseUri)
+        private async Task<List<(string, string)>> GetTermsForCourse(string courseUrl)
         {
-            var response = await _request.GetAsync(CombineUri(_baseUrl, courseUri));
+            courseUrl = courseUrl.Trim('/');
+            var response = await _request.GetAsync(courseUrl);
             var result = await response.ReadAsStringAsync();
             var htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(Regex.Unescape(result));
+
             return htmlDoc.DocumentNode.Descendants("main")
                 .First()
                 .ChildNodes
                 .Where(x => x.Name == "a")
                 .Select(node => (
                     FormatTerm(node.GetDirectInnerText()),
-                    node.GetAttributeValue("href", String.Empty)
+                    node.GetAttributeValue("href", String.Empty).Split("/")[^2]
                 ))
                 .Where(pair => pair.Item2 != String.Empty)
-                .Append((FormatTerm(courseUri.Split("/")[^2]), courseUri))
+                .Append((FormatTerm(courseUrl.Split("/")[^2]), courseUrl.Split("/")[^2]))
                 .Reverse()
                 .ToList();
         }
 
-        //private async Task<List<(string, string)>> GetChaptersWithVODs(string )
+        //get video name, key and path
+        private async Task<List<(string, string, string)>> GetVoDsData(string chapterUrl)
+        {
+            Console.WriteLine(chapterUrl);
+            var response = await _request.GetAsync(chapterUrl);
+            var result = await response.ReadAsStringAsync();
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(Regex.Unescape(result));
+
+            //get raw function text from js function with encode key
+            var scriptRaw = htmlDoc.DocumentNode
+                .Descendants("script")
+                .Where(node => node.InnerText.Contains("encode_key"))
+                .First()
+                .InnerText
+                .Replace(" ", String.Empty);
+
+            //there can be multiple keys
+            var matches = Regex.Matches(scriptRaw, @"""id""\s*:\s*""prvek_.+""|""encode_key""\s*:\s*"".+""");
+
+            var keyIdPairs = new List<(string, string)>();
+            for (int i = 0; i < matches.Count; i += 2)
+            {
+                if (matches[i].Value.Contains("id"))
+                {
+                    keyIdPairs.Add((
+                        matches[i + 1].Value.Replace(" ", String.Empty).Replace("\"encode_key\":", String.Empty),
+                        matches[i].Value.Replace(" ", String.Empty).Replace("\"id\":", String.Empty)
+                    ));
+                }
+                else
+                {
+                    keyIdPairs.Add((
+                        matches[i].Value.Replace(" ", String.Empty).Replace("\"id\":", String.Empty),
+                        matches[i + 1].Value.Replace(" ", String.Empty).Replace("\"encode_key\":", String.Empty)
+                    ));
+                }
+
+                Console.WriteLine(keyIdPairs.Last().Item1);
+                Console.WriteLine(keyIdPairs.Last().Item2);
+            }
+
+            return new List<(string, string, string)>() { (String.Empty, String.Empty, String.Empty)};
+            //return htmlDoc.DocumentNode
+            //    .Descendants()
+            //    .Where(node => node.HasClass("io-ramecek"))
+            //    .Select(node => (
+            //        node.Descendants("a")
+            //            .First()
+            //            .InnerText, //video title
+            //        node.Descendants()
+            //            .Where(subnode => 
+            //                subnode.HasClass("vidis") &&
+            //                keyIdPairs.Any(kip => kip.Item2 == subnode.GetAttributeValue("id", String.Empty))
+            //            )
+            //            .Select(subnode => subnode.GetAttributeValue("src", String.Empty))
+            //    ))
+            //    .ToList();
+        }
 
         public ConsoleApp() 
         {
@@ -136,167 +196,130 @@ namespace IS_VOD_Downloader
         }
         public async Task RunAsync()
         {
+            QueryData queryData = new(_baseUrl);
             _request = new Request();
 
-            //TODO save faculty
             //search for course
-            var courses = await SearchForCourse("IA174");
-            Console.WriteLine(courses.Count);
+            var coursesData = await SearchForCourse("IA174");
+            Console.WriteLine(coursesData.Count);
 
-            //repeat search
-            if (courses.Count == 0)
+            //TODO repeat search
+            if (coursesData.Count == 0)
             {
                 Console.WriteLine($"No course with code 'TODO' found!");
                 return;
             }
 
-            (string, string)  course;
-            if (courses.Count > 1)
-            {
-                var i = Menu.Select(courses.Select(c => c.Item1).ToList(), "Please select course");
-                course = courses[i];
-            }
-            else
-                course = courses.First();
+            var selIndex = Menu.Select(coursesData.Select(c => c.Item1).ToList(), "Please select course");
 
-            Console.WriteLine(course.Item1);
-            Console.WriteLine(course.Item2);
+            var courseFac = coursesData[selIndex].Item1.Split(":");
+            var paths = coursesData[selIndex].Item2.Split("/");
+            queryData.AddFaculty(new(courseFac[0], paths[2]));
+            queryData.AddCourse(new(courseFac[1], paths[4]));
+            queryData.AddTerm(new(String.Empty, paths[3]));
+
+            queryData.DataReport();
 
             //Get terms
-            var terms = await GetTermsForCourse(course.Item2);
-            Console.WriteLine(terms.Count);
-            //repeat search
+            var terms = await GetTermsForCourse(queryData.GetCourseUrl());
+            
+            //TODO repeat search
             if (terms.Count == 0)
             {
                 Console.WriteLine($"No terms found!");
                 return;
             }
+            
+            selIndex = Menu.Select(terms.Select(t => t.Item1).ToList(), "Please select term");
 
-            (string, string) term;
-            if (terms.Count > 1)
-            {
-                var i = Menu.Select(terms.Select(c => c.Item1).ToList(), "Please select term");
-                term = terms[i];
-            }
-            else
-                term = terms.First();
+            //save selected term
+            queryData.AddTerm(new(terms[selIndex].Item1, terms[selIndex].Item2));
 
-            Console.WriteLine(term.Item1);
-            Console.WriteLine(term.Item2);
-
-
-            //Ask for cookies
+            //We need authorization for anything else
             var cookies = new Dictionary<string, string>{
                 { "iscreds", "41VQrpku_lgHcW6-UzYhbf_b" },
                 { "issession", "HneacmmjmZgrsL4z_zFAIfJT"}
             };
-            _request.SetCookies(cookies);
-            _baseUrl = CombineUri(_baseUrl, "auth");
-            _hasCookies = true;
 
-            //TODO build this url
-            //https://is.muni.cz/auth/el/fi/podzim2022/IA174/index.qwarp
-            var syllabusUrl = CombineUri(_baseUrl, "el");
-            syllabusUrl = CombineUri(syllabusUrl, term.Item2.Replace("/predmet/", String.Empty));
-            syllabusUrl = CombineUri(syllabusUrl, "index.qwarp");
+            queryData.SetCookies("41VQrpku_lgHcW6-UzYhbf_b", "HneacmmjmZgrsL4z_zFAIfJT");
 
-            //TODO get all videos
             //TODO check if has access
-            var videoNodes = await GetVideoNodes(syllabusUrl);
+            var chapters = await GetChaptersWithVoDs(queryData.GetSyllabusUrl());
 
-            Console.WriteLine(videoNodes.Count);
+            Console.WriteLine(chapters.Count);
 
-            Console.WriteLine(terms.Count);
+            //Console.WriteLine(terms.Count);
 
-            var nodeIds = Menu.MultiSelect(videoNodes.Select(v => v.Item1).ToList(), "Please select leacture(s)");
-            Console.WriteLine(nodeIds.Count);
-            //repeat search
-            foreach (var nodeId in nodeIds) 
-            {
-                Console.WriteLine(nodeId);
-                Console.WriteLine(videoNodes[nodeId].Item1);
-                Console.WriteLine(videoNodes[nodeId].Item2);
-            }
+            var selectedIndexes = Menu.MultiSelect(chapters.Select(v => v.Item1).ToList(), "Please select lecture(s)");
+            Console.WriteLine(selectedIndexes.Count);
 
             //?prejit=9564869
-            //TODO ask for this
-            bool preferQuality = true;
 
+            //var streams = await GetVoDsData();
 
             //go through each lecture and find all videos. If some has multiple, ask which ones to download
-            //TODO make proper class to store everything
-            //chapter name, video name, stream link, encode key
-            var query = new List<(string, string, string, string)>();
-            foreach (var nodeId in nodeIds)
+            foreach (var index in selectedIndexes)
             {
-                //query.Add((videoNodes[nodeId].Item1, String.Empty, String.Empty, String.Empty, String.Empty));
+                //query.Add((chapters[nodeId].Item1, String.Empty, String.Empty, String.Empty, String.Empty));
 
-                var chapter = syllabusUrl + $"?prejit={videoNodes[nodeId].Item2}";
-                //Console.WriteLine(chapter);
-                var response = await _request.GetAsync(chapter);
-                var result = await response.ReadAsStringAsync();
-
-                var htmlDoc = new HtmlDocument();
-                htmlDoc.LoadHtml(Regex.Unescape(result));
-                var scriptString = htmlDoc.DocumentNode
-                    .Descendants("script")
-                    .Where(node => node.InnerText.Contains("encode_key"))
-                    .First()
-                    .InnerText
-                    .Replace(" ", String.Empty);
-
-                var matches = Regex.Matches(scriptString, @"""id""\s*:\s*""prvek_.+""|""encode_key""\s*:\s*"".+""");
-
-                var keyItemPairs = new List<(string, string)>();
-                for (int i = 0; i < matches.Count; i += 2)
-                {
-                    if (matches[i].Value.Contains("id"))
-                        keyItemPairs.Add((matches[i + 1].Value, matches[i].Value));
-                    else
-                        keyItemPairs.Add((matches[i].Value, matches[i + 1].Value));
-                }
-
-                //foreach (var pair in keyItemPairs)
+                var chapterUrl = queryData.GetSyllabusUrl() + $"?prejit={chapters[index].Item2}";
+                await GetVoDsData(chapterUrl);
+                
+                //var response = await _request.GetAsync(chapterUrl);
+                //var result = await response.ReadAsStringAsync();
+                //
+                //var htmlDoc = new HtmlDocument();
+                //htmlDoc.LoadHtml(Regex.Unescape(result));
+                //var scriptString = htmlDoc.DocumentNode
+                //    .Descendants("script")
+                //    .Where(node => node.InnerText.Contains("encode_key"))
+                //    .First()
+                //    .InnerText
+                //    .Replace(" ", String.Empty);
+                //
+                //var matches = Regex.Matches(scriptString, @"""id""\s*:\s*""prvek_.+""|""encode_key""\s*:\s*"".+""");
+                //
+                //var keyItemPairs = new List<(string, string)>();
+                //for (int i = 0; i < matches.Count; i += 2)
                 //{
-                //    Console.WriteLine($"{pair.Item1} {pair.Item2}");
+                //    if (matches[i].Value.Contains("id"))
+                //        keyItemPairs.Add((matches[i + 1].Value, matches[i].Value));
+                //    else
+                //        keyItemPairs.Add((matches[i].Value, matches[i + 1].Value));
                 //}
-
-                var videos = htmlDoc.DocumentNode
-                    .Descendants()
-                    .Where(node => node.HasClass("io-ramecek"))
-                    .Select(node => (
-                        node.Descendants("a")
-                            .First()
-                            .InnerText, //video title
-                        node.Descendants()
-                            .Where(subnode => subnode.HasClass("vidis"))
-                            .Select(subnode => (
-                                subnode.GetAttributeValue("src", String.Empty),
-                                subnode.GetAttributeValue("id", String.Empty)
-                            ))
-                    ))
-                    .ToList();
-
-                foreach (var video in videos)
-                {
-                    //foreach (var cls in video.GetClasses())
-                    //    Console.WriteLine(cls);
-                    //Console.WriteLine(video.InnerText);
-                    foreach (var subitem in video.Item2)
-                    {
-                        //Console.WriteLine($"{subitem.Item1} {subitem.Item2}");
-                        foreach (var pair in keyItemPairs)
-                        {
-                            if (pair.Item2.Contains(subitem.Item2))
-                                query.Add((videoNodes[nodeId].Item1, video.InnerText, chapter, pair.Item1));
-                        }
-                    }
-                }
-            }
-
-            foreach (var qu in query)
-            {
-                Console.WriteLine($"{qu.Item1} {qu.Item2} {qu.Item3} {qu.Item4}");
+                //
+                //
+                //var videos = htmlDoc.DocumentNode
+                //    .Descendants()
+                //    .Where(node => node.HasClass("io-ramecek"))
+                //    .Select(node => (
+                //        node.Descendants("a")
+                //            .First()
+                //            .InnerText, //video title
+                //        node.Descendants()
+                //            .Where(subnode => subnode.HasClass("vidis"))
+                //            .Select(subnode => (
+                //                subnode.GetAttributeValue("src", String.Empty),
+                //                subnode.GetAttributeValue("id", String.Empty)
+                //            ))
+                //    ))
+                //    .ToList();
+                //
+                //foreach (var video in videos)
+                //{
+                //    //foreach (var cls in video.GetClasses())
+                //    //    Console.WriteLine(cls);
+                //    //Console.WriteLine(video.InnerText);
+                //    foreach (var subitem in video.Item2)
+                //    {
+                //        //Console.WriteLine($"{subitem.Item1} {subitem.Item2}");
+                //        foreach (var pair in keyItemPairs)
+                //        {
+                //            if (pair.Item2.Contains(subitem.Item2))
+                //                query.Add((chapters[nodeId].Item1, chapter, video.InnerText, subitem.Item1, pair.Item1));
+                //        }
+                //    }
+                //}
             }
         }
     }

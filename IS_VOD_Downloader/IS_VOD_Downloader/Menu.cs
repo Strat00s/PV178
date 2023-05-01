@@ -24,6 +24,9 @@ namespace IS_VOD_Downloader
 
         public static int Select(List<string> options, string prompt)
         {
+            if (options.Count == 1)
+                return 0;
+
             while (true)
             {
                 DrawOptions(options, prompt);

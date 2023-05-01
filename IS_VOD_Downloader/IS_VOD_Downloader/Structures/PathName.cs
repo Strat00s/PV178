@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace IS_VOD_Downloader.Structures
 {
-    public record PathName (string Readable, string Path);
+    public record PathName (string Name, string Path);
 }
