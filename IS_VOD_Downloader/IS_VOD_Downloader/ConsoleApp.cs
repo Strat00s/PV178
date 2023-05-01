@@ -9,6 +9,10 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using IS_VOD_Downloader.Structures;
+using System.Diagnostics;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using System.Dynamic;
 
 
 //TODO custom course class
@@ -217,13 +221,62 @@ namespace IS_VOD_Downloader
             //TODO ask for this
             bool preferQuality = true;
 
+
+            //go through each lecture and find all videos. If some has multiple, as which ones to download
             foreach (var nodeId in nodeIds)
             {
                 var chapter = syllabusUrl + $"?prejit={videoNodes[nodeId].Item2}";
                 Console.WriteLine(chapter);
                 var response = await _request.GetAsync(chapter);
                 var result = await response.ReadAsStringAsync();
-                Console.WriteLine(result);
+                //encodeKey is in a json in a script function -> regex is easiest to use here
+                //var encodeKey = Regex.Match(result, "\"encode_key\":\".+\"");
+                //Console.WriteLine(encodeKey.);
+                //Console.WriteLine(result);
+
+                var htmlDoc = new HtmlDocument();
+                htmlDoc.LoadHtml(Regex.Unescape(result));
+                var scriptString = htmlDoc.DocumentNode
+                    .Descendants("script")
+                    .Where(node => node.InnerText.Contains("encode_key"))
+                    .First()
+                    .InnerText
+                    .Replace(" ", String.Empty);
+
+                var matches = Regex.Matches(scriptString, @"""id""\s*:\s*""prvek_.+""|""encode_key""\s*:\s*"".+""");
+
+                var keyItemPairs = new List<(string, string)>();
+                for (int i = 0; i < matches.Count; i += 2)
+                {
+                    keyItemPairs.Add((matches[i].Value, matches[i + 1].Value));
+                }
+
+                foreach (var pair in keyItemPairs)
+                {
+                    Console.WriteLine($"{pair.Item1} {pair.Item2}");
+                }
+
+                return;
+
+                var videos = htmlDoc.DocumentNode
+                    .Descendants()
+                    .Where(node => node.HasClass("io-ramecek"))
+                    .Select(node => (
+                        node.Descendants("a")
+                            .First()
+                            .InnerText,
+                        node.Descendants()
+                            .Where(subnode => subnode.HasClass("vidis"))
+                            .Select(subnode => subnode.GetAttributeValue("src", String.Empty))
+                    ))
+                    .ToList();
+
+                foreach (var video in videos)
+                {
+                    //foreach (var cls in video.GetClasses())
+                    //    Console.WriteLine(cls);
+                    Console.WriteLine(video.InnerText);
+                }
             }
         }
     }
