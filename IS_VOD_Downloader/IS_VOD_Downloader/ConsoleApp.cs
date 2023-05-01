@@ -209,6 +209,7 @@ namespace IS_VOD_Downloader
             Console.WriteLine(terms.Count);
 
             var nodeIds = Menu.MultiSelect(videoNodes.Select(v => v.Item1).ToList(), "Please select leacture(s)");
+            Console.WriteLine(nodeIds.Count);
             //repeat search
             foreach (var nodeId in nodeIds) 
             {
@@ -291,14 +292,11 @@ namespace IS_VOD_Downloader
                         }
                     }
                 }
+            }
 
-                foreach (var qu in query)
-                {
-                    Console.WriteLine($"{qu.Item1} {qu.Item2} {qu.Item3} {qu.Item4}");
-                }
-
-                //var videoIds = Menu.MultiSelect(videos.Select(x => x.InnerText).ToList(), "Select video(s) from lecture TODO:");
-
+            foreach (var qu in query)
+            {
+                Console.WriteLine($"{qu.Item1} {qu.Item2} {qu.Item3} {qu.Item4}");
             }
         }
     }

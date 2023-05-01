@@ -54,6 +54,8 @@ namespace IS_VOD_Downloader
                     continue;
                 }
 
+                Console.WriteLine(selection);
+
                 var result = new List<int>();
 
                 //parse the input
@@ -78,7 +80,7 @@ namespace IS_VOD_Downloader
                         var end = int.Parse(range[1]);
                         if (start < end && start > 0 && end <= options.Count) 
                         {
-                            result.AddRange(Enumerable.Range(start - 1, end - 1));
+                            result.AddRange(Enumerable.Range(start - 1, end - start + 1));
                         }
                         else
                         {
@@ -86,6 +88,7 @@ namespace IS_VOD_Downloader
                         }
                     }
                 }
+
                 return result.Distinct()
                     .OrderBy(x => x)
                     .ToList();
