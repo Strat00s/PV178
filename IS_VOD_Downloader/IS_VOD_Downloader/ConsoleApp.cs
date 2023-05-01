@@ -5,6 +5,7 @@ using IS_VOD_Downloader.Structures;
 using System.Security.Cryptography;
 using System.Text;
 using System.Reflection.PortableExecutable;
+using System;
 
 
 //TODO custom course class
@@ -18,6 +19,25 @@ namespace IS_VOD_Downloader
         private Request _request;
         private string _baseUrl;
         private bool _hasCookies;   //TODO implement cookie check
+
+
+        public static byte[] XOR(string str1, string str2)
+        {
+            var array1 = Convert.FromHexString(str1);
+            var array2 = Convert.FromHexString(str2);
+            if (array1.Length != array2.Length)
+            {
+                throw new ArgumentException("Both arrays must have the same length.");
+            }
+
+            byte[] result = new byte[array1.Length];
+            for (int i = 0; i < array1.Length; i++)
+            {
+                result[i] = (byte)(array1[i] ^ array2[i]);
+            }
+
+            return result;
+        }
 
 
         private static string CombineUri(string uri1, string uri2)
@@ -183,19 +203,19 @@ namespace IS_VOD_Downloader
                 .ToList();
         }
 
-        //start, range
-        private async Task<List<(int, int)>> GetStreamSegments(string streamUrl)
+        //get segment information (start, length) and xor key for the decryption key
+        private async Task<(List<(int, int)>, string)> GetStreamSegmentsKey(string streamUrl)
         {
             var response = await _request.GetAsync(streamUrl);
             var result = await response.ReadAsStringAsync();
             var matches = Regex.Matches(result, @"#EXT-X-BYTERANGE:\d+@\d+");
+            Console.WriteLine(result);
 
-            return matches.Select(m => m.Value.Replace("#EXT-X-BYTERANGE:", String.Empty).Split("@"))
-                .Select(m => (
-                    int.Parse(m[1]),
-                    int.Parse(m[0])
-                ))
-                .ToList();
+            return (matches.Select(m => m.Value.Replace("#EXT-X-BYTERANGE:", String.Empty).Split("@"))
+                .Select(m => (int.Parse(m[1]),int.Parse(m[0])))
+                .ToList(),
+                Regex.Match(result, @"#EXT-X-KEY:.*").Value.TrimEnd('"').Split("\"")[1]
+                );
         }
 
         public ConsoleApp() 
@@ -298,42 +318,33 @@ namespace IS_VOD_Downloader
             //Start downloading
             foreach (var stream in queryData.Streams)
             {
-                //1. get segments
-                var segments = await GetStreamSegments(queryData.GetFileUrl() + stream.StreamPath + queryData.Quality + "stream.m3u8");
+                //1. get segments and primary key
+                (var segments, var primaryKey) = await GetStreamSegmentsKey(queryData.GetFileUrl() + stream.StreamPath + queryData.Quality + "stream.m3u8");
+                Console.WriteLine(primaryKey);
+                var data = new List<byte>();
+                var simpleAes = new SimpleAES(XOR(stream.Key, primaryKey));
 
                 //2. start downloading
                 //TODO bar with progress
-                var data = new List<byte>();
-                using (Aes aes = Aes.Create())
+                foreach (var segment in segments) 
                 {
-                    //configre aes
-                    aes.Key = Convert.FromHexString(stream.Key);
-                    aes.Mode = CipherMode.CBC;
-
-
-                    foreach (var segment in segments) 
+                    //https://is.muni.cz/auth/el/fi/podzim2022/IA174/index.qwarp?prejit=9564900
+                    //var referer = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality + "media.ts";
+                    var headers = new Dictionary<string, string>() {
+                        { "user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"},
+                        { "range", $"bytes={segment.Item1}-{segment.Item1 + segment.Item2 - 1}"},
+                        //{ "referer", referer}
+                    };
+                    var requestUrl = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality + "media.ts?ts=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+                    Console.WriteLine(requestUrl);
+                    var response = await _request.GetAsync(requestUrl, headers);
+                    var result = await response.ReadAsByteArrayAsync();
+                    var tmp = result.TakeLast(16);
+                    foreach( var item in tmp)
                     {
-                        //https://is.muni.cz/auth/el/fi/podzim2022/IA174/index.qwarp?prejit=9564900
-                        //var referer = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality + "media.ts";
-                        var headers = new Dictionary<string, string>() {
-                            { "user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"},
-                            { "range", $"bytes={segment.Item1}-{segment.Item1 + segment.Item2 - 1}"},
-                            //{ "referer", referer}
-                        };
-                        var requestUrl = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality + "media.ts?ts=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
-                        Console.WriteLine(requestUrl);
-                        var response = await _request.GetAsync(requestUrl, headers);
-                        var result = await response.ReadAsByteArrayAsync();
-                        
-                        Console.WriteLine(result.Length);
-                        var resultBlock = result.Take(16).ToArray();
-                        foreach (var ch in resultBlock)
-                        {
-                            Console.WriteLine(ch.ToString("X"));
-                        }
-                        var tmp = aes.DecryptCbc(resultBlock, new byte[16]);
-                        return;
+                        Console.WriteLine(item.ToString("X"));
                     }
+                    data.AddRange(simpleAes.Decrypt(result));
                 }
                 Console.WriteLine("Data length: " + data.Count);
             }
