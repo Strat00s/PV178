@@ -223,10 +223,15 @@ namespace IS_VOD_Downloader
 
 
             //go through each lecture and find all videos. If some has multiple, ask which ones to download
+            //TODO make proper class to store everything
+            //chapter name, video name, stream link, encode key
+            var query = new List<(string, string, string, string)>();
             foreach (var nodeId in nodeIds)
             {
+                //query.Add((videoNodes[nodeId].Item1, String.Empty, String.Empty, String.Empty, String.Empty));
+
                 var chapter = syllabusUrl + $"?prejit={videoNodes[nodeId].Item2}";
-                Console.WriteLine(chapter);
+                //Console.WriteLine(chapter);
                 var response = await _request.GetAsync(chapter);
                 var result = await response.ReadAsStringAsync();
 
@@ -250,10 +255,10 @@ namespace IS_VOD_Downloader
                         keyItemPairs.Add((matches[i].Value, matches[i + 1].Value));
                 }
 
-                foreach (var pair in keyItemPairs)
-                {
-                    Console.WriteLine($"{pair.Item1} {pair.Item2}");
-                }
+                //foreach (var pair in keyItemPairs)
+                //{
+                //    Console.WriteLine($"{pair.Item1} {pair.Item2}");
+                //}
 
                 var videos = htmlDoc.DocumentNode
                     .Descendants()
@@ -275,12 +280,25 @@ namespace IS_VOD_Downloader
                 {
                     //foreach (var cls in video.GetClasses())
                     //    Console.WriteLine(cls);
-                    Console.WriteLine(video.InnerText);
+                    //Console.WriteLine(video.InnerText);
                     foreach (var subitem in video.Item2)
                     {
-                        Console.WriteLine($"{subitem.Item1} {subitem.Item2}");
+                        //Console.WriteLine($"{subitem.Item1} {subitem.Item2}");
+                        foreach (var pair in keyItemPairs)
+                        {
+                            if (pair.Item2.Contains(subitem.Item2))
+                                query.Add((videoNodes[nodeId].Item1, video.InnerText, chapter, pair.Item1));
+                        }
                     }
                 }
+
+                foreach (var qu in query)
+                {
+                    Console.WriteLine($"{qu.Item1} {qu.Item2} {qu.Item3} {qu.Item4}");
+                }
+
+                //var videoIds = Menu.MultiSelect(videos.Select(x => x.InnerText).ToList(), "Select video(s) from lecture TODO:");
+
             }
         }
     }
