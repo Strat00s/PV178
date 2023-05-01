@@ -129,7 +129,7 @@ namespace IS_VOD_Downloader
                 .ToList();
         }
 
-        //get video name, src and key
+        //get video name, key and path
         private async Task<List<(string, string, string)>> GetVoDsData(string chapterUrl)
         {
             Console.WriteLine(chapterUrl);
@@ -168,7 +168,7 @@ namespace IS_VOD_Downloader
                 }
             }
 
-            //get possible vods
+            //get possible vodsData
             return htmlDoc.DocumentNode
                 .Descendants()
                 .Where(node => node.HasClass("io-ramecek"))
@@ -187,7 +187,7 @@ namespace IS_VOD_Downloader
                 .Join(keyIdPairs,
                     vodData => vodData.Item2.Item2,
                     kip => kip.Item2,
-                    (vodData, kip) => (vodData.InnerText, vodData.Item2.Item1, kip.Item1)
+                    (vodData, kip) => (vodData.InnerText, kip.Item1, vodData.Item2.Item1)
                 )
                 .ToList();
         }
@@ -195,7 +195,7 @@ namespace IS_VOD_Downloader
         public ConsoleApp() 
         {
             _baseUrl = "https://is.muni.cz";
-            //"https://is.muni.cz/" "auth" "/el/ped/" "podzim2022/ONLINE_A" "/index.qwarp"
+            //"https://is.muni.cz/" "auth" "/el/ped/" "podzim2022/ONLINE_A" "/chapterIndex.qwarp"
             _hasCookies = false;
         }
         public async Task RunAsync()
@@ -258,82 +258,32 @@ namespace IS_VOD_Downloader
 
             //Console.WriteLine(terms.Count);
 
-            var selectedIndexes = Menu.MultiSelect(chapters.Select(v => v.Item1).ToList(), "Please select lecture(s)");
-            Console.WriteLine(selectedIndexes.Count);
+            var chapterIndexes = Menu.MultiSelect(chapters.Select(c => c.Item1).ToList(), "Please select lecture(s)");
+            Console.WriteLine(chapterIndexes.Count);
 
-            //?prejit=9564869
-
-            //var streams = await GetVoDsData();
 
             //go through each lecture and find all videos. If some has multiple, ask which ones to download
-            foreach (var index in selectedIndexes)
+            foreach (var chapterIndex in chapterIndexes)
             {
-                //query.Add((chapters[nodeId].Item1, String.Empty, String.Empty, String.Empty, String.Empty));
-
-                var chapterUrl = queryData.GetSyllabusUrl() + $"?prejit={chapters[index].Item2}";
-                var tmp = await GetVoDsData(chapterUrl);
+                var chapterUrl = queryData.GetSyllabusUrl() + $"?prejit={chapters[chapterIndex].Item2}";
+                var vodsData = await GetVoDsData(chapterUrl);
                 
-                foreach(var item in tmp)
+                if (vodsData.Count == 1) 
                 {
-                    Console.WriteLine($"{item.Item1} {item.Item2} {item.Item3}");
+                    queryData.AddStream(new(chapters[chapterIndex].Item1, vodsData.First().Item1, vodsData.First().Item2, vodsData.First().Item3));
+                    continue;
                 }
 
-                //var response = await _request.GetAsync(chapterUrl);
-                //var result = await response.ReadAsStringAsync();
-                //
-                //var htmlDoc = new HtmlDocument();
-                //htmlDoc.LoadHtml(Regex.Unescape(result));
-                //var scriptString = htmlDoc.DocumentNode
-                //    .Descendants("script")
-                //    .Where(node => node.InnerText.Contains("encode_key"))
-                //    .First()
-                //    .InnerText
-                //    .Replace(" ", String.Empty);
-                //
-                //var matches = Regex.Matches(scriptString, @"""id""\s*:\s*""prvek_.+""|""encode_key""\s*:\s*"".+""");
-                //
-                //var keyItemPairs = new List<(string, string)>();
-                //for (int i = 0; i < matches.Count; i += 2)
-                //{
-                //    if (matches[i].Value.Contains("id"))
-                //        keyItemPairs.Add((matches[i + 1].Value, matches[i].Value));
-                //    else
-                //        keyItemPairs.Add((matches[i].Value, matches[i + 1].Value));
-                //}
-                //
-                //
-                //var videos = htmlDoc.DocumentNode
-                //    .Descendants()
-                //    .Where(node => node.HasClass("io-ramecek"))
-                //    .Select(node => (
-                //        node.Descendants("a")
-                //            .First()
-                //            .InnerText, //video title
-                //        node.Descendants()
-                //            .Where(subnode => subnode.HasClass("vidis"))
-                //            .Select(subnode => (
-                //                subnode.GetAttributeValue("src", String.Empty),
-                //                subnode.GetAttributeValue("id", String.Empty)
-                //            ))
-                //    ))
-                //    .ToList();
-                //
-                //foreach (var video in videos)
-                //{
-                //    //foreach (var cls in video.GetClasses())
-                //    //    Console.WriteLine(cls);
-                //    //Console.WriteLine(video.InnerText);
-                //    foreach (var subitem in video.Item2)
-                //    {
-                //        //Console.WriteLine($"{subitem.Item1} {subitem.Item2}");
-                //        foreach (var pair in keyItemPairs)
-                //        {
-                //            if (pair.Item2.Contains(subitem.Item2))
-                //                query.Add((chapters[nodeId].Item1, chapter, video.InnerText, subitem.Item1, pair.Item1));
-                //        }
-                //    }
-                //}
+                Console.WriteLine($"Multiple streams found in lecture '{chapters[chapterIndex].Item1}':");
+                var vodIndexes = Menu.MultiSelect(vodsData.Select(v => v.Item1).ToList(), "Please select stream(s)");
+
+                foreach (var vodIndex in vodIndexes)
+                {
+                    queryData.AddStream(new(chapters[chapterIndex].Item1, vodsData[vodIndex].Item1, vodsData[vodIndex].Item2, vodsData[vodIndex].Item3));
+                }
             }
+
+            queryData.DataReport();
         }
     }
 }
