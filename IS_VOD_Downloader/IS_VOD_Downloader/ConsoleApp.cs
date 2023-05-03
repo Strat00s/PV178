@@ -6,9 +6,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Reflection.PortableExecutable;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 
-//TODO custom course class
 
 namespace IS_VOD_Downloader
 {
@@ -21,10 +21,8 @@ namespace IS_VOD_Downloader
         private bool _hasCookies;   //TODO implement cookie check
 
 
-        public static byte[] XOR(string str1, string str2)
+        public static byte[] ArrayXOR(byte[] array1, byte[] array2)
         {
-            var array1 = Convert.FromHexString(str1);
-            var array2 = Convert.FromHexString(str2);
             if (array1.Length != array2.Length)
             {
                 throw new ArgumentException("Both arrays must have the same length.");
@@ -39,6 +37,25 @@ namespace IS_VOD_Downloader
             return result;
         }
 
+        public static string GetUniqueFilePath(string filePath)
+        {
+            string path = Path.GetDirectoryName(filePath);
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
+            string extension = Path.GetExtension(filePath);
+
+            string newFileName = fileName;
+            string newFilePath = Path.Combine(path, newFileName + extension);
+            int count = 1;
+
+            while (File.Exists(newFilePath))
+            {
+                newFileName = $"{fileName} ({count})";
+                newFilePath = Path.Combine(path, newFileName + extension);
+                count++;
+            }
+
+            return newFilePath;
+        }
 
         private static string CombineUri(string uri1, string uri2)
         {
@@ -47,33 +64,21 @@ namespace IS_VOD_Downloader
             return string.Format($"{uri1}/{uri2}");
         }
 
-        //get chapter (lecture) with VoDs and redirect links to them
-        private async Task<List<(string, string)>> GetChaptersWithVoDs(string syllabusUrl)
+        //Format (and "translate") the term string
+        private string FormatTerm(string termUri)
         {
-            Console.WriteLine(syllabusUrl);
-            var response = await _request.GetAsync(syllabusUrl);
-            var result = await response.ReadAsStringAsync();
-            var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(Regex.Unescape(result));
-
-            return htmlDoc.DocumentNode.Descendants()
-                .Where(node =>
-                    node.HasClass("io-kapitola-box") &&
-                    node.Descendants()
-                        .Any(subnode => subnode.HasClass("io-obsahuje-prvek") && subnode.InnerText.Contains("Video"))   //get all chapters with some video(s)
-                )
-                .Select(node => (
-                    node.Descendants()
-                        .Where(subnode => subnode.HasClass("io-kapitola-nazev"))
-                        .First()
-                        .InnerText  //chapter name
-                        .Trim(),
-                    node.Descendants("a")
-                        .First()
-                        .GetAttributeValue("data-warp-id", String.Empty)    //redirect link
-                ))
-                .ToList();
+            termUri = termUri.Replace(" ", String.Empty).ToLower();
+            if (termUri.Contains("jaro") || termUri.Contains("spring"))
+            {
+                return "Spring " + termUri.Substring(termUri.Length - 4);
+            }
+            if (termUri.Contains("podzim") || termUri.Contains("autumn"))
+            {
+                return "Autumn " + termUri.Substring(termUri.Length - 4);
+            }
+            return termUri;
         }
+
 
         private async Task<List<(string, string)>> SearchForCourse(string courseCode)
         {
@@ -104,21 +109,6 @@ namespace IS_VOD_Downloader
                 .ToList();
         }
 
-        //Format (and "translate") the term string
-        private string FormatTerm(string termUri)
-        {
-            termUri = termUri.Replace(" ", String.Empty).ToLower();
-            if (termUri.Contains("jaro") || termUri.Contains("spring"))
-            {
-                return "Spring " + termUri.Substring(termUri.Length - 4);
-            }
-            if (termUri.Contains("podzim") || termUri.Contains("autumn"))
-            {
-                return "Autumn " + termUri.Substring(termUri.Length - 4);
-            }
-            return termUri;
-        }
-
         private async Task<List<(string, string)>> GetTermsForCourse(string courseUrl)
         {
             courseUrl = courseUrl.Trim('/');
@@ -138,6 +128,34 @@ namespace IS_VOD_Downloader
                 .Where(pair => pair.Item2 != String.Empty)
                 .Append((FormatTerm(courseUrl.Split("/")[^2]), courseUrl.Split("/")[^2]))
                 .Reverse()
+                .ToList();
+        }
+
+        //get chapter (lecture) with VoDs and redirect links to them
+        private async Task<List<(string, string)>> GetChaptersWithVoDs(string syllabusUrl)
+        {
+            Console.WriteLine(syllabusUrl);
+            var response = await _request.GetAsync(syllabusUrl);
+            var result = await response.ReadAsStringAsync();
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(Regex.Unescape(result));
+
+            return htmlDoc.DocumentNode.Descendants()
+                .Where(node =>
+                    node.HasClass("io-kapitola-box") &&
+                    node.Descendants()
+                        .Any(subnode => subnode.HasClass("io-obsahuje-prvek") && subnode.InnerText.Contains("Video"))   //get all chapters with some video(s)
+                )
+                .Select(node => (
+                    node.Descendants()
+                        .Where(subnode => subnode.HasClass("io-kapitola-nazev"))
+                        .First()
+                        .InnerText  //chapter name
+                        .Trim(),
+                    node.Descendants("a")
+                        .First()
+                        .GetAttributeValue("data-warp-id", String.Empty)    //redirect link
+                ))
                 .ToList();
         }
 
@@ -203,6 +221,7 @@ namespace IS_VOD_Downloader
                 .ToList();
         }
 
+
         //get segment information (start, length) and xor key for the decryption key
         private async Task<(List<(int, int)>, string)> GetStreamSegmentsKey(string streamUrl)
         {
@@ -217,6 +236,43 @@ namespace IS_VOD_Downloader
                 Regex.Match(result, @"#EXT-X-KEY:.*").Value.TrimEnd('"').Split("\"")[1]
                 );
         }
+
+        private List<(int, int)> GetSegments(string masterHeader)
+        {
+            var matches = Regex.Matches(masterHeader, @"#EXT-X-BYTERANGE:\d+@\d+");
+            if (matches.Count > 0)
+            {
+                return matches.Select(m => m.Value.Replace("#EXT-X-BYTERANGE:", String.Empty).Split("@"))
+                    .Select(m => (
+                        int.Parse(m[1]),
+                        int.Parse(m[0])
+                    ))
+                    .ToList();
+            }
+            else
+                throw new NotImplementedException();
+        }
+
+        private async Task<byte[]> GetPrimaryKey(string masterHeader, string authUrl)
+        {
+            var match = Regex.Match(masterHeader, @"#EXT-X-KEY:.*");
+            if (match.Success)
+            {
+                var metaPath = match.Value.TrimEnd('"').Split("\"")[1];
+                var response = await _request.GetAsync(authUrl + metaPath);
+                return await response.ReadAsByteArrayAsync();
+            }
+            else
+                throw new NotImplementedException();
+        }
+
+        private async Task<string> GetMasterHeader(string masterUrl)
+        {
+            var response = await _request.GetAsync(masterUrl);
+            var result = await response.ReadAsStringAsync();
+            return result;
+        }
+
 
         public ConsoleApp() 
         {
@@ -270,13 +326,12 @@ namespace IS_VOD_Downloader
 
 
             //We need authorization for anything else
-            var cookies = new Dictionary<string, string>{
-                { "iscreds", "41VQrpku_lgHcW6-UzYhbf_b" },
-                { "issession", "HneacmmjmZgrsL4z_zFAIfJT"}
-            };
+            var iscreds = "qnfwgIGEaOLQx7djfRoRdRxp";
+            var issession = "ckzMyXb-7ONBhawLFWrEj9Z6";
 
-            queryData.SetCookies("41VQrpku_lgHcW6-UzYhbf_b", "HneacmmjmZgrsL4z_zFAIfJT");
-            _request.SetCookies("41VQrpku_lgHcW6-UzYhbf_b", "HneacmmjmZgrsL4z_zFAIfJT");
+
+            queryData.SetCookies(iscreds, issession);
+            _request.SetCookies(iscreds, issession);
 
             //TODO check if has access
             var chapters = await GetChaptersWithVoDs(queryData.GetSyllabusUrl());
@@ -318,14 +373,15 @@ namespace IS_VOD_Downloader
             //Start downloading
             foreach (var stream in queryData.Streams)
             {
-                //1. get segments and primary key
-                (var segments, var primaryKey) = await GetStreamSegmentsKey(queryData.GetFileUrl() + stream.StreamPath + queryData.Quality + "stream.m3u8");
-                Console.WriteLine(primaryKey);
-                var data = new List<byte>();
-                var simpleAes = new SimpleAES(XOR(stream.Key, primaryKey));
+                //1. get segments and decryption key
+                var masterHeader = await GetMasterHeader(queryData.GetFileUrl() + stream.StreamPath + queryData.Quality + "stream.m3u8");
+                var segments = GetSegments(masterHeader);
+                var primaryKey = await GetPrimaryKey(masterHeader, queryData.GetBaseUrl());
+                var decryptionKey = ArrayXOR(primaryKey, Convert.FromHexString(stream.EncodeKey));
 
                 //2. start downloading
-                //TODO bar with progress
+                var simpleAes = new SimpleAES(decryptionKey);
+                var data = new List<byte>();
                 foreach (var segment in segments) 
                 {
                     //https://is.muni.cz/auth/el/fi/podzim2022/IA174/index.qwarp?prejit=9564900
@@ -344,9 +400,18 @@ namespace IS_VOD_Downloader
                     {
                         Console.WriteLine(item.ToString("X"));
                     }
+
                     data.AddRange(simpleAes.Decrypt(result));
                 }
                 Console.WriteLine("Data length: " + data.Count);
+
+                //TODO select store path?
+                
+                var fileName = stream.ChapterName + " - " + stream.VideoName + ".ts";
+                var filePath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, fileName);
+
+                filePath = GetUniqueFilePath(filePath);
+                File.WriteAllBytes(filePath, data.ToArray());
             }
         }
     }

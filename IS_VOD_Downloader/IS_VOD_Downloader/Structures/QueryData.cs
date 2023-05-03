@@ -10,7 +10,7 @@ namespace IS_VOD_Downloader.Structures
 {
     public class QueryData
     {
-        public record StreamData(string ChapterName, string VideoName, string Key, string StreamPath);
+        public record StreamData(string ChapterName, string VideoName, string EncodeKey, string StreamPath);
 
 
         public CookieCollection Cookies { get; private set; }
@@ -79,6 +79,10 @@ namespace IS_VOD_Downloader.Structures
             Quality = highQuality ? "media-1/" : "media-2/";
         }
 
+        public string GetBaseUrl()
+        {
+            return BaseUrl + _auth;
+        }
 
         //Build file url
         public string GetFileUrl()
@@ -89,7 +93,7 @@ namespace IS_VOD_Downloader.Structures
         //Build syllabus url
         public string GetSyllabusUrl()
         {
-            return GetFileUrl() + "index.qwarp";
+            return BaseUrl + _auth + "el/" + Faculty.Path + Term.Path + Course.Path + "index.qwarp";
         }
 
 
@@ -124,7 +128,7 @@ namespace IS_VOD_Downloader.Structures
                     Console.WriteLine($"  {stream.ChapterName}");
                     Console.WriteLine($"  {stream.VideoName}");
                     Console.WriteLine($"  {stream.StreamPath}");
-                    Console.WriteLine($"  {stream.Key}");
+                    Console.WriteLine($"  {stream.EncodeKey}");
                     Console.WriteLine("");
                 }
             }
