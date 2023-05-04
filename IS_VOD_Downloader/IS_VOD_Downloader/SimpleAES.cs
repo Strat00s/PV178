@@ -14,13 +14,11 @@ public class SimpleAES
         _aes.Key = key;
         _aes.Mode = CipherMode.CBC;
         _aes.Padding = PaddingMode.PKCS7;
-        _aes.IV = initialIv ?? new byte[16]; // Set initial IV to zero if not provided
+        _aes.IV = initialIv ?? new byte[16];
     }
 
     public byte[] Decrypt(byte[] data)
     {
-        Console.WriteLine("Encrypted data:");
-        PrintHex(data.Take(16).ToArray());
         using MemoryStream memoryStream = new MemoryStream();
         using ICryptoTransform decryptor = _aes.CreateDecryptor();
         using CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Write);
@@ -33,18 +31,10 @@ public class SimpleAES
         memoryStream.Position = 0;
         memoryStream.Read(decryptedData, 0, decryptedDataLength);
 
-        Console.WriteLine("Decrypted data:");
-        PrintHex(decryptedData.Take(16).ToArray());
         return decryptedData;
     }
 
-    private void PrintHex(byte[] data)
-    {
-        foreach (byte b in data) { Console.Write(b.ToString("X")); }
-        Console.WriteLine("");
-    }
-
-    public async Task DecryptAsync(int segmentCnt, Channel<(int, byte[])> inputCh, Channel<byte[]> outputCh)
+    public async Task DecryptAsync(int segmentCnt, Channel<(int, byte[])> inputCh, Channel<byte[]> outputCh, ThreadSafeInt decryptProg)
     {
         int currentSegment = 0;
         var inputBuffer = new Dictionary<int, byte[]>();
@@ -61,6 +51,7 @@ public class SimpleAES
                 outputCh.Writer.TryWrite(Decrypt(inputBuffer[currentSegment]));
                 inputBuffer.Remove(currentSegment);
                 currentSegment++;
+                decryptProg.Increment();
             }
 
             else

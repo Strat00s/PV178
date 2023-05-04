@@ -275,7 +275,7 @@ namespace IS_VOD_Downloader
             {
                 //search for course
                 var userInput = IOHelper.GetInput("Please select course to search for (e.q IA174): ");
-                var coursesData = await IOHelper.AnimateAwait(SearchForCourse(userInput), "Checking course catalog");
+                var coursesData = await IOHelper.AnimateAwaitAsync(SearchForCourse(userInput), "Checking course catalog");
                 //catch it
                 //if (rc != 200)
                 //{
@@ -293,7 +293,7 @@ namespace IS_VOD_Downloader
                 queryData.AddTerm(new(String.Empty, paths[3]));
 
                 //extract terms
-                var terms = await IOHelper.AnimateAwait(GetTermsForCourse(queryData.GetCourseUrl()), "Extracting terms");
+                var terms = await IOHelper.AnimateAwaitAsync(GetTermsForCourse(queryData.GetCourseUrl()), "Extracting terms");
                 //catch it
                 //if (rc != 200)
                 //{
@@ -320,7 +320,7 @@ namespace IS_VOD_Downloader
 
                 //TODO check if has access
 
-                var chapters = await IOHelper.AnimateAwait(GetChaptersWithVoDs(queryData.GetSyllabusUrl()), "Extracting lectures with streams");
+                var chapters = await IOHelper.AnimateAwaitAsync(GetChaptersWithVoDs(queryData.GetSyllabusUrl()), "Extracting lectures with streams");
                 Console.WriteLine(chapters.Count);
 
                 //TODO on fail: does not have access || syllabus does not exist
@@ -341,7 +341,7 @@ namespace IS_VOD_Downloader
                 foreach (var chapterIndex in selectedChapters)
                 {
                     var chapterUrl = queryData.GetSyllabusUrl() + $"?prejit={chapters[chapterIndex].Item2}";
-                    var streamData = await IOHelper.AnimateAwait(GetVoDsData(chapterUrl), $"Extracting stream data {i++}/{selectedChapters.Count}", true);
+                    var streamData = await IOHelper.AnimateAwaitAsync(GetVoDsData(chapterUrl), $"Extracting stream data {i++}/{selectedChapters.Count}", true);
                     if (streamData.Count == 1)
                     {
                         Console.WriteLine(streamData[0].Item3);
@@ -384,36 +384,37 @@ namespace IS_VOD_Downloader
                 {
                     //1. get segments and decryption key
                     var streamUrl = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality;
-                    var masterHeader = await IOHelper.AnimateAwait(GetMasterHeader(streamUrl + "stream.m3u8"), "Extracting segments");
+                    var masterHeader = await IOHelper.AnimateAwaitAsync(GetMasterHeader(streamUrl + "stream.m3u8"), "Extracting segments");
                     var segments = GetSegments(masterHeader);
                     
-                    var primaryKey = await IOHelper.AnimateAwait(GetPrimaryKey(masterHeader, queryData.GetBaseUrl()), "Extracting decryption key");
+                    var primaryKey = await IOHelper.AnimateAwaitAsync(GetPrimaryKey(masterHeader, queryData.GetBaseUrl()), "Extracting decryption key");
                     var decryptionKey = ArrayXOR(primaryKey, Convert.FromHexString(stream.EncodeKey));
-                    
+
+
                     //2 create everything necesary for download
-                    var simpleAes = new SimpleAES(decryptionKey);
-                    var downloader = new DownloadManager(_request);
-                    
                     var downloadedDataCh = Channel.CreateUnbounded<(int, byte[])>();
                     var decryptedDataCh = Channel.CreateUnbounded<byte[]>();
-                    var progress = new ThreadSafeInt();
-                    
+                    var downloadProg = new ThreadSafeInt(0);
+                    var decryptProg = new ThreadSafeInt(0);
                     var fileName = stream.ChapterName + " - " + stream.VideoName + ".ts";
                     var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
                     filePath = GetUniqueFilePath(filePath);
+
+                    var simpleAes = new SimpleAES(decryptionKey);
+                    var downloader = new DownloadManager(_request);
                     var fileWriter = new ChunkedFileWriter(filePath);
-                    
-                    
+
+
                     //3 start download
+                    Console.WriteLine($"Currently downloading '{stream.VideoName}' from lecture '{stream.ChapterName}'");
+                    Console.WriteLine("Current progress:");
                     var segmentCnt = 0;
                     var rawData = new List<byte>();
-                    var oldProgress = 0;
-                    
-                    downloader.StartDownload(20, progress, segments, streamUrl, downloadedDataCh);
-                    
-                    var decryptDone = simpleAes.DecryptAsync(segments.Count, downloadedDataCh, decryptedDataCh);
-                    
-                    while (!decryptDone.IsCompleted || decryptedDataCh.Reader.Count > 0)
+                    var downloadTask = downloader.StartDownload(20, downloadProg, segments, streamUrl, downloadedDataCh);
+                    var decryptTask = simpleAes.DecryptAsync(segments.Count, downloadedDataCh, decryptedDataCh, decryptProg);
+                    var progressAnimTask = IOHelper.AnimateProgressAsync(downloadProg, segments.Count, decryptProg, segments.Count);
+
+                    while (!decryptTask.IsCompleted || decryptedDataCh.Reader.Count > 0)
                     {
                         if (decryptedDataCh.Reader.TryRead(out var decryptedSegment))
                         {
@@ -426,30 +427,24 @@ namespace IS_VOD_Downloader
                                 fileWriter.WriteBytes(rawData);
                                 rawData.Clear();
                             }
-                    
-                            Console.WriteLine($"Decrypt progress: {segmentCnt}");
                         }
-                    
-                        if (oldProgress < progress.Value)
-                        {
-                            Console.WriteLine($"Download progress: {progress.Value}");
-                            oldProgress = progress.Value;
-                        }
-                    
                         else
-                            await Task.WhenAny(decryptDone, decryptedDataCh.Reader.WaitToReadAsync().AsTask());
+                            await Task.WhenAny(decryptTask, decryptedDataCh.Reader.WaitToReadAsync().AsTask());
+                        
                     }
                     fileWriter.WriteBytes(rawData);
                     fileWriter.Dispose();
+
+                    await Task.WhenAll(downloadTask, decryptTask, progressAnimTask);
 
 
                     ////1. get segments and decryption key
                     //
                     //var streamUrl = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality;
-                    //var masterHeader = await IOHelper.AnimateAwait(GetMasterHeader(streamUrl + "stream.m3u8"), "Extracting segments");
+                    //var masterHeader = await IOHelper.AnimateAwaitAsync(GetMasterHeader(streamUrl + "stream.m3u8"), "Extracting segments");
                     //var segments = GetSegments(masterHeader);
                     //
-                    //var primaryKey = await IOHelper.AnimateAwait(GetPrimaryKey(masterHeader, queryData.GetBaseUrl()), "Extracting decryption key");
+                    //var primaryKey = await IOHelper.AnimateAwaitAsync(GetPrimaryKey(masterHeader, queryData.GetBaseUrl()), "Extracting decryption key");
                     //var decryptionKey = ArrayXOR(primaryKey, Convert.FromHexString(stream.EncodeKey));
                     //
                     ////2. start downloading

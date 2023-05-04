@@ -1,12 +1,6 @@
 ﻿using IS_VOD_Downloader.Structures;
 using ISVOD;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace IS_VOD_Downloader.Helpers
 {
@@ -18,26 +12,24 @@ namespace IS_VOD_Downloader.Helpers
         {
             _request = request;
         }
-        public async Task StartDownload(int threadCount, ThreadSafeInt progress, List<Segment> segments, string streamUrl, Channel<(int, byte[])> downloadCh)
-        {
-            if (threadCount == 0 || threadCount > Environment.ProcessorCount)
-            {
-                threadCount = Environment.ProcessorCount;
-            }
 
-            var segmentChunkSize = (int)Math.Ceiling((double)segments.Count / threadCount);
-            var segmentChunks = segments.Select((x, i) => new { item = x, index = i })
-                   .GroupBy(x => x.index / segmentChunkSize)
+        public async Task StartDownload(int workerCnt, ThreadSafeInt progress, List<Segment> segments, string streamUrl, Channel<(int, byte[])> downloadCh)
+        {
+            if (workerCnt == 0 || workerCnt > Environment.ProcessorCount)
+                workerCnt = Environment.ProcessorCount;
+
+            var distributedSegments = segments.Select((x, i) => new { item = x, index = i })
+                   .GroupBy(x => x.index % workerCnt)
                    .Select(g => g.Select(x => x.item).ToList())
                    .ToList();
 
-            var downloadWorker = new List<Task>();
-            foreach ( var chunk in segmentChunks)
+            var workers = new List<Task>();
+            for (int i = 0; i < workerCnt; i++)
             {
-                downloadWorker.Add(DownloadWorker.Download(_request, chunk, downloadCh, progress, streamUrl));
+                workers.Add(DownloadWorker.Download(_request, distributedSegments[i], downloadCh, progress, streamUrl));
             }
 
-            await Task.WhenAll(downloadWorker);
+            await Task.WhenAll(workers);
         }
     }
 }

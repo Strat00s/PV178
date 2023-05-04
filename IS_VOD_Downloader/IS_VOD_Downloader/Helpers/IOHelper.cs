@@ -14,12 +14,7 @@ namespace IS_VOD_Downloader.Helpers
         private static int _dotPosition{ get; set; }
         private static int _direction { get; set; }
 
-        public static void FinishContinuous()
-        {
-            Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop);
-            Console.WriteLine($"[ OK ]");
-            Console.CursorVisible = true;
-        }
+
         public static string GetInput(string prompt)
         {
             string? result = null;
@@ -29,45 +24,6 @@ namespace IS_VOD_Downloader.Helpers
                 result = Console.ReadLine();
             }
             return result;
-        }
-
-        public static async Task<T> AnimateAwait<T>(Task<T> task, string message, bool continuous = false)
-        {
-            Console.Write($"[    ] {message}");
-            Console.CursorVisible = false;
-            Console.CursorLeft = 0;
-
-            if (!continuous)
-            {
-                _cursorPosition = Console.CursorLeft;
-                _direction = 1;
-                _dotPosition = 1;
-            }
-            
-            while (!task.IsCompleted)
-            {
-                Console.SetCursorPosition(_cursorPosition + _dotPosition, Console.CursorTop);
-                Console.Write(".");
-
-                await Task.Delay(200);
-
-                Console.SetCursorPosition(_cursorPosition + _dotPosition, Console.CursorTop);
-                Console.Write(" ");
-
-                _dotPosition += _direction;
-                if (_dotPosition == 4 || _dotPosition == 1)
-                    _direction *= -1;
-            }
-
-            Console.SetCursorPosition(_cursorPosition, Console.CursorTop);
-            //TODO propagate status???
-            if (!continuous)
-            {
-                Console.WriteLine($"[ OK ] {message}");
-                Console.CursorVisible = true;
-            }
-
-            return await task;
         }
 
         private static void DrawOptions(List<string> options, string prompt)
@@ -99,7 +55,6 @@ namespace IS_VOD_Downloader.Helpers
                 Console.WriteLine($"Invalid option '{selection}'");
             }
         }
-
 
         //return list of selected items
         public static List<int> MultiSelect(List<string> options, string prompt)
@@ -159,6 +114,94 @@ namespace IS_VOD_Downloader.Helpers
                     .OrderBy(x => x)
                     .ToList();
             }
+        }
+
+
+        //Animations
+        private static void DrawProgressBar(int cursorTop, int progressBarWidth, string prefix, int progress, int max)
+        {
+            double progressFraction = (double)progress / max;
+
+            Console.SetCursorPosition(0, cursorTop);
+            Console.Write($"{prefix}[");
+
+            int completedBars = (int)(progressBarWidth * progressFraction);
+
+            for (int i = 0; i < progressBarWidth; i++)
+            {
+                Console.Write(i < completedBars ? "█" : " ");
+            }
+
+            Console.Write($"] {(int)(progressFraction * 100), 3}%");
+            if (progress == max)
+                Console.Write(" Done");
+        }
+
+        //TODO make it asynchronous
+        public static async Task AnimateProgressAsync(ThreadSafeInt downloadProg, int downloadMax, ThreadSafeInt decryptProg, int decryptMax)
+        {
+            int progressBarWidth = Console.WindowWidth - 30;
+
+            Console.CursorVisible = false;
+
+            int cursorTop1 = Console.CursorTop - 1;
+            int cursorTop2 = Console.CursorTop;
+
+            while (downloadProg.Value < downloadMax || decryptProg.Value < decryptMax)
+            {
+                DrawProgressBar(cursorTop1, progressBarWidth, "Downloaded: ", downloadProg.Value, downloadMax);
+                DrawProgressBar(cursorTop2, progressBarWidth, "Decrypted:  ", decryptProg.Value, decryptMax);
+            }
+
+            Console.CursorVisible = true;
+            Console.WriteLine("");
+        }
+
+
+        public static async Task<T> AnimateAwaitAsync<T>(Task<T> task, string message, bool continuous = false)
+        {
+            Console.Write($"[    ] {message}");
+            Console.CursorVisible = false;
+            Console.CursorLeft = 0;
+
+            if (!continuous)
+            {
+                _cursorPosition = Console.CursorLeft;
+                _direction = 1;
+                _dotPosition = 1;
+            }
+
+            while (!task.IsCompleted)
+            {
+                Console.SetCursorPosition(_cursorPosition + _dotPosition, Console.CursorTop);
+                Console.Write(".");
+
+                await Task.Delay(200);
+
+                Console.SetCursorPosition(_cursorPosition + _dotPosition, Console.CursorTop);
+                Console.Write(" ");
+
+                _dotPosition += _direction;
+                if (_dotPosition == 4 || _dotPosition == 1)
+                    _direction *= -1;
+            }
+
+            Console.SetCursorPosition(_cursorPosition, Console.CursorTop);
+            //TODO propagate status???
+            if (!continuous)
+            {
+                Console.WriteLine($"[ OK ] {message}");
+                Console.CursorVisible = true;
+            }
+
+            return await task;
+        }
+
+        public static void FinishContinuous()
+        {
+            Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop);
+            Console.WriteLine($"[ OK ]");
+            Console.CursorVisible = true;
         }
     }
 }

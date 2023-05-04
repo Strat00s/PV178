@@ -4,6 +4,11 @@ public class ThreadSafeInt
 {
     private int _value;
 
+    public ThreadSafeInt(int value = 0)
+    {
+        _value = value;
+    }
+
     public int Value
     {
         get { return Interlocked.CompareExchange(ref _value, 0, 0); }
