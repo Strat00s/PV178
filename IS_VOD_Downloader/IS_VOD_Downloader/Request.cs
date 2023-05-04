@@ -86,7 +86,7 @@ namespace ISVOD
             }
 
             using var response = await _client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+            //response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStreamAsync();
             return new StreamContent(content);

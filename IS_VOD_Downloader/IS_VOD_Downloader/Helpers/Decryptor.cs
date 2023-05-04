@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IS_VOD_Downloader
+namespace IS_VOD_Downloader.Helpers
 {
-    internal class DownloadWorker
+    public class Decryptor
     {
     }
 }
