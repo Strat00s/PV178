@@ -33,6 +33,12 @@ namespace IS_VOD_Downloader.Structures
             Quality = "media-1/";
         }
 
+        public void ClearCookies()
+        {
+            Cookies.Clear();
+            _auth = string.Empty;
+        }
+
         //add cookies
         public void SetCookies(string iscreds, string issession)
         {

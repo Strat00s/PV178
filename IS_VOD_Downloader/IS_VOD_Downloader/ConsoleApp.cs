@@ -24,6 +24,7 @@ namespace IS_VOD_Downloader
         private bool _hasCookies;   //TODO implement cookie check
 
 
+        //Helper methods
         public static byte[] ArrayXOR(byte[] array1, byte[] array2)
         {
             if (array1.Length != array2.Length)
@@ -60,12 +61,7 @@ namespace IS_VOD_Downloader
             return newFilePath;
         }
 
-        private static string CombineUri(string uri1, string uri2)
-        {
-            uri1 = uri1.TrimEnd('/');
-            uri2 = uri2.TrimStart('/');
-            return string.Format($"{uri1}/{uri2}");
-        }
+
 
         //Format (and "translate") the term string
         private string FormatTerm(string termUri)
@@ -82,7 +78,7 @@ namespace IS_VOD_Downloader
             return termUri;
         }
 
-
+        //request methods
         private async Task<List<(string, string)>> SearchForCourse(string courseCode)
         {
             var requestBody = new FormUrlEncodedContent(new[]
@@ -261,19 +257,12 @@ namespace IS_VOD_Downloader
         }
 
 
+        //Main methods
         private async Task<InternalState> CourseSelect(QueryData queryData)
         {
             //search for course
             var userInput = IOHelper.GetInput("Please select course to search for (e.q IA174): ");
             var coursesData = await IOHelper.AnimateAwaitAsync(SearchForCourse(userInput), "Checking course catalog");
-            
-            //catch it
-            //if (rc != 200)
-            //{
-            //    //TODO repeat search
-            //    Console.WriteLine($"No course with code '{userInput}' found!");
-            //    return;
-            //}
             if (coursesData.Count == 0)
             {
                 Console.WriteLine($"No course with code '{userInput}' found!");
@@ -293,13 +282,7 @@ namespace IS_VOD_Downloader
         private async Task<InternalState> TermSelect(QueryData queryData)
         {
             var terms = await IOHelper.AnimateAwaitAsync(GetTermsForCourse(queryData.GetCourseUrl()), "Extracting terms");
-            //catch it
-            //if (rc != 200)
-            //{
-            //    //TODO repeat search
-            //    Console.WriteLine($"No terms found!");
-            //    return;
-            //}
+            //At least one term has to always exist
 
             //get term
             var selected = IOHelper.Select(terms.Select(t => t.Item1).ToList(), "Please select term");
@@ -309,22 +292,31 @@ namespace IS_VOD_Downloader
 
         private async Task<InternalState> CookiesSelect(QueryData queryData)
         {
-            Console.WriteLine("Authorization required to continue. Please login to https://is.muni.cz/ in your browser and copy-paste your cookies:");
+            if (_hasCookies)
+            {
+                var keep = IOHelper.BoolSelect("Yes", "no", "Do you want to use previously stored cookies?");
+                if (keep)
+                    return InternalState.ChapterVideoSelect;
+                _request.ClearCookies();
+                queryData.ClearCookies();
+            }
+            _hasCookies = false;
             var iscreds = IOHelper.GetInput("iscreds: ");
             var issession = IOHelper.GetInput("issession: ");
 
-            queryData.SetCookies(iscreds, issession);
-            _request.SetCookies(iscreds, issession);
-
-
-            //new httpclien to catch redirect (which occures with invalid access)
+            //new httpclient to catch redirect (which occures with invalid access)
             try
             {
+                var cookieContainer = new CookieContainer();
+                cookieContainer.Add(new Uri(_baseUrl), new Cookie("iscreds", iscreds));
+                cookieContainer.Add(new Uri(_baseUrl), new Cookie("issession", issession));
                 var handler = new HttpClientHandler
                 {
-                    AllowAutoRedirect = false
+                    AllowAutoRedirect = false,
+                    CookieContainer = cookieContainer
                 };
                 var client = new HttpClient(handler);
+
                 var response = await IOHelper.AnimateAwaitAsync(client.GetAsync(queryData.GetBaseUrl() + "?lang=cs;setlang=cs"), "Testing access");
                 response.EnsureSuccessStatusCode();
             }
@@ -333,11 +325,10 @@ namespace IS_VOD_Downloader
                 Console.WriteLine($"Invalid cookies!");
                 return InternalState.CookiesSelect;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception: {ex.Message}");
-            }
 
+            queryData.SetCookies(iscreds, issession);
+            _request.SetCookies(iscreds, issession);
+            _hasCookies = true;
             return InternalState.ChapterVideoSelect;
         }
 
@@ -399,6 +390,7 @@ namespace IS_VOD_Downloader
             return InternalState.QualitySelect;
         }
 
+        //TODO maybe remove?
         private void QualitySelect(QueryData queryData)
         {
             //List<string> options = new List<string> { "High quality", "Low file size" };
@@ -478,17 +470,20 @@ namespace IS_VOD_Downloader
             return selected == 0 ? InternalState.CourseSelect : InternalState.Exit;
         }
 
+
+
         public ConsoleApp()
         {
             _baseUrl = "https://is.muni.cz";
             _hasCookies = false;
+            _request = new Request();
         }
 
         public async Task RunAsync()
         {
             QueryData queryData = new(_baseUrl);
-            _request = new Request();
             var state = InternalState.CourseSelect;
+            bool firstRun = true;
 
             while (true)
             {
@@ -501,6 +496,9 @@ namespace IS_VOD_Downloader
                         state = await TermSelect(queryData);
                         break;
                     case InternalState.CookiesSelect:
+                        if (firstRun)
+                            Console.WriteLine("Authorization required to continue. Please login to https://is.muni.cz/ in your browser and copy-paste your cookies:");
+                        firstRun = false;
                         state = await CookiesSelect(queryData);
                         break;
                     case InternalState.ChapterVideoSelect:

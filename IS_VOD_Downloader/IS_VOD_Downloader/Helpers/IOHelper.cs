@@ -114,6 +114,30 @@ namespace IS_VOD_Downloader.Helpers
             }
         }
 
+        public static bool BoolSelect(string accept, string decline, string prompt)
+        {
+            while (true)
+            {
+                Console.Write($"{prompt} [{accept}/{decline}]: ");
+                var option = Console.ReadLine();
+
+                if (option == string.Empty || option == null) 
+                {
+                    if (char.IsUpper(accept[0]))
+                        return true;
+                    if (char.IsUpper(decline[0]))
+                        return false;
+                    continue;
+                }
+
+                option = option.ToLower();
+                if (option == accept.ToLower() || option[0] == accept.ToLower()[0])
+                    return true;
+                if (option == decline.ToLower() || option[0] == decline.ToLower()[0])
+                    return false;
+                Console.WriteLine($"Invalid option '{option}'");
+            }
+        }
 
         //Animations
         private static void DrawProgressBar(int cursorTop, int progressBarWidth, string prefix, int progress, int max)
