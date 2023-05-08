@@ -10,6 +10,8 @@ using System.Diagnostics.CodeAnalysis;
 using IS_VOD_Downloader.Helpers;
 using static IS_VOD_Downloader.Structures.QueryData;
 using System.Threading.Channels;
+using IS_VOD_Downloader.Enums;
+using System.Net;
 
 namespace IS_VOD_Downloader
 {
@@ -259,7 +261,224 @@ namespace IS_VOD_Downloader
         }
 
 
-        public ConsoleApp() 
+        private async Task<InternalState> CourseSelect(QueryData queryData)
+        {
+            //search for course
+            var userInput = IOHelper.GetInput("Please select course to search for (e.q IA174): ");
+            var coursesData = await IOHelper.AnimateAwaitAsync(SearchForCourse(userInput), "Checking course catalog");
+            
+            //catch it
+            //if (rc != 200)
+            //{
+            //    //TODO repeat search
+            //    Console.WriteLine($"No course with code '{userInput}' found!");
+            //    return;
+            //}
+            if (coursesData.Count == 0)
+            {
+                Console.WriteLine($"No course with code '{userInput}' found!");
+                return InternalState.CourseSelect;
+            }
+
+            //get course
+            var selected = IOHelper.Select(coursesData.Select(c => c.Item1).ToList(), "Please select course");
+            var courseFac = coursesData[selected].Item1.Split(":");
+            var paths = coursesData[selected].Item2.Split("/");
+            queryData.AddFaculty(new(courseFac[0], paths[2]));
+            queryData.AddCourse(new(courseFac[1], paths[4]));
+            queryData.AddTerm(new(String.Empty, paths[3]));
+            return InternalState.TermSelect;
+        }
+
+        private async Task<InternalState> TermSelect(QueryData queryData)
+        {
+            var terms = await IOHelper.AnimateAwaitAsync(GetTermsForCourse(queryData.GetCourseUrl()), "Extracting terms");
+            //catch it
+            //if (rc != 200)
+            //{
+            //    //TODO repeat search
+            //    Console.WriteLine($"No terms found!");
+            //    return;
+            //}
+
+            //get term
+            var selected = IOHelper.Select(terms.Select(t => t.Item1).ToList(), "Please select term");
+            queryData.AddTerm(new(terms[selected].Item1, terms[selected].Item2));
+            return InternalState.CookiesSelect;
+        }
+
+        private async Task<InternalState> CookiesSelect(QueryData queryData)
+        {
+            Console.WriteLine("Authorization required to continue. Please login to https://is.muni.cz/ in your browser and copy-paste your cookies:");
+            var iscreds = IOHelper.GetInput("iscreds: ");
+            var issession = IOHelper.GetInput("issession: ");
+
+            queryData.SetCookies(iscreds, issession);
+            _request.SetCookies(iscreds, issession);
+
+
+            //new httpclien to catch redirect (which occures with invalid access)
+            try
+            {
+                var handler = new HttpClientHandler
+                {
+                    AllowAutoRedirect = false
+                };
+                var client = new HttpClient(handler);
+                var response = await IOHelper.AnimateAwaitAsync(client.GetAsync(queryData.GetBaseUrl() + "?lang=cs;setlang=cs"), "Testing access");
+                response.EnsureSuccessStatusCode();
+            }
+            catch (HttpRequestException)
+            {
+                Console.WriteLine($"Invalid cookies!");
+                return InternalState.CookiesSelect;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+            }
+
+            return InternalState.ChapterVideoSelect;
+        }
+
+        private async Task<InternalState> ChapterVideoSelect(QueryData queryData)
+        {
+            var chapters = new List<(string, string)>();
+
+            try
+            {
+                chapters = await IOHelper.AnimateAwaitAsync(GetChaptersWithVoDs(queryData.GetSyllabusUrl()), "Extracting lectures with streams");
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"Syllabus not found for selected course and term combination!");
+                return InternalState.Finished;
+            }
+
+            //no chapters
+            if (chapters.Count == 0)
+            {
+                Console.WriteLine($"No chapters with videos found!");
+                return InternalState.Finished;
+            }
+
+            //go through each chapter and find all videos. If some has multiple, ask which ones to download
+            var selectedChapters = IOHelper.MultiSelect(chapters.Select(c => c.Item1).ToList(), "Please select chapter(s)");
+            List<(string, List<(string, string, string)>)> multipleStreamsInChapter = new();
+            int i = 1;
+            foreach (var chapterIndex in selectedChapters)
+            {
+                var chapterUrl = queryData.GetSyllabusUrl() + $"?prejit={chapters[chapterIndex].Item2}";
+                var streamData = await IOHelper.AnimateAwaitAsync(GetVoDsData(chapterUrl), $"Extracting stream data {i++}/{selectedChapters.Count}", true);
+                if (streamData.Count == 1)
+                {
+                    Console.WriteLine(streamData[0].Item3);
+                    var streamPathSplits = streamData[0].Item3.Split("/");
+                    var streamPath = streamPathSplits[6] + "/" + streamPathSplits[7];
+                    queryData.AddStream(chapters[chapterIndex].Item1, streamData[0].Item1, streamData[0].Item2, streamPath);
+                    continue;
+                }
+                multipleStreamsInChapter.Add((chapters[chapterIndex].Item1, streamData));
+            }
+            IOHelper.FinishContinuous();
+
+            foreach (var streamsInChapter in multipleStreamsInChapter)
+            {
+                var chapterName = streamsInChapter.Item1;
+                var streamsData = streamsInChapter.Item2;
+                Console.WriteLine($"Multiple streams found in lecture '{chapterName}':");
+                var selectedStreams = IOHelper.MultiSelect(streamsData.Select(v => v.Item1).ToList(), "Please select stream(s) to download");
+                foreach (var streamIndex in selectedStreams)
+                {
+                    var streamPathSplits = streamsData[streamIndex].Item3.Split("/");
+                    var streamPath = streamPathSplits[6] + "/" + streamPathSplits[7];
+                    queryData.AddStream(chapterName, streamsData[streamIndex].Item1, streamsData[streamIndex].Item2, streamPath);
+                }
+            }
+
+            return InternalState.QualitySelect;
+        }
+
+        private void QualitySelect(QueryData queryData)
+        {
+            //List<string> options = new List<string> { "High quality", "Low file size" };
+            //var selected = IOHelper.Select(new List<string> {"Low quality (480p and down)", "High quality (720p and up)"}, "Please select quality");
+            //queryData.SetHighQuality(Convert.ToBoolean(selected));
+            queryData.SetHighQuality();
+        }
+
+        private async Task<InternalState> Download(QueryData queryData)
+        {
+            foreach (var stream in queryData.Streams)
+            {
+                //1. get segments and decryption key
+                var streamUrl = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality;
+                var masterHeader = await IOHelper.AnimateAwaitAsync(GetMasterHeader(streamUrl + "stream.m3u8"), "Extracting segments");
+                var segments = GetSegments(masterHeader);
+
+                var primaryKey = await IOHelper.AnimateAwaitAsync(GetPrimaryKey(masterHeader, queryData.GetBaseUrl()), "Extracting decryption key");
+                var decryptionKey = ArrayXOR(primaryKey, Convert.FromHexString(stream.EncodeKey));
+
+
+                //2 create everything necesary for download
+                var downloadedDataCh = Channel.CreateUnbounded<(int, byte[])>();
+                var decryptedDataCh = Channel.CreateUnbounded<byte[]>();
+                var downloadProg = new ThreadSafeInt(0);
+                var decryptProg = new ThreadSafeInt(0);
+                var fileName = stream.ChapterName + " - " + stream.VideoName + ".ts";
+                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+                filePath = GetUniqueFilePath(filePath);
+
+                var simpleAes = new SimpleAES(decryptionKey);
+                var downloader = new DownloadManager(_request);
+                var fileWriter = new ChunkedFileWriter(filePath);
+
+
+                //3 start download
+                Console.WriteLine($"Currently downloading '{stream.VideoName}' from lecture '{stream.ChapterName}'");
+                Console.WriteLine("Current progress:\n");
+                var segmentCnt = 0;
+                var rawData = new List<byte>();
+                var downloadTask = downloader.StartDownload(20, downloadProg, segments, streamUrl, downloadedDataCh);
+                var decryptTask = simpleAes.DecryptAsync(segments.Count, downloadedDataCh, decryptedDataCh, decryptProg);
+                var progressAnimTask = IOHelper.AnimateProgressAsync(downloadProg, segments.Count, decryptProg, segments.Count);
+
+                while (!decryptTask.IsCompleted || decryptedDataCh.Reader.Count > 0)
+                {
+                    if (decryptedDataCh.Reader.TryRead(out var decryptedSegment))
+                    {
+                        rawData.AddRange(decryptedSegment);
+                        segmentCnt++;
+
+                        if (segmentCnt >= 50)
+                        {
+                            segmentCnt = 0;
+                            fileWriter.WriteBytes(rawData);
+                            rawData.Clear();
+                        }
+                    }
+                    else
+                        await Task.WhenAny(decryptTask, decryptedDataCh.Reader.WaitToReadAsync().AsTask());
+
+                }
+                fileWriter.WriteBytes(rawData);
+                fileWriter.Dispose();
+
+                await Task.WhenAll(downloadTask, decryptTask, progressAnimTask);
+            }
+
+            return InternalState.Finished;
+        }
+
+        private InternalState Finished()
+        {
+            var options = new List<string> {"Start over", "Exit"};
+            var selected = IOHelper.Select(options, "Do you want to");
+
+            return selected == 0 ? InternalState.CourseSelect : InternalState.Exit;
+        }
+
+        public ConsoleApp()
         {
             _baseUrl = "https://is.muni.cz";
             _hasCookies = false;
@@ -269,212 +488,36 @@ namespace IS_VOD_Downloader
         {
             QueryData queryData = new(_baseUrl);
             _request = new Request();
-
+            var state = InternalState.CourseSelect;
 
             while (true)
             {
-                //search for course
-                var userInput = IOHelper.GetInput("Please select course to search for (e.q IA174): ");
-                var coursesData = await IOHelper.AnimateAwaitAsync(SearchForCourse(userInput), "Checking course catalog");
-                //catch it
-                //if (rc != 200)
-                //{
-                //    //TODO repeat search
-                //    Console.WriteLine($"No course with code '{userInput}' found!");
-                //    return;
-                //}
-
-                //get course
-                var selected = IOHelper.Select(coursesData.Select(c => c.Item1).ToList(), "Please select course");
-                var courseFac = coursesData[selected].Item1.Split(":");
-                var paths = coursesData[selected].Item2.Split("/");
-                queryData.AddFaculty(new(courseFac[0], paths[2]));
-                queryData.AddCourse(new(courseFac[1], paths[4]));
-                queryData.AddTerm(new(String.Empty, paths[3]));
-
-                //extract terms
-                var terms = await IOHelper.AnimateAwaitAsync(GetTermsForCourse(queryData.GetCourseUrl()), "Extracting terms");
-                //catch it
-                //if (rc != 200)
-                //{
-                //    //TODO repeat search
-                //    Console.WriteLine($"No terms found!");
-                //    return;
-                //}
-
-                //get term
-                selected = IOHelper.Select(terms.Select(t => t.Item1).ToList(), "Please select term");
-                queryData.AddTerm(new(terms[selected].Item1, terms[selected].Item2));
-
-
-                //We need authorization for anything else
-                var iscreds = "qnfwgIGEaOLQx7djfRoRdRxp";
-                var issession = "ckzMyXb-7ONBhawLFWrEj9Z6";
-
-                Console.WriteLine("Authorization required to continue. Please login to https://is.muni.cz/ in your browser and copy-paste your cookies");
-                //iscreds = IOHelper.GetInput("iscreds: ");
-                //issession = IOHelper.GetInput("issession: ");
-
-                queryData.SetCookies(iscreds, issession);
-                _request.SetCookies(iscreds, issession);
-
-                //TODO check if has access
-
-                var chapters = await IOHelper.AnimateAwaitAsync(GetChaptersWithVoDs(queryData.GetSyllabusUrl()), "Extracting lectures with streams");
-                Console.WriteLine(chapters.Count);
-
-                //TODO on fail: does not have access || syllabus does not exist
-                //catche it
-                //if (rc == 404)
-                //{
-                //
-                //}
-                //if (rc == 303)
-                //{
-                //
-                //}
-
-                //go through each lecture and find all videos. If some has multiple, ask which ones to download
-                var selectedChapters = IOHelper.MultiSelect(chapters.Select(c => c.Item1).ToList(), "Please select lecture(s)");
-                List<(string, List<(string, string, string)>)>  multipleStreamsInChapter = new();
-                int i = 1;
-                foreach (var chapterIndex in selectedChapters)
+                switch (state)
                 {
-                    var chapterUrl = queryData.GetSyllabusUrl() + $"?prejit={chapters[chapterIndex].Item2}";
-                    var streamData = await IOHelper.AnimateAwaitAsync(GetVoDsData(chapterUrl), $"Extracting stream data {i++}/{selectedChapters.Count}", true);
-                    if (streamData.Count == 1)
-                    {
-                        Console.WriteLine(streamData[0].Item3);
-                        var streamPathSplits = streamData[0].Item3.Split("/");
-                        var streamPath = streamPathSplits[6] + "/" + streamPathSplits[7];
-                        queryData.AddStream(chapters[chapterIndex].Item1, streamData[0].Item1, streamData[0].Item2, streamPath);
-                        continue;
-                    }
-                    multipleStreamsInChapter.Add((chapters[chapterIndex].Item1, streamData));
-                }
-                IOHelper.FinishContinuous();
-
-                foreach (var streamsInChapter in multipleStreamsInChapter)
-                {
-                    var chapterName = streamsInChapter.Item1;
-                    var streamsData = streamsInChapter.Item2;
-                    Console.WriteLine($"Multiple streams found in lecture '{chapterName}':");
-                    var selectedStreams = IOHelper.MultiSelect(streamsData.Select(v => v.Item1).ToList(), "Please select stream(s) to download");
-                    foreach (var streamIndex in selectedStreams)
-                    {
-                        var streamPathSplits = streamsData[streamIndex].Item3.Split("/");
-                        var streamPath = streamPathSplits[6] + "/" + streamPathSplits[7];
-                        queryData.AddStream(chapterName, streamsData[streamIndex].Item1, streamsData[streamIndex].Item2, streamPath);
-                    }
-                }
-
-                queryData.DataReport();
-
-                //TODO select quality
-                queryData.SetHighQuality(true);
-
-                //TODO download bar -> download worker
-                //TODO convert worker
-
-                //media-1/stream.m3u8 -> segment information
-                //media-1/media.ts -> high quality stream
-
-                //Start downloading
-                foreach (var stream in queryData.Streams)
-                {
-                    //1. get segments and decryption key
-                    var streamUrl = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality;
-                    var masterHeader = await IOHelper.AnimateAwaitAsync(GetMasterHeader(streamUrl + "stream.m3u8"), "Extracting segments");
-                    var segments = GetSegments(masterHeader);
-                    
-                    var primaryKey = await IOHelper.AnimateAwaitAsync(GetPrimaryKey(masterHeader, queryData.GetBaseUrl()), "Extracting decryption key");
-                    var decryptionKey = ArrayXOR(primaryKey, Convert.FromHexString(stream.EncodeKey));
-
-
-                    //2 create everything necesary for download
-                    var downloadedDataCh = Channel.CreateUnbounded<(int, byte[])>();
-                    var decryptedDataCh = Channel.CreateUnbounded<byte[]>();
-                    var downloadProg = new ThreadSafeInt(0);
-                    var decryptProg = new ThreadSafeInt(0);
-                    var fileName = stream.ChapterName + " - " + stream.VideoName + ".ts";
-                    var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
-                    filePath = GetUniqueFilePath(filePath);
-
-                    var simpleAes = new SimpleAES(decryptionKey);
-                    var downloader = new DownloadManager(_request);
-                    var fileWriter = new ChunkedFileWriter(filePath);
-
-
-                    //3 start download
-                    Console.WriteLine($"Currently downloading '{stream.VideoName}' from lecture '{stream.ChapterName}'");
-                    Console.WriteLine("Current progress:");
-                    var segmentCnt = 0;
-                    var rawData = new List<byte>();
-                    var downloadTask = downloader.StartDownload(20, downloadProg, segments, streamUrl, downloadedDataCh);
-                    var decryptTask = simpleAes.DecryptAsync(segments.Count, downloadedDataCh, decryptedDataCh, decryptProg);
-                    var progressAnimTask = IOHelper.AnimateProgressAsync(downloadProg, segments.Count, decryptProg, segments.Count);
-
-                    while (!decryptTask.IsCompleted || decryptedDataCh.Reader.Count > 0)
-                    {
-                        if (decryptedDataCh.Reader.TryRead(out var decryptedSegment))
-                        {
-                            rawData.AddRange(decryptedSegment);
-                            segmentCnt++;
-                    
-                            if (segmentCnt >= 50)
-                            {
-                                segmentCnt = 0;
-                                fileWriter.WriteBytes(rawData);
-                                rawData.Clear();
-                            }
-                        }
-                        else
-                            await Task.WhenAny(decryptTask, decryptedDataCh.Reader.WaitToReadAsync().AsTask());
-                        
-                    }
-                    fileWriter.WriteBytes(rawData);
-                    fileWriter.Dispose();
-
-                    await Task.WhenAll(downloadTask, decryptTask, progressAnimTask);
-
-
-                    ////1. get segments and decryption key
-                    //
-                    //var streamUrl = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality;
-                    //var masterHeader = await IOHelper.AnimateAwaitAsync(GetMasterHeader(streamUrl + "stream.m3u8"), "Extracting segments");
-                    //var segments = GetSegments(masterHeader);
-                    //
-                    //var primaryKey = await IOHelper.AnimateAwaitAsync(GetPrimaryKey(masterHeader, queryData.GetBaseUrl()), "Extracting decryption key");
-                    //var decryptionKey = ArrayXOR(primaryKey, Convert.FromHexString(stream.EncodeKey));
-                    //
-                    ////2. start downloading
-                    //var simpleAes = new SimpleAES(decryptionKey);
-                    //var data = new List<byte>();
-                    //foreach (var segment in segments)
-                    //{
-                    //    //https://is.muni.cz/auth/el/fi/podzim2022/IA174/index.qwarp?prejit=9564900
-                    //    //var referer = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality + "media.ts";
-                    //    var headers = new Dictionary<string, string>() {
-                    //        { "user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"},
-                    //        { "range", $"bytes={segment.Start}-{segment.Start+ segment.Length - 1}"},
-                    //        //{ "referer", referer}
-                    //    };
-                    //    var requestUrl = streamUrl + "media.ts?ts=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
-                    //    var response = await _request.GetAsync(requestUrl, headers);
-                    //    var result = await response.ReadAsByteArrayAsync();
-                    //
-                    //    data.AddRange(simpleAes.Decrypt(result));
-                    //}
-                    //Console.WriteLine("Data length: " + data.Count);
-                    //
-                    ////TODO select store path?
-                    //
-                    //var fileName = stream.ChapterName + " - " + stream.VideoName + ".ts";
-                    //var filePath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, fileName);
-                    //
-                    //filePath = GetUniqueFilePath(filePath);
-                    //Console.WriteLine($"{filePath}");
-                    //File.WriteAllBytes(filePath, data.ToArray());
+                    case InternalState.CourseSelect:
+                        state = await CourseSelect(queryData);
+                        break;
+                    case InternalState.TermSelect:
+                        state = await TermSelect(queryData);
+                        break;
+                    case InternalState.CookiesSelect:
+                        state = await CookiesSelect(queryData);
+                        break;
+                    case InternalState.ChapterVideoSelect:
+                        state = await ChapterVideoSelect(queryData);
+                        break;
+                    case InternalState.QualitySelect:
+                        QualitySelect(queryData);
+                        state = InternalState.Download;
+                        break;
+                    case InternalState.Download:
+                        state = await Download(queryData);
+                        break;
+                    case InternalState.Finished:
+                        state = Finished();
+                        break;
+                    case InternalState.Exit:
+                        return;
                 }
             }
         }

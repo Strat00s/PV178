@@ -66,30 +66,5 @@ namespace ISVOD
         
             return SendAsync(request);
         }
-
-
-        public async Task<HttpContent> SendRequestAsync(HttpMethod method, string url, HttpContent? requestBody = null, Dictionary<string, string>? headers = null)
-        {
-            using var request = new HttpRequestMessage(method, url);
-
-            if (headers != null)
-            {
-                foreach (var header in headers)
-                {
-                    request.Headers.Add(header.Key, header.Value);
-                }
-            }
-
-            if (requestBody != null)
-            {
-                request.Content = requestBody;
-            }
-
-            using var response = await _client.SendAsync(request);
-            //response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStreamAsync();
-            return new StreamContent(content);
-        }
     }
 }

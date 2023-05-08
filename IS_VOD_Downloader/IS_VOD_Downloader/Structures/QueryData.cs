@@ -1,18 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net;
 
 namespace IS_VOD_Downloader.Structures
 {
     public class QueryData
     {
-        public record StreamData(string ChapterName, string VideoName, string EncodeKey, string StreamPath);
-
-
         public CookieCollection Cookies { get; private set; }
         public PathName Faculty { get; private set; }
         public PathName Course { get; private set; }
@@ -111,7 +102,7 @@ namespace IS_VOD_Downloader.Structures
             Console.WriteLine($"Term: {Term.Name} {Term.Path}");
             if (_auth != String.Empty)
             {
-                Console.WriteLine($"Cookies:");
+                Console.WriteLine($"CookiesSelect:");
                 foreach (var cookie in Cookies)
                 {
                     Console.WriteLine($"  {cookie}");

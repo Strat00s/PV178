@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace IS_VOD_Downloader.Helpers
@@ -26,14 +21,13 @@ namespace IS_VOD_Downloader.Helpers
             return result;
         }
 
-        private static void DrawOptions(List<string> options, string prompt)
+        private static void DrawOptions(List<string> options)
         {
             int i = 1;
             foreach (string option in options)
             {
                 Console.WriteLine($"{i++}. {option}");
             }
-            Console.Write($"{prompt} (1-{options.Count}): ");
         }
 
         public static int Select(List<string> options, string prompt)
@@ -41,9 +35,11 @@ namespace IS_VOD_Downloader.Helpers
             if (options.Count == 1)
                 return 0;
 
+            DrawOptions(options);
+            
             while (true)
             {
-                DrawOptions(options, prompt);
+                Console.Write($"{prompt} (1-{options.Count}): ");
                 var selection = Console.ReadLine();
 
                 //check selection
@@ -62,9 +58,11 @@ namespace IS_VOD_Downloader.Helpers
             if (options.Count == 1)
                 return new List<int>() { 0 };
 
+            DrawOptions(options);
+
             while (true)
             {
-                DrawOptions(options, prompt);
+                Console.Write($"{prompt} (1-{options.Count}): ");
                 var selection = Console.ReadLine();
 
                 //Valid input: number, numbers seperated by commas, numbers seperated by dash (range), any combination of those
@@ -153,6 +151,8 @@ namespace IS_VOD_Downloader.Helpers
                 DrawProgressBar(cursorTop2, progressBarWidth, "Decrypted:  ", decryptProg.Value, decryptMax);
             }
 
+            //TODO async wait for progress to change
+
             Console.CursorVisible = true;
             Console.WriteLine("");
         }
@@ -190,17 +190,23 @@ namespace IS_VOD_Downloader.Helpers
             //TODO propagate status???
             if (!continuous)
             {
-                Console.WriteLine($"[ OK ] {message}");
+                if (task.IsFaulted)
+                    Console.WriteLine($"[FAIL] {message}");
+                else
+                    Console.WriteLine($"[ OK ] {message}");
                 Console.CursorVisible = true;
             }
 
             return await task;
         }
 
-        public static void FinishContinuous()
+        public static void FinishContinuous(bool failed = false)
         {
             Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop);
-            Console.WriteLine($"[ OK ]");
+            if (failed)
+                Console.WriteLine($"[FAIL]");
+            else
+                Console.WriteLine($"[ OK ]");
             Console.CursorVisible = true;
         }
     }
