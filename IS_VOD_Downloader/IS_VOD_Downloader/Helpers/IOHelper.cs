@@ -186,6 +186,7 @@ namespace IS_VOD_Downloader.Helpers
                 lastDecrypt = decryptProg.Value;
                 DrawProgressBar(cursorTop1, progressBarWidth, "Downloaded: ", lastDownload, downloadMax);
                 DrawProgressBar(cursorTop2, progressBarWidth, "Decrypted:  ", lastDecrypt, decryptMax);
+                await Task.Delay(10);   //make it "async"
             }
 
             //TODO async wait for progress to change
