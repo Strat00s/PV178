@@ -77,6 +77,7 @@ namespace IS_VOD_Downloader.Helpers
                 var result = new List<int>();
 
                 //parse the input
+                bool parseOk = true;
                 var parts = selection.Replace(" ", String.Empty).Split(",");
                 foreach (var part in parts)
                 {
@@ -87,6 +88,8 @@ namespace IS_VOD_Downloader.Helpers
                         if (index < 1 || index > options.Count)
                         {
                             Console.WriteLine($"Invalid input {index}");
+                            parseOk = false;
+                            break;
                         }
                         else
                         {
@@ -104,9 +107,14 @@ namespace IS_VOD_Downloader.Helpers
                         else
                         {
                             Console.WriteLine($"Invalid input {start} - {end}");
+                            parseOk = false;
+                            break;
                         }
                     }
                 }
+
+                if (!parseOk)
+                    continue;
 
                 return result.Distinct()
                     .OrderBy(x => x)
@@ -169,16 +177,21 @@ namespace IS_VOD_Downloader.Helpers
             int cursorTop1 = Console.CursorTop - 1;
             int cursorTop2 = Console.CursorTop;
 
-            while (downloadProg.Value < downloadMax || decryptProg.Value < decryptMax)
+            int lastDownload = 0;
+            int lastDecrypt = 0;
+
+            while (lastDownload < downloadMax || lastDecrypt < decryptMax)
             {
-                DrawProgressBar(cursorTop1, progressBarWidth, "Downloaded: ", downloadProg.Value, downloadMax);
-                DrawProgressBar(cursorTop2, progressBarWidth, "Decrypted:  ", decryptProg.Value, decryptMax);
+                lastDownload = downloadProg.Value;
+                lastDecrypt = decryptProg.Value;
+                DrawProgressBar(cursorTop1, progressBarWidth, "Downloaded: ", lastDownload, downloadMax);
+                DrawProgressBar(cursorTop2, progressBarWidth, "Decrypted:  ", lastDecrypt, decryptMax);
             }
 
             //TODO async wait for progress to change
 
             Console.CursorVisible = true;
-            Console.WriteLine("");
+            Console.WriteLine("\n");
         }
 
 

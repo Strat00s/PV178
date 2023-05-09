@@ -41,11 +41,28 @@ namespace IS_VOD_Downloader
             return result;
         }
 
-        public static string GetUniqueFilePath(string filePath)
+        public static string GetValidFilePath(string filePath)
         {
             string path = Path.GetDirectoryName(filePath);
             string fileName = Path.GetFileNameWithoutExtension(filePath);
             string extension = Path.GetExtension(filePath);
+
+            var forbiddenCharacters = new Dictionary<char, char>()
+            {
+                {'/','-'},
+                {'\\','-'},
+                {'<',' '},
+                {'>',' '},
+                {':','-'},
+                {'|',' '},
+                {'?',' '},
+                {'*',' '}
+            };
+
+            foreach (var forbiddenChar in forbiddenCharacters)
+            {
+                fileName = fileName.Replace(forbiddenChar.Key, forbiddenChar.Value);
+            }
 
             string newFileName = fileName;
             string newFilePath = Path.Combine(path, newFileName + extension);
@@ -419,7 +436,7 @@ namespace IS_VOD_Downloader
                 var decryptProg = new ThreadSafeInt(0);
                 var fileName = stream.ChapterName + " - " + stream.VideoName + ".ts";
                 var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
-                filePath = GetUniqueFilePath(filePath);
+                filePath = GetValidFilePath(filePath);
 
                 var simpleAes = new SimpleAES(decryptionKey);
                 var downloader = new DownloadManager(_request);
@@ -464,10 +481,9 @@ namespace IS_VOD_Downloader
 
         private InternalState Finished()
         {
-            var options = new List<string> {"Start over", "Exit"};
-            var selected = IOHelper.Select(options, "Do you want to");
+            var selected = IOHelper.BoolSelect("yes", "No", "Done. Do you want to start over?");
 
-            return selected == 0 ? InternalState.CourseSelect : InternalState.Exit;
+            return selected ? InternalState.CourseSelect : InternalState.Exit;
         }
 
 
