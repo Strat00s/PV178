@@ -15,3 +15,5 @@ C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\
 C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\ref\IS_VOD_Downloader.dll
 C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\bin\Debug\net6.0\HtmlAgilityPack.dll
 C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\obj\Debug\net6.0\IS_VOD_Downloader.csproj.CopyComplete
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\bin\Debug\net6.0\Newtonsoft.Json.dll
+C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\bin\Debug\net6.0\Xabe.FFmpeg.dll

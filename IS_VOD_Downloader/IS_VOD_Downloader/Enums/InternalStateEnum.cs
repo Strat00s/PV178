@@ -14,6 +14,7 @@ namespace IS_VOD_Downloader.Enums
         CookiesSelect,
         ChapterVideoSelect,
         QualitySelect,
+        ConversionSelect,
         Download,
         Finished,
         Exit

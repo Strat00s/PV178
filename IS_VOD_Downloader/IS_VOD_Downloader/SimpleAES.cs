@@ -17,45 +17,63 @@ public class SimpleAES
         _aes.IV = initialIv ?? new byte[16];
     }
 
+    //public byte[] Decrypt(byte[] data)
+    //{
+    //    using MemoryStream memoryStream = new MemoryStream();
+    //    using ICryptoTransform decryptor = _aes.CreateDecryptor();
+    //    using CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Write);
+    //
+    //    cryptoStream.Write(data, 0, data.Length);
+    //    cryptoStream.FlushFinalBlock();
+    //
+    //    int decryptedDataLength = (int)memoryStream.Length;
+    //    byte[] decryptedData = ArrayPool<byte>.Shared.Rent(decryptedDataLength);
+    //    memoryStream.Position = 0;
+    //    memoryStream.Read(decryptedData, 0, decryptedDataLength);
+    //
+    //    return decryptedData;
+    //}
+
     public byte[] Decrypt(byte[] data)
     {
         using MemoryStream memoryStream = new MemoryStream();
         using ICryptoTransform decryptor = _aes.CreateDecryptor();
         using CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Write);
-
+    
         cryptoStream.Write(data, 0, data.Length);
         cryptoStream.FlushFinalBlock();
-
-        int decryptedDataLength = (int)memoryStream.Length;
-        byte[] decryptedData = ArrayPool<byte>.Shared.Rent(decryptedDataLength);
-        memoryStream.Position = 0;
-        memoryStream.Read(decryptedData, 0, decryptedDataLength);
-
-        return decryptedData;
+    
+        return memoryStream.ToArray();
     }
 
     public async Task DecryptAsync(int segmentCnt, Channel<(int, byte[])> inputCh, Channel<byte[]> outputCh, ThreadSafeInt decryptProg)
     {
         int currentSegment = 0;
         var inputBuffer = new Dictionary<int, byte[]>();
+        //var rawData = new List<byte>();
 
         while (currentSegment < segmentCnt)
         {
-            if (inputCh.Reader.TryRead(out var input))
+            while (inputCh.Reader.TryRead(out var input))
             {
                 inputBuffer[input.Item1] = input.Item2;
             }
 
-            if (inputBuffer.ContainsKey(currentSegment))
+            while (inputBuffer.ContainsKey(currentSegment))
             {
+                //rawData.AddRange(inputBuffer[currentSegment]);
                 outputCh.Writer.TryWrite(Decrypt(inputBuffer[currentSegment]));
                 inputBuffer.Remove(currentSegment);
                 currentSegment++;
                 decryptProg.Increment();
             }
 
-            else
-                await inputCh.Reader.WaitToReadAsync();
+            await Task.WhenAny(inputCh.Reader.WaitToReadAsync().AsTask(), inputCh.Reader.Completion);
         }
+
+        outputCh.Writer.Complete();
+
+        //var decryptedWhole = Decrypt(rawData.ToArray());
+        //File.WriteAllBytes(@"C:\Users\Stratos\Documents\0_projects\PV178\IS_VOD_Downloader\IS_VOD_Downloader\bin\Debug\net6.0\test.ts", decryptedWhole);
     }
 }

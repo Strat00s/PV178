@@ -13,16 +13,18 @@ using System.Threading.Channels;
 using IS_VOD_Downloader.Enums;
 using System.Net;
 using System.Runtime.CompilerServices;
+using Xabe.FFmpeg;
+using System.Diagnostics;
 
 namespace IS_VOD_Downloader
 {
-
-    //private string
     public class ConsoleApp
     {
-        private Request _request;
-        private string _baseUrl;
-        private bool _hasCookies;   //TODO implement cookie check
+        private readonly Request _request;
+        private readonly string _baseUrl;
+        private bool _hasCookies;
+        private string? _ffmpegDir;
+        private bool _deleteOriginal;
 
 
         //Helper methods
@@ -80,18 +82,17 @@ namespace IS_VOD_Downloader
         }
 
 
-
         //Format (and "translate") the term string
-        private string FormatTerm(string termUri)
+        private static string FormatTerm(string termUri)
         {
             termUri = termUri.Replace(" ", String.Empty).ToLower();
             if (termUri.Contains("jaro") || termUri.Contains("spring"))
             {
-                return "Spring " + termUri.Substring(termUri.Length - 4);
+                return string.Concat("Spring ", termUri.AsSpan(termUri.Length - 4));
             }
             if (termUri.Contains("podzim") || termUri.Contains("autumn"))
             {
-                return "Autumn " + termUri.Substring(termUri.Length - 4);
+                return string.Concat("Autumn ", termUri.AsSpan(termUri.Length - 4));
             }
             return termUri;
         }
@@ -237,7 +238,7 @@ namespace IS_VOD_Downloader
                 .ToList();
         }
 
-        private List<Segment> GetSegments(string masterHeader)
+        private static List<Segment> GetSegments(string masterHeader)
         {
             var matches = Regex.Matches(masterHeader, @"#EXT-X-BYTERANGE:\d+@\d+");
             if (matches.Count > 0)
@@ -263,7 +264,7 @@ namespace IS_VOD_Downloader
                 var response = await _request.GetAsync(authUrl + metaPath);
                 return await response.ReadAsByteArrayAsync();
             }
-            return new byte[] {};
+            return Array.Empty<byte>();
         }
 
         private async Task<string> GetMasterHeader(string masterUrl)
@@ -334,12 +335,12 @@ namespace IS_VOD_Downloader
                 };
                 var client = new HttpClient(handler);
 
-                Func<Task<int>> action = async () =>
+                async Task<int> action()
                 {
                     var response = await client.GetAsync(queryData.GetBaseUrl() + "auth/?lang=cs;setlang=cs");
                     response.EnsureSuccessStatusCode();
                     return 42;
-                };
+                }
 
                 await IOHelper.AnimateAwaitAsync(action(), "Testing cookies");
             }
@@ -368,7 +369,7 @@ namespace IS_VOD_Downloader
             {
                 chapters = await IOHelper.AnimateAwaitAsync(GetChaptersWithVoDs(queryData.GetSyllabusUrl()), "Extracting lectures with streams");
             }
-            catch (HttpRequestException ex)
+            catch (HttpRequestException)
             {
                 Console.WriteLine($"Syllabus not found for selected course and term combination!");
                 return InternalState.Finished;
@@ -417,13 +418,39 @@ namespace IS_VOD_Downloader
             return InternalState.QualitySelect;
         }
 
-        //TODO maybe remove?
-        private void QualitySelect(QueryData queryData)
+        private static void QualitySelect(QueryData queryData)
         {
             //List<string> options = new List<string> { "High quality", "Low file size" };
             //var selected = IOHelper.Select(new List<string> {"Low quality (480p and down)", "High quality (720p and up)"}, "Please select quality");
             //queryData.SetHighQuality(Convert.ToBoolean(selected));
             queryData.SetHighQuality();
+            Console.WriteLine("");
+        }
+
+        private void ConversionSelect()
+        {
+            Console.WriteLine("The final files can be converted via ffmpeg to mp4 if you provide a valid path to ffmpeg executable.");
+            if (!IOHelper.BoolSelect("yes", "No", "Do you want to convert the downloaded file(s) to mp4?"))
+                return;
+            Console.WriteLine("OK");
+            while (true)
+            {
+                var path = IOHelper.GetInput("Path to ffmpeg/folder containing ffmpeg: ");
+                path = path.Trim('"');
+                if (Path.IsPathFullyQualified(path) && File.Exists(path))
+                {
+                    _ffmpegDir = Path.GetDirectoryName(path);
+                    break;
+                }
+                if (Path.IsPathFullyQualified(path) && Directory.Exists(path))
+                {
+                    _ffmpegDir = path;
+                    break;
+                }
+                Console.WriteLine("Invalid path!");
+            }
+
+            _deleteOriginal = IOHelper.BoolSelect("Yes", "no", "Once done, do you want to delete the original file(s)?");
         }
 
         private async Task<InternalState> Download(QueryData queryData)
@@ -450,7 +477,7 @@ namespace IS_VOD_Downloader
 
                 var simpleAes = new SimpleAES(decryptionKey);
                 var downloader = new DownloadManager(_request);
-                var fileWriter = new ChunkedFileWriter(filePath);
+                var fileWriter = new FileWriter(filePath);
 
 
                 //3 start download
@@ -461,35 +488,64 @@ namespace IS_VOD_Downloader
                 var downloadTask = downloader.StartDownload(20, downloadProg, segments, streamUrl, downloadedDataCh);
                 var decryptTask = simpleAes.DecryptAsync(segments.Count, downloadedDataCh, decryptedDataCh, decryptProg);
                 var progressAnimTask = IOHelper.AnimateProgressAsync(downloadProg, segments.Count, decryptProg, segments.Count);
-
+                
                 while (!decryptTask.IsCompleted || decryptedDataCh.Reader.Count > 0)
                 {
                     if (decryptedDataCh.Reader.TryRead(out var decryptedSegment))
                     {
                         rawData.AddRange(decryptedSegment);
                         segmentCnt++;
-
+                        
+                        //write to file every 50 decrypted segments
                         if (segmentCnt >= 50)
                         {
                             segmentCnt = 0;
-                            fileWriter.WriteBytes(rawData);
+                            fileWriter.WriteBytes(rawData.ToArray());
                             rawData.Clear();
                         }
                     }
                     else
                         await Task.WhenAny(decryptTask, decryptedDataCh.Reader.WaitToReadAsync().AsTask());
-
                 }
-                fileWriter.WriteBytes(rawData);
-                fileWriter.Dispose();
 
                 await Task.WhenAll(downloadTask, decryptTask, progressAnimTask);
+
+                fileWriter.WriteBytes(rawData.ToArray());
+                fileWriter.Dispose();
+
+                //TODO progress
+                //start conversion
+                if (_ffmpegDir != null)
+                {
+                    FFmpeg.SetExecutablesPath(_ffmpegDir);
+                    var inputFile = filePath;
+                    var outputFile = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".mp4");
+                
+                    try
+                    {
+                        var mediaInfo = await FFmpeg.GetMediaInfo(inputFile);
+                        var conversion = FFmpeg.Conversions.New()
+                            .AddStream(mediaInfo.VideoStreams.First())
+                            .AddStream(mediaInfo.AudioStreams.First())
+                            .SetOutput(outputFile)
+                            .SetOutputFormat(Format.mp4);
+                
+                        await conversion.Start();
+                        Console.WriteLine("Conversion completed successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error: {ex.Message}");
+                    }
+                }
+                if (_deleteOriginal)
+                    File.Delete(filePath);
             }
 
             return InternalState.Finished;
         }
 
-        private InternalState Finished()
+        private static InternalState Finished()
         {
             var selected = IOHelper.BoolSelect("yes", "No", "Done. Do you want to start over?");
             return selected ? InternalState.CourseSelect : InternalState.Exit;
@@ -502,6 +558,8 @@ namespace IS_VOD_Downloader
             _baseUrl = "https://is.muni.cz/";
             _hasCookies = false;
             _request = new Request();
+            _ffmpegDir = null;
+            _deleteOriginal = false;
         }
 
         public async Task RunAsync()
@@ -515,6 +573,7 @@ namespace IS_VOD_Downloader
                 switch (state)
                 {
                     case InternalState.CourseSelect:
+                        queryData.Clear();
                         state = await CourseSelect(queryData);
                         break;
                     case InternalState.TermSelect:
@@ -531,6 +590,10 @@ namespace IS_VOD_Downloader
                         break;
                     case InternalState.QualitySelect:
                         QualitySelect(queryData);
+                        state = InternalState.ConversionSelect;
+                        break;
+                    case InternalState.ConversionSelect:
+                        ConversionSelect();
                         state = InternalState.Download;
                         break;
                     case InternalState.Download:
