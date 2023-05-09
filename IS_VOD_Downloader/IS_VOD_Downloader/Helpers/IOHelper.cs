@@ -72,8 +72,6 @@ namespace IS_VOD_Downloader.Helpers
                     continue;
                 }
 
-                Console.WriteLine(selection);
-
                 var result = new List<int>();
 
                 //parse the input

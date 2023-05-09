@@ -12,6 +12,7 @@ using static IS_VOD_Downloader.Structures.QueryData;
 using System.Threading.Channels;
 using IS_VOD_Downloader.Enums;
 using System.Net;
+using System.Runtime.CompilerServices;
 
 namespace IS_VOD_Downloader
 {
@@ -150,7 +151,6 @@ namespace IS_VOD_Downloader
         //get chapter (lecture) with VoDs and redirect links to them
         private async Task<List<(string, string)>> GetChaptersWithVoDs(string syllabusUrl)
         {
-            Console.WriteLine(syllabusUrl);
             var response = await _request.GetAsync(syllabusUrl);
             var result = await response.ReadAsStringAsync();
             var htmlDoc = new HtmlDocument();
@@ -334,12 +334,23 @@ namespace IS_VOD_Downloader
                 };
                 var client = new HttpClient(handler);
 
-                var response = await IOHelper.AnimateAwaitAsync(client.GetAsync(queryData.GetBaseUrl() + "?lang=cs;setlang=cs"), "Testing access");
-                response.EnsureSuccessStatusCode();
+                Func<Task<int>> action = async () =>
+                {
+                    var response = await client.GetAsync(queryData.GetBaseUrl() + "auth/?lang=cs;setlang=cs");
+                    response.EnsureSuccessStatusCode();
+                    return 42;
+                };
+
+                await IOHelper.AnimateAwaitAsync(action(), "Testing cookies");
             }
             catch (HttpRequestException)
             {
                 Console.WriteLine($"Invalid cookies!");
+                return InternalState.CookiesSelect;
+            }
+            catch (CookieException)
+            {
+                Console.WriteLine($"Invalid cookies format!");
                 return InternalState.CookiesSelect;
             }
 
@@ -380,7 +391,6 @@ namespace IS_VOD_Downloader
                 var streamData = await IOHelper.AnimateAwaitAsync(GetVoDsData(chapterUrl), $"Extracting stream data {i++}/{selectedChapters.Count}", true);
                 if (streamData.Count == 1)
                 {
-                    Console.WriteLine(streamData[0].Item3);
                     var streamPathSplits = streamData[0].Item3.Split("/");
                     var streamPath = streamPathSplits[6] + "/" + streamPathSplits[7];
                     queryData.AddStream(chapters[chapterIndex].Item1, streamData[0].Item1, streamData[0].Item2, streamPath);
@@ -482,7 +492,6 @@ namespace IS_VOD_Downloader
         private InternalState Finished()
         {
             var selected = IOHelper.BoolSelect("yes", "No", "Done. Do you want to start over?");
-
             return selected ? InternalState.CourseSelect : InternalState.Exit;
         }
 
@@ -490,7 +499,7 @@ namespace IS_VOD_Downloader
 
         public ConsoleApp()
         {
-            _baseUrl = "https://is.muni.cz";
+            _baseUrl = "https://is.muni.cz/";
             _hasCookies = false;
             _request = new Request();
         }
