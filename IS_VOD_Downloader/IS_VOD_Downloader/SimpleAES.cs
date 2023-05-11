@@ -17,23 +17,6 @@ public class SimpleAES
         _aes.IV = initialIv ?? new byte[16];
     }
 
-    //public byte[] Decrypt(byte[] data)
-    //{
-    //    using MemoryStream memoryStream = new MemoryStream();
-    //    using ICryptoTransform decryptor = _aes.CreateDecryptor();
-    //    using CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Write);
-    //
-    //    cryptoStream.Write(data, 0, data.Length);
-    //    cryptoStream.FlushFinalBlock();
-    //
-    //    int decryptedDataLength = (int)memoryStream.Length;
-    //    byte[] decryptedData = ArrayPool<byte>.Shared.Rent(decryptedDataLength);
-    //    memoryStream.Position = 0;
-    //    memoryStream.Read(decryptedData, 0, decryptedDataLength);
-    //
-    //    return decryptedData;
-    //}
-
     public byte[] Decrypt(byte[] data)
     {
         using MemoryStream memoryStream = new MemoryStream();

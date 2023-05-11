@@ -430,9 +430,10 @@ namespace IS_VOD_Downloader
         private void ConversionSelect()
         {
             Console.WriteLine("The final files can be converted via ffmpeg to mp4 if you provide a valid path to ffmpeg executable.");
+            Console.WriteLine("The conversion can take a long time!");
+            Console.WriteLine("Files are converted one by one after they are downloaded.");
             if (!IOHelper.BoolSelect("yes", "No", "Do you want to convert the downloaded file(s) to mp4?"))
                 return;
-            Console.WriteLine("OK");
             while (true)
             {
                 var path = IOHelper.GetInput("Path to ffmpeg/folder containing ffmpeg: ");
@@ -481,8 +482,8 @@ namespace IS_VOD_Downloader
 
 
                 //3 start download
-                Console.WriteLine($"Currently downloading '{stream.VideoName}' from lecture '{stream.ChapterName}'");
-                Console.WriteLine("Current progress:\n");
+                Console.WriteLine($"\nCurrently downloading '{stream.VideoName}' from lecture '{stream.ChapterName}'");
+                Console.WriteLine("Current progress:");
                 var segmentCnt = 0;
                 var rawData = new List<byte>();
                 var downloadTask = downloader.StartDownload(20, downloadProg, segments, streamUrl, downloadedDataCh);
@@ -513,8 +514,6 @@ namespace IS_VOD_Downloader
                 fileWriter.WriteBytes(rawData.ToArray());
                 fileWriter.Dispose();
 
-                //TODO progress
-                //start conversion
                 if (_ffmpegDir != null)
                 {
                     FFmpeg.SetExecutablesPath(_ffmpegDir);
@@ -528,10 +527,18 @@ namespace IS_VOD_Downloader
                             .AddStream(mediaInfo.VideoStreams.First())
                             .AddStream(mediaInfo.AudioStreams.First())
                             .SetOutput(outputFile)
-                            .SetOutputFormat(Format.mp4);
-                
+                            .SetOutputFormat(Format.mp4)
+                            .UseMultiThread(true)
+                            .UseMultiThread(16);
+
+                        int progressBarWidth = Console.WindowWidth - 30;
+                        IOHelper.DrawProgressBar(Console.CursorTop, progressBarWidth, "Converting: ", 0, 100);
+                        conversion.OnProgress += (sender, args) =>
+                        {
+                            IOHelper.DrawProgressBar(Console.CursorTop, progressBarWidth, "Converting: ", args.Percent, 100);
+                        };
                         await conversion.Start();
-                        Console.WriteLine("Conversion completed successfully.");
+                        Console.WriteLine("");
                     }
                     catch (Exception ex)
                     {
@@ -542,12 +549,13 @@ namespace IS_VOD_Downloader
                     File.Delete(filePath);
             }
 
+            Console.WriteLine("");
             return InternalState.Finished;
         }
 
         private static InternalState Finished()
         {
-            var selected = IOHelper.BoolSelect("yes", "No", "Done. Do you want to start over?");
+            var selected = IOHelper.BoolSelect("yes", "No", "Downloading finished. Do you want to start over?");
             return selected ? InternalState.CourseSelect : InternalState.Exit;
         }
 

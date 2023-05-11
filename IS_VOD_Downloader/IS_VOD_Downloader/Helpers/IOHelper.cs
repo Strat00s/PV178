@@ -146,7 +146,7 @@ namespace IS_VOD_Downloader.Helpers
         }
 
         //Animations
-        private static void DrawProgressBar(int cursorTop, int progressBarWidth, string prefix, int progress, int max)
+        public static void DrawProgressBar(int cursorTop, int progressBarWidth, string prefix, int progress, int max)
         {
             double progressFraction = (double)progress / max;
 
@@ -187,10 +187,7 @@ namespace IS_VOD_Downloader.Helpers
                 await Task.Delay(10);   //make it "async"
             }
 
-            //TODO async wait for progress to change
-
             Console.CursorVisible = true;
-            Console.WriteLine("\n");
         }
 
 

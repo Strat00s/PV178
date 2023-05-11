@@ -15,7 +15,6 @@ namespace IS_VOD_Downloader.Helpers
 
         public async Task StartDownload(int workerCnt, ThreadSafeInt progress, List<Segment> segments, string streamUrl, Channel<(int, byte[])> downloadCh)
         {
-            Console.WriteLine(segments.Count);
             if (workerCnt == 0 || workerCnt > Environment.ProcessorCount)
                 workerCnt = Environment.ProcessorCount;
 
@@ -23,9 +22,6 @@ namespace IS_VOD_Downloader.Helpers
                    .GroupBy(x => x.index % workerCnt)
                    .Select(g => g.Select(x => x.item).ToList())
                    .ToList();
-
-            Console.WriteLine(distributedSegments.Count);
-            Console.WriteLine(distributedSegments.SelectMany(x => x).Count());
 
             var workers = new List<Task>();
             for (int i = 0; i < workerCnt; i++)
