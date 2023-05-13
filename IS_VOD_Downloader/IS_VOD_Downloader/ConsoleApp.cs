@@ -300,7 +300,6 @@ namespace IS_VOD_Downloader
         private async Task<InternalState> TermSelect(QueryData queryData)
         {
             var terms = await IOHelper.AnimateAwaitAsync(GetTermsForCourse(queryData.GetCourseUrl()), "Extracting terms");
-            //At least one term has to always exist
 
             //get term
             var selected = IOHelper.Select(terms.Select(t => t.Item1).ToList(), "Please select term");
@@ -424,11 +423,12 @@ namespace IS_VOD_Downloader
             //var selected = IOHelper.Select(new List<string> {"Low quality (480p and down)", "High quality (720p and up)"}, "Please select quality");
             //queryData.SetHighQuality(Convert.ToBoolean(selected));
             queryData.SetHighQuality();
-            Console.WriteLine("");
+            //Console.WriteLine("");
         }
 
         private void ConversionSelect()
         {
+            Console.WriteLine("");
             Console.WriteLine("The final files can be converted via ffmpeg to mp4 if you provide a valid path to ffmpeg executable.");
             Console.WriteLine("The conversion can take a long time!");
             Console.WriteLine("Files are converted one by one after they are downloaded.");
@@ -456,8 +456,11 @@ namespace IS_VOD_Downloader
 
         private async Task<InternalState> Download(QueryData queryData)
         {
+            Console.WriteLine("");
+            Console.WriteLine("Starting download");
             foreach (var stream in queryData.Streams)
             {
+                Console.WriteLine($"\nCurrently downloading '{stream.VideoName}' from lecture '{stream.ChapterName}'");
                 //1. get segments and decryption key
                 var streamUrl = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality;
                 var masterHeader = await IOHelper.AnimateAwaitAsync(GetMasterHeader(streamUrl + "stream.m3u8"), "Extracting segments");
@@ -482,8 +485,6 @@ namespace IS_VOD_Downloader
 
 
                 //3 start download
-                Console.WriteLine($"\nCurrently downloading '{stream.VideoName}' from lecture '{stream.ChapterName}'");
-                Console.WriteLine("Current progress:");
                 var segmentCnt = 0;
                 var rawData = new List<byte>();
                 var downloadTask = downloader.StartDownload(20, downloadProg, segments, streamUrl, downloadedDataCh);
@@ -531,31 +532,51 @@ namespace IS_VOD_Downloader
                             .UseMultiThread(true)
                             .UseMultiThread(16);
 
+
                         int progressBarWidth = Console.WindowWidth - 30;
+                        Console.WriteLine("");
+                        Console.CursorVisible = false;
                         IOHelper.DrawProgressBar(Console.CursorTop, progressBarWidth, "Converting: ", 0, 100);
                         conversion.OnProgress += (sender, args) =>
                         {
                             IOHelper.DrawProgressBar(Console.CursorTop, progressBarWidth, "Converting: ", args.Percent, 100);
                         };
                         await conversion.Start();
+                        Console.CursorVisible = true;
                         Console.WriteLine("");
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Error: {ex.Message}");
+                        var selected = IOHelper.BoolSelect("yes", "No", "Do you want to start over?");
+                        if (!selected)
+                            return InternalState.Exit;
                     }
                 }
                 if (_deleteOriginal)
-                    File.Delete(filePath);
+                    try
+                    {
+                        File.Delete(filePath);
+                        Console.WriteLine("[ OK ] Deleting file");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("[FAIL] Deleting file");
+                        Console.WriteLine(ex.Message);
+                        var selected = IOHelper.BoolSelect("yes", "No", "Do you want to continue?");
+                        if (!selected)
+                            return InternalState.Exit;
+                    }
             }
 
             Console.WriteLine("");
+            Console.WriteLine("Download finished!");
             return InternalState.Finished;
         }
 
         private static InternalState Finished()
         {
-            var selected = IOHelper.BoolSelect("yes", "No", "Downloading finished. Do you want to start over?");
+            var selected = IOHelper.BoolSelect("yes", "No", "Do you want to start over?");
             return selected ? InternalState.CourseSelect : InternalState.Exit;
         }
 
@@ -589,7 +610,7 @@ namespace IS_VOD_Downloader
                         break;
                     case InternalState.CookiesSelect:
                         if (firstRun)
-                            Console.WriteLine("Authorization required to continue. Please login to https://is.muni.cz/ in your browser and copy-paste your cookies:");
+                            Console.WriteLine("\nAuthorization required to continue. Please login to https://is.muni.cz/ in your browser and copy-paste your cookies:");
                         firstRun = false;
                         state = await CookiesSelect(queryData);
                         break;

@@ -34,7 +34,7 @@ namespace IS_VOD_Downloader.Helpers
         {
             if (options.Count == 1)
                 return 0;
-
+            Console.WriteLine("");
             DrawOptions(options);
             
             while (true)
@@ -58,6 +58,7 @@ namespace IS_VOD_Downloader.Helpers
             if (options.Count == 1)
                 return new List<int>() { 0 };
 
+            Console.WriteLine("");
             DrawOptions(options);
 
             while (true)
@@ -168,6 +169,7 @@ namespace IS_VOD_Downloader.Helpers
         //TODO make it asynchronous
         public static async Task AnimateProgressAsync(ThreadSafeInt downloadProg, int downloadMax, ThreadSafeInt decryptProg, int decryptMax)
         {
+            Console.WriteLine("");
             int progressBarWidth = Console.WindowWidth - 30;
 
             Console.CursorVisible = false;
