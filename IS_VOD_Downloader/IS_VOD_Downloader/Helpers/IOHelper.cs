@@ -146,6 +146,7 @@ namespace IS_VOD_Downloader.Helpers
             }
         }
 
+
         //Animations
         public static void DrawProgressBar(int cursorTop, int progressBarWidth, string prefix, int progress, int max)
         {
@@ -166,7 +167,6 @@ namespace IS_VOD_Downloader.Helpers
                 Console.Write(" Done");
         }
 
-        //TODO make it asynchronous
         public static async Task AnimateProgressAsync(ThreadSafeInt downloadProg, int downloadMax, ThreadSafeInt decryptProg, int decryptMax)
         {
             Console.WriteLine("");
@@ -222,7 +222,6 @@ namespace IS_VOD_Downloader.Helpers
             }
 
             Console.SetCursorPosition(_cursorPosition, Console.CursorTop);
-            //TODO propagate status???
             if (!continuous)
             {
                 if (task.IsFaulted)

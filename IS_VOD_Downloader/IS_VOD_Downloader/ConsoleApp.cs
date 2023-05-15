@@ -2,19 +2,12 @@
 using HtmlAgilityPack;
 using System.Text.RegularExpressions;
 using IS_VOD_Downloader.Structures;
-using System.Security.Cryptography;
-using System.Text;
-using System.Reflection.PortableExecutable;
-using System;
-using System.Diagnostics.CodeAnalysis;
 using IS_VOD_Downloader.Helpers;
-using static IS_VOD_Downloader.Structures.QueryData;
 using System.Threading.Channels;
 using IS_VOD_Downloader.Enums;
 using System.Net;
-using System.Runtime.CompilerServices;
 using Xabe.FFmpeg;
-using System.Diagnostics;
+using System.Dynamic;
 
 namespace IS_VOD_Downloader
 {
@@ -25,6 +18,62 @@ namespace IS_VOD_Downloader
         private bool _hasCookies;
         private string? _ffmpegDir;
         private bool _deleteOriginal;
+
+
+        public ConsoleApp()
+        {
+            _baseUrl = "https://is.muni.cz/";
+            _hasCookies = false;
+            _request = new Request();
+            _ffmpegDir = null;
+            _deleteOriginal = false;
+        }
+
+        public async Task RunAsync()
+        {
+            QueryData queryData = new(_baseUrl);
+            var state = InternalState.CourseSelect;
+            bool firstRun = true;
+
+            while (true)
+            {
+                switch (state)
+                {
+                    case InternalState.CourseSelect:
+                        queryData.Clear();
+                        state = await CourseSelect(queryData);
+                        break;
+                    case InternalState.TermSelect:
+                        state = await TermSelect(queryData);
+                        break;
+                    case InternalState.CookiesSelect:
+                        if (firstRun)
+                            Console.WriteLine("\nAuthorization required to continue. Please login to https://is.muni.cz/ in your browser and copy-paste your cookies:");
+                        firstRun = false;
+                        state = await CookiesSelect(queryData);
+                        break;
+                    case InternalState.ChapterVideoSelect:
+                        state = await ChapterVideoSelect(queryData);
+                        break;
+                    case InternalState.QualitySelect:
+                        QualitySelect(queryData);
+                        state = InternalState.ConversionSelect;
+                        break;
+                    case InternalState.ConversionSelect:
+                        ConversionSelect();
+                        state = InternalState.Download;
+                        break;
+                    case InternalState.Download:
+                        state = await Download(queryData);
+                        break;
+                    case InternalState.Finished:
+                        state = Finished();
+                        break;
+                    case InternalState.Exit:
+                        return;
+                }
+            }
+        }
 
 
         //Helper methods
@@ -44,6 +93,7 @@ namespace IS_VOD_Downloader
             return result;
         }
 
+        //check if path with same name exists and create new (windows style)
         public static string GetValidFilePath(string filePath)
         {
             string path = Path.GetDirectoryName(filePath);
@@ -81,7 +131,6 @@ namespace IS_VOD_Downloader
             return newFilePath;
         }
 
-
         //Format (and "translate") the term string
         private static string FormatTerm(string termUri)
         {
@@ -96,6 +145,7 @@ namespace IS_VOD_Downloader
             }
             return termUri;
         }
+
 
         //request methods
         private async Task<List<(string, string)>> SearchForCourse(string courseCode)
@@ -127,6 +177,7 @@ namespace IS_VOD_Downloader
                 .ToList();
         }
 
+        //
         private async Task<List<(string, string)>> GetTermsForCourse(string courseUrl)
         {
             courseUrl = courseUrl.Trim('/');
@@ -194,7 +245,6 @@ namespace IS_VOD_Downloader
 
             //there can be multiple keys
             var matches = Regex.Matches(scriptRaw, @"""id""\s*:\s*""prvek_.+""|""encode_key""\s*:\s*"".+""");
-
             var keyIdPairs = new List<(string, string)>();
             for (int i = 0; i < matches.Count; i += 2)
             {
@@ -238,6 +288,7 @@ namespace IS_VOD_Downloader
                 .ToList();
         }
 
+        //extract segments from master header file
         private static List<Segment> GetSegments(string masterHeader)
         {
             var matches = Regex.Matches(masterHeader, @"#EXT-X-BYTERANGE:\d+@\d+");
@@ -255,6 +306,7 @@ namespace IS_VOD_Downloader
                 throw new NotImplementedException();
         }
 
+        //get OPT for decryption key
         private async Task<byte[]> GetPrimaryKey(string masterHeader, string authUrl)
         {
             var match = Regex.Match(masterHeader, @"#EXT-X-KEY:.*");
@@ -404,7 +456,7 @@ namespace IS_VOD_Downloader
             {
                 var chapterName = streamsInChapter.Item1;
                 var streamsData = streamsInChapter.Item2;
-                Console.WriteLine($"Multiple streams found in lecture '{chapterName}':");
+                Console.WriteLine($"\nMultiple streams found in lecture '{chapterName}':");
                 var selectedStreams = IOHelper.MultiSelect(streamsData.Select(v => v.Item1).ToList(), "Please select stream(s) to download");
                 foreach (var streamIndex in selectedStreams)
                 {
@@ -417,6 +469,7 @@ namespace IS_VOD_Downloader
             return InternalState.QualitySelect;
         }
 
+        //some streams only have 1 quality which is media-1, so let's just always download that...
         private static void QualitySelect(QueryData queryData)
         {
             //List<string> options = new List<string> { "High quality", "Low file size" };
@@ -429,11 +482,40 @@ namespace IS_VOD_Downloader
         private void ConversionSelect()
         {
             Console.WriteLine("");
-            Console.WriteLine("The final files can be converted via ffmpeg to mp4 if you provide a valid path to ffmpeg executable.");
-            Console.WriteLine("The conversion can take a long time!");
-            Console.WriteLine("Files are converted one by one after they are downloaded.");
-            if (!IOHelper.BoolSelect("yes", "No", "Do you want to convert the downloaded file(s) to mp4?"))
+
+            if (_ffmpegDir == null)
+            {
+                Console.WriteLine("The final files can be converted via ffmpeg to mp4 if you provide a valid path to ffmpeg executable.");
+                Console.WriteLine("The conversion can take a long time!");
+                Console.WriteLine("Files are converted one by one after they are downloaded.");
+            }
+
+            bool selected;
+            
+            //change default option when path already exists
+            if (_ffmpegDir == null)
+                selected = IOHelper.BoolSelect("yes", "No", "Do you want to convert the downloaded file(s) to mp4?");
+            else
+                selected = IOHelper.BoolSelect("Yes", "no", "Do you want to convert the downloaded file(s) to mp4?");
+            if (!selected) {
+                _ffmpegDir = null;
+                _deleteOriginal = false;
                 return;
+            }
+
+            //skip the rest if path already exists
+            if (_ffmpegDir != null)
+            {
+                selected = IOHelper.BoolSelect("Yes", "no", "Do you want to use the same path as before?");
+                if (selected)
+                {
+                    _deleteOriginal = IOHelper.BoolSelect("Yes", "no", "Once done, do you want to delete the original file(s)?");
+                    return;
+                }
+                _ffmpegDir = null;
+                return;
+            }
+
             while (true)
             {
                 var path = IOHelper.GetInput("Path to ffmpeg/folder containing ffmpeg: ");
@@ -460,7 +542,7 @@ namespace IS_VOD_Downloader
             Console.WriteLine("Starting download");
             foreach (var stream in queryData.Streams)
             {
-                Console.WriteLine($"\nCurrently downloading '{stream.VideoName}' from lecture '{stream.ChapterName}'");
+                Console.WriteLine($"\n\nCurrently downloading '{stream.VideoName}' from lecture '{stream.ChapterName}'");
                 //1. get segments and decryption key
                 var streamUrl = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality;
                 var masterHeader = await IOHelper.AnimateAwaitAsync(GetMasterHeader(streamUrl + "stream.m3u8"), "Extracting segments");
@@ -490,14 +572,14 @@ namespace IS_VOD_Downloader
                 var downloadTask = downloader.StartDownload(20, downloadProg, segments, streamUrl, downloadedDataCh);
                 var decryptTask = simpleAes.DecryptAsync(segments.Count, downloadedDataCh, decryptedDataCh, decryptProg);
                 var progressAnimTask = IOHelper.AnimateProgressAsync(downloadProg, segments.Count, decryptProg, segments.Count);
-                
+
                 while (!decryptTask.IsCompleted || decryptedDataCh.Reader.Count > 0)
                 {
                     if (decryptedDataCh.Reader.TryRead(out var decryptedSegment))
                     {
                         rawData.AddRange(decryptedSegment);
                         segmentCnt++;
-                        
+
                         //write to file every 50 decrypted segments
                         if (segmentCnt >= 50)
                         {
@@ -515,12 +597,13 @@ namespace IS_VOD_Downloader
                 fileWriter.WriteBytes(rawData.ToArray());
                 fileWriter.Dispose();
 
+                //call ffmpeg and convert the file
                 if (_ffmpegDir != null)
                 {
                     FFmpeg.SetExecutablesPath(_ffmpegDir);
                     var inputFile = filePath;
                     var outputFile = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".mp4");
-                
+
                     try
                     {
                         var mediaInfo = await FFmpeg.GetMediaInfo(inputFile);
@@ -554,10 +637,11 @@ namespace IS_VOD_Downloader
                     }
                 }
                 if (_deleteOriginal)
+                {
                     try
                     {
                         File.Delete(filePath);
-                        Console.WriteLine("[ OK ] Deleting file");
+                        Console.WriteLine("[ OK ] Deleting file");  //dirty non-async prints to be somewhat consistent
                     }
                     catch (Exception ex)
                     {
@@ -567,6 +651,7 @@ namespace IS_VOD_Downloader
                         if (!selected)
                             return InternalState.Exit;
                     }
+                }
             }
 
             Console.WriteLine("");
@@ -578,63 +663,6 @@ namespace IS_VOD_Downloader
         {
             var selected = IOHelper.BoolSelect("yes", "No", "Do you want to start over?");
             return selected ? InternalState.CourseSelect : InternalState.Exit;
-        }
-
-
-
-        public ConsoleApp()
-        {
-            _baseUrl = "https://is.muni.cz/";
-            _hasCookies = false;
-            _request = new Request();
-            _ffmpegDir = null;
-            _deleteOriginal = false;
-        }
-
-        public async Task RunAsync()
-        {
-            QueryData queryData = new(_baseUrl);
-            var state = InternalState.CourseSelect;
-            bool firstRun = true;
-
-            while (true)
-            {
-                switch (state)
-                {
-                    case InternalState.CourseSelect:
-                        queryData.Clear();
-                        state = await CourseSelect(queryData);
-                        break;
-                    case InternalState.TermSelect:
-                        state = await TermSelect(queryData);
-                        break;
-                    case InternalState.CookiesSelect:
-                        if (firstRun)
-                            Console.WriteLine("\nAuthorization required to continue. Please login to https://is.muni.cz/ in your browser and copy-paste your cookies:");
-                        firstRun = false;
-                        state = await CookiesSelect(queryData);
-                        break;
-                    case InternalState.ChapterVideoSelect:
-                        state = await ChapterVideoSelect(queryData);
-                        break;
-                    case InternalState.QualitySelect:
-                        QualitySelect(queryData);
-                        state = InternalState.ConversionSelect;
-                        break;
-                    case InternalState.ConversionSelect:
-                        ConversionSelect();
-                        state = InternalState.Download;
-                        break;
-                    case InternalState.Download:
-                        state = await Download(queryData);
-                        break;
-                    case InternalState.Finished:
-                        state = Finished();
-                        break;
-                    case InternalState.Exit:
-                        return;
-                }
-            }
         }
     }
 }

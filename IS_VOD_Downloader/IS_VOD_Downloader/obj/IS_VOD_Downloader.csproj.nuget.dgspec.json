@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\IS_VOD_Downloader\\IS_VOD_Downloader\\IS_VOD_Downloader.csproj": {}
+    "C:\\Users\\lbast\\Documents\\0_Projects\\PV178\\IS_VOD_Downloader\\IS_VOD_Downloader\\IS_VOD_Downloader.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\IS_VOD_Downloader\\IS_VOD_Downloader\\IS_VOD_Downloader.csproj": {
+    "C:\\Users\\lbast\\Documents\\0_Projects\\PV178\\IS_VOD_Downloader\\IS_VOD_Downloader\\IS_VOD_Downloader.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\IS_VOD_Downloader\\IS_VOD_Downloader\\IS_VOD_Downloader.csproj",
+        "projectUniqueName": "C:\\Users\\lbast\\Documents\\0_Projects\\PV178\\IS_VOD_Downloader\\IS_VOD_Downloader\\IS_VOD_Downloader.csproj",
         "projectName": "IS_VOD_Downloader",
-        "projectPath": "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\IS_VOD_Downloader\\IS_VOD_Downloader\\IS_VOD_Downloader.csproj",
-        "packagesPath": "C:\\Users\\Stratos\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Stratos\\Documents\\0_projects\\PV178\\IS_VOD_Downloader\\IS_VOD_Downloader\\obj\\",
+        "projectPath": "C:\\Users\\lbast\\Documents\\0_Projects\\PV178\\IS_VOD_Downloader\\IS_VOD_Downloader\\IS_VOD_Downloader.csproj",
+        "packagesPath": "C:\\Users\\lbast\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\lbast\\Documents\\0_Projects\\PV178\\IS_VOD_Downloader\\IS_VOD_Downloader\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Stratos\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\lbast\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -60,12 +60,30 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[6.0.14, 6.0.14]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[6.0.14, 6.0.14]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[6.0.14, 6.0.14]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[6.0.14, 6.0.14]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.202\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.200\\RuntimeIdentifierGraph.json"
         }
       }
     }

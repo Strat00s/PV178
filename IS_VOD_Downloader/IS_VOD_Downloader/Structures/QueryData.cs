@@ -133,11 +133,11 @@ namespace IS_VOD_Downloader.Structures
 
         public void Clear()
         {
-            _auth = String.Empty;
+            //_auth = String.Empty;
             Faculty = new(String.Empty, String.Empty);
             Course = new(String.Empty, String.Empty);
             Term = new(String.Empty, String.Empty);
-            Streams = new();
+            Streams.Clear();
             Quality = "media-1/";
         }
     }
