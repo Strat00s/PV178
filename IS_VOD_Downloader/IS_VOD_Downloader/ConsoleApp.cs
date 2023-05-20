@@ -7,7 +7,6 @@ using System.Threading.Channels;
 using IS_VOD_Downloader.Enums;
 using System.Net;
 using Xabe.FFmpeg;
-using System.Dynamic;
 
 namespace IS_VOD_Downloader
 {
@@ -37,40 +36,52 @@ namespace IS_VOD_Downloader
 
             while (true)
             {
-                switch (state)
+                try {
+                    switch (state)
+                    {
+                        case InternalState.CourseSelect:
+                            queryData.Clear();
+                            state = await CourseSelect(queryData);
+                            break;
+                        case InternalState.TermSelect:
+                            state = await TermSelect(queryData);
+                            break;
+                        case InternalState.CookiesSelect:
+                            if (firstRun)
+                                Console.WriteLine("\nAuthorization required to continue. Please login to https://is.muni.cz/ in your browser and copy-paste your cookies:");
+                            firstRun = false;
+                            state = await CookiesSelect(queryData);
+                            break;
+                        case InternalState.ChapterVideoSelect:
+                            state = await ChapterVideoSelect(queryData);
+                            break;
+                        case InternalState.QualitySelect:
+                            QualitySelect(queryData);
+                            state = InternalState.ConversionSelect;
+                            break;
+                        case InternalState.ConversionSelect:
+                            ConversionSelect();
+                            state = InternalState.Download;
+                            break;
+                        case InternalState.Download:
+                            state = await Download(queryData);
+                            break;
+                        case InternalState.Finished:
+                            state = Finished();
+                            break;
+                        case InternalState.Exit:
+                            return;
+                    }
+                }
+                catch (HttpListenerException ex)
                 {
-                    case InternalState.CourseSelect:
-                        queryData.Clear();
-                        state = await CourseSelect(queryData);
-                        break;
-                    case InternalState.TermSelect:
-                        state = await TermSelect(queryData);
-                        break;
-                    case InternalState.CookiesSelect:
-                        if (firstRun)
-                            Console.WriteLine("\nAuthorization required to continue. Please login to https://is.muni.cz/ in your browser and copy-paste your cookies:");
-                        firstRun = false;
-                        state = await CookiesSelect(queryData);
-                        break;
-                    case InternalState.ChapterVideoSelect:
-                        state = await ChapterVideoSelect(queryData);
-                        break;
-                    case InternalState.QualitySelect:
-                        QualitySelect(queryData);
-                        state = InternalState.ConversionSelect;
-                        break;
-                    case InternalState.ConversionSelect:
-                        ConversionSelect();
-                        state = InternalState.Download;
-                        break;
-                    case InternalState.Download:
-                        state = await Download(queryData);
-                        break;
-                    case InternalState.Finished:
-                        state = Finished();
-                        break;
-                    case InternalState.Exit:
-                        return;
+                    Console.WriteLine($"Network error: {ex.Message}");
+                    state = InternalState.Finished;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    return;
                 }
             }
         }
@@ -148,7 +159,7 @@ namespace IS_VOD_Downloader
 
 
         //request methods
-        private async Task<List<(string, string)>> SearchForCourse(string courseCode)
+        private async Task<List<NamePathPair>> SearchForCourse(string courseCode)
         {
             var requestBody = new FormUrlEncodedContent(new[]
             {
@@ -169,16 +180,15 @@ namespace IS_VOD_Downloader
             return htmlDoc.DocumentNode
                 .Descendants()
                 .Where(node => node.HasClass("course_link"))
-                .Select(node => (
-                    node.GetDirectInnerText(),
+                .Select(node => new NamePathPair(
+                    node.GetDirectInnerText(),  //course code
                     node.GetAttributeValue("href", String.Empty)
                 ))
-                .Where(pair => pair.Item2 != String.Empty)
+                .Where(pair => pair.Path != String.Empty)
                 .ToList();
         }
 
-        //
-        private async Task<List<(string, string)>> GetTermsForCourse(string courseUrl)
+        private async Task<List<NamePathPair>> GetTermsForCourse(string courseUrl)
         {
             courseUrl = courseUrl.Trim('/');
             var response = await _request.GetAsync(courseUrl);
@@ -190,18 +200,18 @@ namespace IS_VOD_Downloader
                 .First()
                 .ChildNodes
                 .Where(x => x.Name == "a")
-                .Select(node => (
-                    FormatTerm(node.GetDirectInnerText()),
+                .Select(node => new NamePathPair(
+                    FormatTerm(node.GetDirectInnerText()),  //term name (en/cz)
                     node.GetAttributeValue("href", String.Empty).Split("/")[^2]
                 ))
-                .Where(pair => pair.Item2 != String.Empty)
-                .Append((FormatTerm(courseUrl.Split("/")[^2]), courseUrl.Split("/")[^2]))
+                .Where(pair => pair.Path != String.Empty)
+                .Append(new (FormatTerm(courseUrl.Split("/")[^2]), courseUrl.Split("/")[^2]))
                 .Reverse()
                 .ToList();
         }
 
         //get chapter (lecture) with VoDs and redirect links to them
-        private async Task<List<(string, string)>> GetChaptersWithVoDs(string syllabusUrl)
+        private async Task<List<NamePathPair>> GetChaptersWithVoDs(string syllabusUrl)
         {
             var response = await _request.GetAsync(syllabusUrl);
             var result = await response.ReadAsStringAsync();
@@ -214,7 +224,7 @@ namespace IS_VOD_Downloader
                     node.Descendants()
                         .Any(subnode => subnode.HasClass("io-obsahuje-prvek") && subnode.InnerText.Contains("Video"))   //get all chapters with some video(s)
                 )
-                .Select(node => (
+                .Select(node => new NamePathPair(
                     node.Descendants()
                         .Where(subnode => subnode.HasClass("io-kapitola-nazev"))
                         .First()
@@ -228,7 +238,7 @@ namespace IS_VOD_Downloader
         }
 
         //get video name, key and path
-        private async Task<List<(string, string, string)>> GetVoDsData(string chapterUrl)
+        private async Task<List<NameKeyPath>> GetVoDsData(string chapterUrl)
         {
             var response = await _request.GetAsync(chapterUrl);
             var result = await response.ReadAsStringAsync();
@@ -283,7 +293,7 @@ namespace IS_VOD_Downloader
                 .Join(keyIdPairs,
                     vodData => vodData.Item2.Item2,
                     kip => kip.Item2,
-                    (vodData, kip) => (vodData.InnerText, kip.Item1, vodData.Item2.Item1)
+                    (vodData, kip) => new NameKeyPath(vodData.InnerText, kip.Item1, vodData.Item2.Item1)
                 )
                 .ToList();
         }
@@ -340,9 +350,9 @@ namespace IS_VOD_Downloader
             }
 
             //get course
-            var selected = IOHelper.Select(coursesData.Select(c => c.Item1).ToList(), "Please select course");
-            var courseFac = coursesData[selected].Item1.Split(":");
-            var paths = coursesData[selected].Item2.Split("/");
+            var selected = IOHelper.Select(coursesData.Select(c => c.Name).ToList(), "Please select course");
+            var courseFac = coursesData[selected].Name.Split(":");
+            var paths = coursesData[selected].Path.Split("/");
             queryData.AddFaculty(new(courseFac[0], paths[2]));
             queryData.AddCourse(new(courseFac[1], paths[4]));
             queryData.AddTerm(new(String.Empty, paths[3]));
@@ -354,8 +364,8 @@ namespace IS_VOD_Downloader
             var terms = await IOHelper.AnimateAwaitAsync(GetTermsForCourse(queryData.GetCourseUrl()), "Extracting terms");
 
             //get term
-            var selected = IOHelper.Select(terms.Select(t => t.Item1).ToList(), "Please select term");
-            queryData.AddTerm(new(terms[selected].Item1, terms[selected].Item2));
+            var selected = IOHelper.Select(terms.Select(t => t.Name).ToList(), "Please select term");
+            queryData.AddTerm(new(terms[selected].Name, terms[selected].Path));
             return InternalState.CookiesSelect;
         }
 
@@ -414,7 +424,7 @@ namespace IS_VOD_Downloader
 
         private async Task<InternalState> ChapterVideoSelect(QueryData queryData)
         {
-            var chapters = new List<(string, string)>();
+            var chapters = new List<NamePathPair>();
 
             try
             {
@@ -434,21 +444,21 @@ namespace IS_VOD_Downloader
             }
 
             //go through each chapter and find all videos. If some has multiple, ask which ones to download
-            var selectedChapters = IOHelper.MultiSelect(chapters.Select(c => c.Item1).ToList(), "Please select chapter(s)");
-            List<(string, List<(string, string, string)>)> multipleStreamsInChapter = new();
+            var selectedChapters = IOHelper.MultiSelect(chapters.Select(c => c.Name).ToList(), "Please select chapter(s)");
+            List<(string, List<NameKeyPath>)> multipleStreamsInChapter = new();
             int i = 1;
             foreach (var chapterIndex in selectedChapters)
             {
-                var chapterUrl = queryData.GetSyllabusUrl() + $"?prejit={chapters[chapterIndex].Item2}";
+                var chapterUrl = queryData.GetSyllabusUrl() + $"?prejit={chapters[chapterIndex].Path}";
                 var streamData = await IOHelper.AnimateAwaitAsync(GetVoDsData(chapterUrl), $"Extracting stream data {i++}/{selectedChapters.Count}", true);
                 if (streamData.Count == 1)
                 {
-                    var streamPathSplits = streamData[0].Item3.Split("/");
+                    var streamPathSplits = streamData[0].Path.Split("/");
                     var streamPath = streamPathSplits[6] + "/" + streamPathSplits[7];
-                    queryData.AddStream(chapters[chapterIndex].Item1, streamData[0].Item1, streamData[0].Item2, streamPath);
+                    queryData.AddStream(chapters[chapterIndex].Name, streamData[0].Name, streamData[0].Key, streamPath);
                     continue;
                 }
-                multipleStreamsInChapter.Add((chapters[chapterIndex].Item1, streamData));
+                multipleStreamsInChapter.Add((chapters[chapterIndex].Name, streamData));
             }
             IOHelper.FinishContinuous();
 
@@ -457,12 +467,12 @@ namespace IS_VOD_Downloader
                 var chapterName = streamsInChapter.Item1;
                 var streamsData = streamsInChapter.Item2;
                 Console.WriteLine($"\nMultiple streams found in lecture '{chapterName}':");
-                var selectedStreams = IOHelper.MultiSelect(streamsData.Select(v => v.Item1).ToList(), "Please select stream(s) to download");
+                var selectedStreams = IOHelper.MultiSelect(streamsData.Select(v => v.Name).ToList(), "Please select stream(s) to download");
                 foreach (var streamIndex in selectedStreams)
                 {
-                    var streamPathSplits = streamsData[streamIndex].Item3.Split("/");
+                    var streamPathSplits = streamsData[streamIndex].Path.Split("/");
                     var streamPath = streamPathSplits[6] + "/" + streamPathSplits[7];
-                    queryData.AddStream(chapterName, streamsData[streamIndex].Item1, streamsData[streamIndex].Item2, streamPath);
+                    queryData.AddStream(chapterName, streamsData[streamIndex].Name, streamsData[streamIndex].Key, streamPath);
                 }
             }
 

@@ -5,9 +5,9 @@ namespace IS_VOD_Downloader.Structures
     public class QueryData
     {
         public CookieCollection Cookies { get; private set; }
-        public PathName Faculty { get; private set; }
-        public PathName Course { get; private set; }
-        public PathName Term { get; private set; }
+        public NamePathPair Faculty { get; private set; }
+        public NamePathPair Course { get; private set; }
+        public NamePathPair Term { get; private set; }
 
         public List<StreamData> Streams { get; private set; }
 
@@ -48,19 +48,19 @@ namespace IS_VOD_Downloader.Structures
         }
 
         //add course name and path from human readable course code (e.g.: IA174)
-        public void AddCourse(PathName course)
+        public void AddCourse(NamePathPair course)
         {
             Course = new(course.Name, ValidPath(course.Path));
         }
 
         //add term from human readable format (e.g.: Summer 2022)
-        public void AddTerm(PathName term)
+        public void AddTerm(NamePathPair term)
         {
             Term = new(term.Name, ValidPath(term.Path));
         }
 
         //add Faculty from human readable code (e.g.: FI)
-        public void AddFaculty(PathName faculty)
+        public void AddFaculty(NamePathPair faculty)
         {
             Faculty = new(faculty.Name, ValidPath(faculty.Path));
         }

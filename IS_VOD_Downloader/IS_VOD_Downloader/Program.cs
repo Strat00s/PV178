@@ -9,7 +9,7 @@ namespace ISVOD
         {
             var app = new ConsoleApp();
             await app.RunAsync();
-            Console.WriteLine("See you later...");
+            Console.WriteLine("Exiting...");
         }
     }
 }
