@@ -1,32 +1,35 @@
 ﻿using System.Threading;
 
-public class ThreadSafeInt
+namespace IS_VOD_Downloader.Structures
 {
-    private int _value;
-
-    public ThreadSafeInt(int value = 0)
+    public class ThreadSafeInt
     {
-        _value = value;
-    }
+        private int _value;
 
-    public int Value
-    {
-        get { return Interlocked.CompareExchange(ref _value, 0, 0); }
-        set { Interlocked.Exchange(ref _value, value); }
-    }
+        public ThreadSafeInt(int value = 0)
+        {
+            _value = value;
+        }
 
-    public void Increment()
-    {
-        Interlocked.Increment(ref _value);
-    }
+        public int Value
+        {
+            get { return Interlocked.CompareExchange(ref _value, 0, 0); }
+            set { Interlocked.Exchange(ref _value, value); }
+        }
 
-    public void Decrement()
-    {
-        Interlocked.Decrement(ref _value);
-    }
+        public void Increment()
+        {
+            Interlocked.Increment(ref _value);
+        }
 
-    public void Add(int amount)
-    {
-        Interlocked.Add(ref _value, amount);
+        public void Decrement()
+        {
+            Interlocked.Decrement(ref _value);
+        }
+
+        public void Add(int amount)
+        {
+            Interlocked.Add(ref _value, amount);
+        }
     }
 }

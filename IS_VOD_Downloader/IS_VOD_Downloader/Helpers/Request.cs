@@ -4,7 +4,7 @@ namespace ISVOD
 {
     public class Request
     {
-        private HttpClient _client;
+        private readonly HttpClient _client;
 
 
         public Request()
@@ -24,7 +24,7 @@ namespace ISVOD
         }
 
 
-        private HttpRequestMessage GenerateRequest(HttpMethod method, string url, Dictionary<string, string>? headers)
+        private static HttpRequestMessage GenerateRequest(HttpMethod method, string url, Dictionary<string, string>? headers)
         {
             var request = new HttpRequestMessage(method, url);
             if (headers != null)

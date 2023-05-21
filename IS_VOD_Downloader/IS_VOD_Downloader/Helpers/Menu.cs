@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Security;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-//TODO add option to exit
-namespace IS_VOD_Downloader
+﻿using System.Text.RegularExpressions;
+
+namespace IS_VOD_Downloader.Helpers
 {
     public static class Menu
     {
@@ -31,7 +23,7 @@ namespace IS_VOD_Downloader
             {
                 DrawOptions(options, prompt);
                 var selection = Console.ReadLine();
-                
+
                 //check selection
                 if (int.TryParse(selection, out var i))
                 {
@@ -46,7 +38,7 @@ namespace IS_VOD_Downloader
         public static List<int> MultiSelect(List<string> options, string prompt)
         {
             if (options.Count == 1)
-                return new List<int>() {0};
+                return new List<int>() { 0 };
 
             while (true)
             {
@@ -65,11 +57,12 @@ namespace IS_VOD_Downloader
                 var result = new List<int>();
 
                 //parse the input
-                var parts = selection.Replace(" ", String.Empty).Split(",");
+                var parts = selection.Replace(" ", string.Empty).Split(",");
                 foreach (var part in parts)
                 {
                     var range = part.Split("-");
-                    if (range.Length == 1) {
+                    if (range.Length == 1)
+                    {
                         var index = int.Parse(range[0]);
                         if (index < 1 || index > options.Count)
                         {
@@ -84,7 +77,7 @@ namespace IS_VOD_Downloader
                     {
                         var start = int.Parse(range[0]);
                         var end = int.Parse(range[1]);
-                        if (start < end && start > 0 && end <= options.Count) 
+                        if (start < end && start > 0 && end <= options.Count)
                         {
                             result.AddRange(Enumerable.Range(start - 1, end - start + 1));
                         }

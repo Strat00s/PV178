@@ -11,9 +11,8 @@ namespace IS_VOD_Downloader.Helpers
 {
     public static class DownloadWorker
     {
-        public static async Task Download(Request request, List<Segment> segments, Channel<(int, byte[])> downloadCh, ThreadSafeInt progress, string streamUrl )
+        public static async Task DownloadAsync(Request request, List<Segment> segments, Channel<(int, byte[])> downloadCh, ThreadSafeInt progress, string streamUrl )
         {
-            var data = new List<byte>();
             foreach (var segment in segments)
             {
                 var headers = new Dictionary<string, string>() {

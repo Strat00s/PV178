@@ -1,13 +1,14 @@
-﻿using System.Text.RegularExpressions;
+﻿using IS_VOD_Downloader.Structures;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace IS_VOD_Downloader.Helpers
 {
     static class IOHelper
     {
-        private static int _cursorPosition { get; set; }
-        private static int _dotPosition{ get; set; }
-        private static int _direction { get; set; }
+        private static int _cursorPosition;
+        private static int _dotPosition;
+        private static int _direction;
 
 
         public static string GetInput(string prompt)

@@ -16,7 +16,7 @@ namespace IS_VOD_Downloader.Structures
 
         public string Quality { get; private set; }
 
-        private string ValidPath(string path)
+        private static string ValidPath(string path)
         {
             return path.TrimEnd('/') + "/";
         }

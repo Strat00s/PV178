@@ -41,19 +41,19 @@ namespace IS_VOD_Downloader
                     {
                         case InternalState.CourseSelect:
                             queryData.Clear();
-                            state = await CourseSelect(queryData);
+                            state = await CourseSelectAsync(queryData);
                             break;
                         case InternalState.TermSelect:
-                            state = await TermSelect(queryData);
+                            state = await TermSelectAsync(queryData);
                             break;
                         case InternalState.CookiesSelect:
                             if (firstRun)
                                 Console.WriteLine("\nAuthorization required to continue. Please login to https://is.muni.cz/ in your browser and copy-paste your cookies:");
                             firstRun = false;
-                            state = await CookiesSelect(queryData);
+                            state = await CookiesSelectAsync(queryData);
                             break;
                         case InternalState.ChapterVideoSelect:
-                            state = await ChapterVideoSelect(queryData);
+                            state = await ChapterVideoSelectAsync(queryData);
                             break;
                         case InternalState.QualitySelect:
                             QualitySelect(queryData);
@@ -64,7 +64,7 @@ namespace IS_VOD_Downloader
                             state = InternalState.Download;
                             break;
                         case InternalState.Download:
-                            state = await Download(queryData);
+                            state = await Async(queryData);
                             break;
                         case InternalState.Finished:
                             state = Finished();
@@ -107,7 +107,7 @@ namespace IS_VOD_Downloader
         //check if path with same name exists and create new (windows style)
         public static string GetValidFilePath(string filePath)
         {
-            string path = Path.GetDirectoryName(filePath);
+            string path = Path.GetDirectoryName(filePath) ?? string.Empty;
             string fileName = Path.GetFileNameWithoutExtension(filePath);
             string extension = Path.GetExtension(filePath);
 
@@ -159,7 +159,7 @@ namespace IS_VOD_Downloader
 
 
         //request methods
-        private async Task<List<NamePathPair>> SearchForCourse(string courseCode)
+        private async Task<List<NamePathPair>> SearchForCourseAsync(string courseCode)
         {
             var requestBody = new FormUrlEncodedContent(new[]
             {
@@ -188,7 +188,7 @@ namespace IS_VOD_Downloader
                 .ToList();
         }
 
-        private async Task<List<NamePathPair>> GetTermsForCourse(string courseUrl)
+        private async Task<List<NamePathPair>> GetTermsForCourseAsync(string courseUrl)
         {
             courseUrl = courseUrl.Trim('/');
             var response = await _request.GetAsync(courseUrl);
@@ -211,7 +211,7 @@ namespace IS_VOD_Downloader
         }
 
         //get chapter (lecture) with VoDs and redirect links to them
-        private async Task<List<NamePathPair>> GetChaptersWithVoDs(string syllabusUrl)
+        private async Task<List<NamePathPair>> GetChaptersWithVoDsAsync(string syllabusUrl)
         {
             var response = await _request.GetAsync(syllabusUrl);
             var result = await response.ReadAsStringAsync();
@@ -238,7 +238,7 @@ namespace IS_VOD_Downloader
         }
 
         //get video name, key and path
-        private async Task<List<NameKeyPath>> GetVoDsData(string chapterUrl)
+        private async Task<List<NameKeyPath>> GetVoDsDataAsync(string chapterUrl)
         {
             var response = await _request.GetAsync(chapterUrl);
             var result = await response.ReadAsStringAsync();
@@ -317,7 +317,7 @@ namespace IS_VOD_Downloader
         }
 
         //get OPT for decryption key
-        private async Task<byte[]> GetPrimaryKey(string masterHeader, string authUrl)
+        private async Task<byte[]> GetPrimaryKeyAsync(string masterHeader, string authUrl)
         {
             var match = Regex.Match(masterHeader, @"#EXT-X-KEY:.*");
             if (match.Success)
@@ -329,7 +329,7 @@ namespace IS_VOD_Downloader
             return Array.Empty<byte>();
         }
 
-        private async Task<string> GetMasterHeader(string masterUrl)
+        private async Task<string> GetMasterHeaderAsync(string masterUrl)
         {
             var response = await _request.GetAsync(masterUrl);
             var result = await response.ReadAsStringAsync();
@@ -338,11 +338,11 @@ namespace IS_VOD_Downloader
 
 
         //Main methods
-        private async Task<InternalState> CourseSelect(QueryData queryData)
+        private async Task<InternalState> CourseSelectAsync(QueryData queryData)
         {
             //search for course
             var userInput = IOHelper.GetInput("Please select course to search for (e.q IA174): ");
-            var coursesData = await IOHelper.AnimateAwaitAsync(SearchForCourse(userInput), "Checking course catalog");
+            var coursesData = await IOHelper.AnimateAwaitAsync(SearchForCourseAsync(userInput), "Checking course catalog");
             if (coursesData.Count == 0)
             {
                 Console.WriteLine($"No course with code '{userInput}' found!");
@@ -359,9 +359,9 @@ namespace IS_VOD_Downloader
             return InternalState.TermSelect;
         }
 
-        private async Task<InternalState> TermSelect(QueryData queryData)
+        private async Task<InternalState> TermSelectAsync(QueryData queryData)
         {
-            var terms = await IOHelper.AnimateAwaitAsync(GetTermsForCourse(queryData.GetCourseUrl()), "Extracting terms");
+            var terms = await IOHelper.AnimateAwaitAsync(GetTermsForCourseAsync(queryData.GetCourseUrl()), "Extracting terms");
 
             //get term
             var selected = IOHelper.Select(terms.Select(t => t.Name).ToList(), "Please select term");
@@ -369,7 +369,7 @@ namespace IS_VOD_Downloader
             return InternalState.CookiesSelect;
         }
 
-        private async Task<InternalState> CookiesSelect(QueryData queryData)
+        private async Task<InternalState> CookiesSelectAsync(QueryData queryData)
         {
             if (_hasCookies)
             {
@@ -422,13 +422,13 @@ namespace IS_VOD_Downloader
             return InternalState.ChapterVideoSelect;
         }
 
-        private async Task<InternalState> ChapterVideoSelect(QueryData queryData)
+        private async Task<InternalState> ChapterVideoSelectAsync(QueryData queryData)
         {
             var chapters = new List<NamePathPair>();
 
             try
             {
-                chapters = await IOHelper.AnimateAwaitAsync(GetChaptersWithVoDs(queryData.GetSyllabusUrl()), "Extracting lectures with streams");
+                chapters = await IOHelper.AnimateAwaitAsync(GetChaptersWithVoDsAsync(queryData.GetSyllabusUrl()), "Extracting lectures with streams");
             }
             catch (HttpRequestException)
             {
@@ -450,7 +450,7 @@ namespace IS_VOD_Downloader
             foreach (var chapterIndex in selectedChapters)
             {
                 var chapterUrl = queryData.GetSyllabusUrl() + $"?prejit={chapters[chapterIndex].Path}";
-                var streamData = await IOHelper.AnimateAwaitAsync(GetVoDsData(chapterUrl), $"Extracting stream data {i++}/{selectedChapters.Count}", true);
+                var streamData = await IOHelper.AnimateAwaitAsync(GetVoDsDataAsync(chapterUrl), $"Extracting stream data {i++}/{selectedChapters.Count}", true);
                 if (streamData.Count == 1)
                 {
                     var streamPathSplits = streamData[0].Path.Split("/");
@@ -546,7 +546,7 @@ namespace IS_VOD_Downloader
             _deleteOriginal = IOHelper.BoolSelect("Yes", "no", "Once done, do you want to delete the original file(s)?");
         }
 
-        private async Task<InternalState> Download(QueryData queryData)
+        private async Task<InternalState> Async(QueryData queryData)
         {
             Console.WriteLine("");
             Console.WriteLine("Starting download");
@@ -555,10 +555,10 @@ namespace IS_VOD_Downloader
                 Console.WriteLine($"\n\nCurrently downloading '{stream.VideoName}' from lecture '{stream.ChapterName}'");
                 //1. get segments and decryption key
                 var streamUrl = queryData.GetFileUrl() + stream.StreamPath + queryData.Quality;
-                var masterHeader = await IOHelper.AnimateAwaitAsync(GetMasterHeader(streamUrl + "stream.m3u8"), "Extracting segments");
+                var masterHeader = await IOHelper.AnimateAwaitAsync(GetMasterHeaderAsync(streamUrl + "stream.m3u8"), "Extracting segments");
                 var segments = GetSegments(masterHeader);
 
-                var primaryKey = await IOHelper.AnimateAwaitAsync(GetPrimaryKey(masterHeader, queryData.GetBaseUrl()), "Extracting decryption key");
+                var primaryKey = await IOHelper.AnimateAwaitAsync(GetPrimaryKeyAsync(masterHeader, queryData.GetBaseUrl()), "Extracting decryption key");
                 var decryptionKey = ArrayXOR(primaryKey, Convert.FromHexString(stream.EncodeKey));
 
 
@@ -579,7 +579,7 @@ namespace IS_VOD_Downloader
                 //3 start download
                 var segmentCnt = 0;
                 var rawData = new List<byte>();
-                var downloadTask = downloader.StartDownload(20, downloadProg, segments, streamUrl, downloadedDataCh);
+                var downloadTask = downloader.StartDownloadAsync(20, downloadProg, segments, streamUrl, downloadedDataCh);
                 var decryptTask = simpleAes.DecryptAsync(segments.Count, downloadedDataCh, decryptedDataCh, decryptProg);
                 var progressAnimTask = IOHelper.AnimateProgressAsync(downloadProg, segments.Count, decryptProg, segments.Count);
 
@@ -612,7 +612,7 @@ namespace IS_VOD_Downloader
                 {
                     FFmpeg.SetExecutablesPath(_ffmpegDir);
                     var inputFile = filePath;
-                    var outputFile = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".mp4");
+                    var outputFile = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, Path.GetFileNameWithoutExtension(filePath) + ".mp4");
 
                     try
                     {
