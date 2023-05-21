@@ -641,9 +641,9 @@ namespace IS_VOD_Downloader
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Error: {ex.Message}");
-                        var selected = IOHelper.BoolSelect("yes", "No", "Do you want to start over?");
+                        var selected = IOHelper.BoolSelect("yes", "No", "Do you want to continue?");
                         if (!selected)
-                            return InternalState.Exit;
+                            return InternalState.Finished;
                     }
                 }
                 if (_deleteOriginal)
@@ -659,7 +659,7 @@ namespace IS_VOD_Downloader
                         Console.WriteLine(ex.Message);
                         var selected = IOHelper.BoolSelect("yes", "No", "Do you want to continue?");
                         if (!selected)
-                            return InternalState.Exit;
+                            return InternalState.Finished;
                     }
                 }
             }
