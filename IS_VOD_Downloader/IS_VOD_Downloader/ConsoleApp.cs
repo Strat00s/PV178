@@ -64,7 +64,7 @@ namespace IS_VOD_Downloader
                             state = InternalState.Download;
                             break;
                         case InternalState.Download:
-                            state = await Async(queryData);
+                            state = await DownloadAsync(queryData);
                             break;
                         case InternalState.Finished:
                             state = Finished();
@@ -546,7 +546,7 @@ namespace IS_VOD_Downloader
             _deleteOriginal = IOHelper.BoolSelect("Yes", "no", "Once done, do you want to delete the original file(s)?");
         }
 
-        private async Task<InternalState> Async(QueryData queryData)
+        private async Task<InternalState> DownloadAsync(QueryData queryData)
         {
             Console.WriteLine("");
             Console.WriteLine("Starting download");
